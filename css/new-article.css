@@ -1,25 +1,43 @@
-#recent-posts>.recent-post-item {
-    position: relative;
-}
 
-/* 最新文章图标 */
+/* 最新文章图标样式 */
+#recent-posts>.recent-post-item {
+  position: relative;
+}
 .newPost-left,
 .newPost-right {
-    position: absolute;
-    top: 0;
-    color: white;
-    padding: 0 15px;
-    background-color: #49b1f5;
-    border-radius: 0 0 10px 10px;
+  position: absolute;
+  top: 12px;
+  color: white;
+  padding: 0 12px;
+  background-color: #49b1f5;
+  box-shadow: 0 8px 12px -3px rgba(73,177,245, .20);
+  border-radius: 6px;
+  border: var(--style-border);
+  letter-spacing: 1px;
 }
-
 .newPost-left {
-    left: 15px;
+  left: 12px;
+}
+.newPost-right {
+  right: 12px;
+}
+/* PC端样式 */
+@media screen and (max-width: 768px) {
+  .newPost-left,
+  .newPost-right {
+      top: -4px;
+      padding: 0 18px;
+      border-radius: 0 0 8px 8px;
+  }
+  .newPost-left {
+    left: calc(100% / 2 - 50px);
+  }
+  .newPost-right {
+    right: calc(100% / 2 - 50px);
+  }
 }
 
-.newPost-right {
-    right: 15px;
-}
+
 /* 翻页按钮居中 */
 #pagination {
 	width: 100%;
