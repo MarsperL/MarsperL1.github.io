@@ -407,33 +407,6 @@
       </tags>
   </entry>
   <entry>
-    <title>docker 安装 redis</title>
-    <url>/yyg/6fffbcc4/</url>
-    <content><![CDATA[<h1 id="docker-安装-redis"><a href="#docker-安装-redis" class="headerlink" title="docker 安装 redis"></a>docker 安装 redis</h1><p>首先输入命令<code>docker pull redis</code> ，将最新版redis安装到本地</p>
-<p>输入以下命令,后台启动redis(注：<strong>该命令是一条命令</strong>)</p>
-<p>其中<code>--name</code>后面的是redis容器的名称，可自行更改</p>
-<blockquote>
-<p>docker run -p 6379:6379 –name mars1 –privileged&#x3D;true</p>
-<p> -v &#x2F;app&#x2F;redis&#x2F;redis.conf:&#x2F;etc&#x2F;redis&#x2F;redis.conf </p>
-<p>-v &#x2F;app&#x2F;redis&#x2F;data:&#x2F;data </p>
-<p>-d redis:latest redis-server &#x2F;etc&#x2F;redis&#x2F;redis.conf</p>
-</blockquote>
-<p>此命令也可解决在删除redis容器后，而出现的数据丢失的问题。若要找回数据，则只需重新运行命令即可。</p>
-<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230411164804210.png" alt="image-20230411164804210"></p>
-<p>运行<code>docker ps</code>命令，可查看到redis正在运行</p>
-<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230411163752381.png" alt="image-20230411163752381"></p>
-<p>然后执行<code>docker exec -it mars1 /bin/bash</code>命令，redis成功运行</p>
-<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230411180817939.png" alt="image-20230411180817939"></p>
-]]></content>
-      <categories>
-        <category>docker</category>
-      </categories>
-      <tags>
-        <tag>docker</tag>
-        <tag>redis</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>docker基础知识</title>
     <url>/yyg/7b36b89c/</url>
     <content><![CDATA[<h1 id="docker基础知识"><a href="#docker基础知识" class="headerlink" title="docker基础知识"></a>docker基础知识</h1><p><code>docker search 镜像</code> #搜索要下载的镜像</p>
@@ -498,6 +471,33 @@
       <tags>
         <tag>docker</tag>
         <tag>docker基础</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>docker 安装 redis</title>
+    <url>/yyg/6fffbcc4/</url>
+    <content><![CDATA[<h1 id="docker-安装-redis"><a href="#docker-安装-redis" class="headerlink" title="docker 安装 redis"></a>docker 安装 redis</h1><p>首先输入命令<code>docker pull redis</code> ，将最新版redis安装到本地</p>
+<p>输入以下命令,后台启动redis(注：<strong>该命令是一条命令</strong>)</p>
+<p>其中<code>--name</code>后面的是redis容器的名称，可自行更改</p>
+<blockquote>
+<p>docker run -p 6379:6379 –name mars1 –privileged&#x3D;true</p>
+<p> -v &#x2F;app&#x2F;redis&#x2F;redis.conf:&#x2F;etc&#x2F;redis&#x2F;redis.conf </p>
+<p>-v &#x2F;app&#x2F;redis&#x2F;data:&#x2F;data </p>
+<p>-d redis:latest redis-server &#x2F;etc&#x2F;redis&#x2F;redis.conf</p>
+</blockquote>
+<p>此命令也可解决在删除redis容器后，而出现的数据丢失的问题。若要找回数据，则只需重新运行命令即可。</p>
+<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230411164804210.png" alt="image-20230411164804210"></p>
+<p>运行<code>docker ps</code>命令，可查看到redis正在运行</p>
+<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230411163752381.png" alt="image-20230411163752381"></p>
+<p>然后执行<code>docker exec -it mars1 /bin/bash</code>命令，redis成功运行</p>
+<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230411180817939.png" alt="image-20230411180817939"></p>
+]]></content>
+      <categories>
+        <category>docker</category>
+      </categories>
+      <tags>
+        <tag>docker</tag>
+        <tag>redis</tag>
       </tags>
   </entry>
   <entry>
@@ -626,8 +626,8 @@ sed -i &#39;/^kind: ServiceAccount/a\  namespace: cephfs&#39; $(grep -rl &quot;^
         <category>k8s</category>
         <category>ceph</category>
         <category>共享存储</category>
-        <category>ceph集群</category>
         <category>cephadm</category>
+        <category>ceph集群</category>
       </categories>
       <tags>
         <tag>docker</tag>
@@ -740,8 +740,8 @@ sed -i &#39;/^kind: ServiceAccount/a\  namespace: cephfs&#39; $(grep -rl &quot;^
       <categories>
         <category>ceph</category>
         <category>共享存储</category>
-        <category>ceph集群</category>
         <category>cephadm</category>
+        <category>ceph集群</category>
       </categories>
       <tags>
         <tag>ceph</tag>
@@ -1682,8 +1682,8 @@ sed -i -e &quot;/^kind: ServiceAccount/&#123;N;N;a\  namespace: cephfs&#125;&quo
         <category>k8s</category>
         <category>ceph</category>
         <category>共享存储</category>
-        <category>ceph集群</category>
         <category>cephadm</category>
+        <category>ceph集群</category>
       </categories>
       <tags>
         <tag>docker</tag>
