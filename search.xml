@@ -55,100 +55,6 @@
       </tags>
   </entry>
   <entry>
-    <title>docker基础知识</title>
-    <url>/yyg/7b36b89c/</url>
-    <content><![CDATA[<h1 id="docker基础知识"><a href="#docker基础知识" class="headerlink" title="docker基础知识"></a>docker基础知识</h1><p><code>docker search 镜像</code> #搜索要下载的镜像</p>
-<p><code>docker pull 镜像</code> #将镜像拉到本地</p>
-<p><code>docker images</code> #查看已拉取到本地的镜像</p>
-<p><code>docker rmi 镜像名或ID</code> #删除镜像</p>
-<p><code>docker rm 容器ID</code> #删除已停止容器</p>
-<blockquote>
-<p><code>docker rm -f 容器ID</code> #强制删除容器</p>
-</blockquote>
-<p>一次性删除多个容器</p>
-<blockquote>
-<p><code>docker rm -f $(docker ps -a -q)</code></p>
-<p><code>docker ps -a -q |xargs docker rm</code></p>
-</blockquote>
-<p>删除虚悬镜像</p>
-<blockquote>
-<p><code>docker image ls -f dangling=true</code> #显示所有的虚悬镜像</p>
-<p><code>docker image prune</code> #删除虚悬镜像</p>
-</blockquote>
-<p><code>docker ps</code> #查看正在运行的容器</p>
-<blockquote>
-<p><code>docker ps -a</code> #列出所有正在运行和曾运行过的容器</p>
-<p><code>docker ps -l</code> #显示最近创建的容器</p>
-<p><code>docker ps -n</code> #显示最近创建的n个容器</p>
-<p><code>docker ps -q</code> #只显示容器编号</p>
-</blockquote>
-<p><code>docker stop  容器名或ID</code> #结束容器运行</p>
-<p><code>docker kill  容器名或ID</code> #强制停止容器运行</p>
-<p><code>docker start 容器名或ID</code> #启动已停止的容器</p>
-<p><code>docker restart 容器名或ID</code> #重启容器</p>
-<p><code>docker run -it 镜像名或ID</code> #启动镜像(-it指交互式启动)</p>
-<blockquote>
-<p><code>docker run -d 容器名或ID</code> #容器后台运行</p>
-<p><code>docker run -it -p 端口号:端口号 容器名或ID</code> #以特定端口号运行容器</p>
-<p><code>docker run -it -P 容器名或ID</code> #随机分配端口号运行容器</p>
-<p>启动镜像后，按下<code>ctrl+p+q</code>，容器后台运行 </p>
-</blockquote>
-<p>重新进入后台运行的容器</p>
-<blockquote>
-<p><code>docker exec -it  容器ID</code> #在容器中打开新的终端，并且可以启动新的进程，用exit退出，不会导致容器的停止。(推荐使用)</p>
-<p><code>docker attach 容器ID</code>  #直接进入容器启动命令的终端，不会启动新的进程，用exit退出，会导致容器的停止。</p>
-</blockquote>
-<p><code>docker inspect 容器ID</code>#显示容器内的详细信息</p>
-<p><code>docker logs  容器ID</code> #查看容器日志</p>
-<p><code>docker top  容器ID</code> 查看容器内进程</p>
-<p><code>docker cp  容器ID:容器内路径 目的主机路径</code> #将文件从容器拷贝到主机</p>
-<p>容器的导入导出</p>
-<blockquote>
-<p><code>docker export  容器ID &gt;文件名.tar</code> #将容器及内容导出为tar包</p>
-<p><code>cat 文件名.tar | docker import -镜像用户/镜像名:镜像版本号</code> #从tar包中创建一个新文件系统再导入镜像</p>
-</blockquote>
-<p><code>docker run -it --privileged=true -v /宿主机目录:/容器内目录 镜像名</code>#宿主机与容器之间映射添加容器卷</p>
-<p><code>docker run -it --privileged=true -v /宿主机目录:/容器内目录:rw 镜像名</code>#宿主机与容器之间映射添加容器卷,容器内文件可读可写</p>
-<p><code>docker run -it --privileged=true -v /宿主机目录:/容器内目录:ro 镜像名</code>#宿主机与容器之间映射添加容器卷,容器内文件只可读</p>
-<p><code>docker run -it --privileged=true -volumes-from 父类 -name 容器2名称 镜像名</code> #容器2继承容器1的卷规则</p>
-<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230407171910378.png" alt="image-20230407171910378"></p>
-]]></content>
-      <categories>
-        <category>docker</category>
-      </categories>
-      <tags>
-        <tag>docker</tag>
-        <tag>docker基础</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>docker 安装 redis</title>
-    <url>/yyg/6fffbcc4/</url>
-    <content><![CDATA[<h1 id="docker-安装-redis"><a href="#docker-安装-redis" class="headerlink" title="docker 安装 redis"></a>docker 安装 redis</h1><p>首先输入命令<code>docker pull redis</code> ，将最新版redis安装到本地</p>
-<p>输入以下命令,后台启动redis(注：<strong>该命令是一条命令</strong>)</p>
-<p>其中<code>--name</code>后面的是redis容器的名称，可自行更改</p>
-<blockquote>
-<p>docker run -p 6379:6379 –name mars1 –privileged&#x3D;true</p>
-<p> -v &#x2F;app&#x2F;redis&#x2F;redis.conf:&#x2F;etc&#x2F;redis&#x2F;redis.conf </p>
-<p>-v &#x2F;app&#x2F;redis&#x2F;data:&#x2F;data </p>
-<p>-d redis:latest redis-server &#x2F;etc&#x2F;redis&#x2F;redis.conf</p>
-</blockquote>
-<p>此命令也可解决在删除redis容器后，而出现的数据丢失的问题。若要找回数据，则只需重新运行命令即可。</p>
-<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230411164804210.png" alt="image-20230411164804210"></p>
-<p>运行<code>docker ps</code>命令，可查看到redis正在运行</p>
-<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230411163752381.png" alt="image-20230411163752381"></p>
-<p>然后执行<code>docker exec -it mars1 /bin/bash</code>命令，redis成功运行</p>
-<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230411180817939.png" alt="image-20230411180817939"></p>
-]]></content>
-      <categories>
-        <category>docker</category>
-      </categories>
-      <tags>
-        <tag>docker</tag>
-        <tag>redis</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Kubeadm方式搭建K8S集群</title>
     <url>/yyg/12690776/</url>
     <content><![CDATA[<h1 id="Kubeadm方式搭建K8S集群"><a href="#Kubeadm方式搭建K8S集群" class="headerlink" title="Kubeadm方式搭建K8S集群"></a>Kubeadm方式搭建K8S集群</h1><h3 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h3><p>在虚拟机里安装三台centos 7.x操作系统</p>
@@ -253,167 +159,6 @@
         <tag>k8s</tag>
         <tag>Kubeadm</tag>
         <tag>k8s集群</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>docker安装mysql</title>
-    <url>/yyg/25ae9841/</url>
-    <content><![CDATA[<h1 id="docker安装mysql"><a href="#docker安装mysql" class="headerlink" title="docker安装mysql"></a>docker安装mysql</h1><blockquote>
-<p><code>docker pull mysql</code> #拉取mysql镜像(最新版)</p>
-</blockquote>
-<p>若安装特定版本如6.0，则命令如下：</p>
-<p><code>docker pull mysql:6.0</code></p>
-<p>运行mysql，并分配3306端口，该命令如下：(<strong>注：下面的是一条命令</strong>)</p>
-<p>此命令中的<code>jiamian</code>为小编的liunx系统的用户名，用时需替换为自己的用户名</p>
-<p><code>MYSQL_ROOT_PASSWORD</code>后填的是mysql的密码，可自行替换</p>
-<p><code>--name</code>后填的mysql-1是运行的mysql容器的名称，也可自行替换</p>
-<blockquote>
-<p>docker run -d -p 3306:3306 –privileged&#x3D;true -v &#x2F;jiamian&#x2F;mysql&#x2F;log:&#x2F;var&#x2F;log&#x2F;mysql</p>
-<p>-v &#x2F;jiamian&#x2F;mysql&#x2F;data:&#x2F;var&#x2F;lib&#x2F;mysql -v &#x2F;jiamian&#x2F;mysql&#x2F;conf:&#x2F;etc&#x2F;mysql&#x2F;conf.d </p>
-<p>-e MYSQL_ROOT_PASSWORD&#x3D;123456 –name mysql-1 mysql</p>
-</blockquote>
-<p>此命令也可解决在删除mysql容器后，而出现的数据库数据丢失的问题。若要找回数据，则只需重新运行命令即可。</p>
-<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230410201124021.png" alt="image-20230410201124021"></p>
-<p>运行<code>docker ps</code>命令，可查看到mysql正在运行</p>
-<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230410201052873.png" alt="image-20230410201052873"></p>
-<h2 id="解决mysql插入中文乱码的情况"><a href="#解决mysql插入中文乱码的情况" class="headerlink" title="解决mysql插入中文乱码的情况"></a>解决mysql插入中文乱码的情况</h2><p>然后输入命令<code>cd /jiamian/mysql/conf</code>。进入该目录后，输入命令<code>vim my.cnf</code>，新建my.cnf文件，</p>
-<p>并输入以下代码</p>
-<blockquote>
-<p>[client]<br>default_character_set&#x3D;utf8<br>[mysqld]<br>collation_server &#x3D; utf8_general_ci<br>character_set_server &#x3D; utf8</p>
-</blockquote>
-<p>保存退出后，输入 <code>docker restart mysql-1</code>，重启mysql。</p>
-<p>再输入<code>docker exec -it mysql-1 /bin/bash</code>进入mysql环境，此时汉字可正常显示</p>
-<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230410202120798.png" alt="image-20230410202120798"></p>
-<h1 id="mysql主从复制"><a href="#mysql主从复制" class="headerlink" title="mysql主从复制"></a>mysql主从复制</h1><p>新建主服务器容器实例3307，具体命令如下：(<strong>注：下面的是一条命令</strong>)</p>
-<p><code>MYSQL_ROOT_PASSWORD</code>后填的是mysql的密码，可自行替换</p>
-<p><code>--name</code>后填的mysql-master是运行的mysql容器的名称，也可自行替换</p>
-<blockquote>
-<p>docker run -d -p 3307:3306 –name mysql-master </p>
-<p>-v &#x2F;mydata&#x2F;mysql-master&#x2F;log:&#x2F;var&#x2F;log&#x2F;mysql </p>
-<p>-v &#x2F;mydata&#x2F;mysql-master&#x2F;data:&#x2F;var&#x2F;lib&#x2F;mysql </p>
-<p>-v &#x2F;mydata&#x2F;mysql-master&#x2F;conf:&#x2F;etc&#x2F;mysql&#x2F;conf.d </p>
-<p>-e MYSQL_ROOT_PASSWORD&#x3D;root mysql:latest</p>
-</blockquote>
-<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230424155951733.png" alt="image-20230424155951733"></p>
-<p>进入&#x2F;mydata&#x2F;mysql–master&#x2F;conf目录下新建my.cnf</p>
-]]></content>
-      <categories>
-        <category>docker</category>
-      </categories>
-      <tags>
-        <tag>docker</tag>
-        <tag>mysql</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>使用cephadm方式部署ceph集群</title>
-    <url>/yyg/89bdf9b5/</url>
-    <content><![CDATA[<h1 id="使用cephadm方式部署ceph集群"><a href="#使用cephadm方式部署ceph集群" class="headerlink" title="使用cephadm方式部署ceph集群"></a>使用cephadm方式部署ceph集群</h1><h2 id="任务目标"><a href="#任务目标" class="headerlink" title="任务目标"></a>任务目标</h2><ol>
-<li>完成使用cephadm方式部署ceph集群</li>
-</ol>
-<h2 id="任务平台"><a href="#任务平台" class="headerlink" title="任务平台"></a>任务平台</h2><ol>
-<li>物理设备–</li>
-<li>操作系统：openEuler 22.03 LTS SP2</li>
-</ol>
-<h2 id="部署指南"><a href="#部署指南" class="headerlink" title="部署指南"></a>部署指南</h2><h3 id="任务一：配置准备"><a href="#任务一：配置准备" class="headerlink" title="任务一：配置准备"></a>任务一：配置准备</h3><ol>
-<li>重命名hostname</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">将10.10.3.117的主机名改为future-ceph-node0</span></span><br><span class="line">hostnamectl set-hostname future-ceph-node0 &amp;&amp; bash</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">将10.10.3.118的主机名改为future-ceph-node1</span></span><br><span class="line">hostnamectl set-hostname future-ceph-node1 &amp;&amp; bash</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">将10.10.3.119的主机名改为future-ceph-node2</span></span><br><span class="line">hostnamectl set-hostname future-ceph-node2 &amp;&amp; bash</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">将10.10.3.120的主机名改为future-ceph-node3</span></span><br><span class="line">hostnamectl set-hostname future-ceph-node3 &amp;&amp; bash</span><br></pre></td></tr></table></figure>
-
-<ol>
-<li>安装前的配置修改</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">关闭防火墙</span></span><br><span class="line">systemctl stop firewalld</span><br><span class="line">systemctl disable firewalld</span><br><span class="line">firewall-cmd --state</span><br><span class="line"><span class="meta prompt_"> </span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">selinux永久关闭</span></span><br><span class="line">setenforce 0</span><br><span class="line"> sed -i &#x27;s/^SELINUX=enforcing$/SELINUX=permissive/&#x27; /etc/selinux/config</span><br><span class="line">cat /etc/selinux/config</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">添加hosts</span></span><br><span class="line">cat &gt;&gt; /etc/hosts &lt;&lt; EOF</span><br><span class="line">10.10.3.117 future-ceph-node0</span><br><span class="line">10.10.3.118 future-ceph-node1</span><br><span class="line">10.10.3.119 future-ceph-node2</span><br><span class="line">10.10.3.120 future-ceph-node3</span><br><span class="line">EOF</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看</span></span><br><span class="line">cat /etc/hosts</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">同步时间</span></span><br><span class="line">yum install ntp -y</span><br><span class="line">systemctl start ntpd</span><br><span class="line">systemctl enable ntpd</span><br><span class="line">yum install chrony  -y</span><br><span class="line">systemctl start chronyd</span><br><span class="line">systemctl enable chronyd</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">修改配置，添加内容</span></span><br><span class="line">echo &quot;</span><br><span class="line">server 10.10.3.70 iburst</span><br><span class="line">allow 10.10.3.0/24</span><br><span class="line">&quot; &gt;&gt; /etc/chrony.conf</span><br><span class="line">timedatectl set-ntp true</span><br><span class="line">systemctl restart chronyd</span><br><span class="line">timedatectl status</span><br><span class="line">date</span><br></pre></td></tr></table></figure>
-
-<ol>
-<li>添加SSH免密通信</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">ssh-keygen -t rsa</span><br><span class="line">ssh-copy-id 10.10.3.118</span><br><span class="line">ssh-copy-id 10.10.3.119</span><br><span class="line">ssh-copy-id 10.10.3.120</span><br></pre></td></tr></table></figure>
-
-<h3 id="任务二：安装docker"><a href="#任务二：安装docker" class="headerlink" title="任务二：安装docker"></a>任务二：安装docker</h3><ol>
-<li>配置Docker CE的yum存储库。打开<code>docker-ce.repo</code>的文件，并将以下内容复制到文件中：</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">[docker-ce-stable]</span><br><span class="line">name=Docker CE Stable - $basearch</span><br><span class="line">baseurl=https://download.docker.com/linux/centos/7/$basearch/stable</span><br><span class="line">enabled=1</span><br><span class="line">gpgcheck=1</span><br><span class="line">gpgkey=https://download.docker.com/linux/centos/gpg &#x27; &gt; /etc/yum.repos.d/docker-ce.repo</span><br></pre></td></tr></table></figure>
-
-<p>保存并退出文件。</p>
-<ol>
-<li>安装Docker CE。运行以下命令来安装Docker CE：</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"> yum -y install docker-ce docker-ce-cli  containerd.io</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动docker并设置开机自启</span></span><br><span class="line">systemctl start docker  </span><br><span class="line">systemctl enable docker</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看版本</span></span><br><span class="line">docker -v</span><br><span class="line">docker compose version</span><br></pre></td></tr></table></figure>
-
-<ol>
-<li>Docker配置修改存储路径，配置修改为如下。</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">将配置写入daemon.json文件</span></span><br><span class="line">echo &#x27;&#123;</span><br><span class="line">  &quot;data-root&quot;: &quot;/data/docker&quot;</span><br><span class="line">&#125; &#x27; &gt; /etc/docker/daemon.json</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看</span></span><br><span class="line">cat /etc/docker/daemon.json</span><br><span class="line">systemctl daemon-reload</span><br><span class="line">systemctl restart docker</span><br><span class="line">docker info</span><br></pre></td></tr></table></figure>
-
-<h3 id="任务三：使用cephadm建设集群"><a href="#任务三：使用cephadm建设集群" class="headerlink" title="任务三：使用cephadm建设集群"></a>任务三：使用cephadm建设集群</h3><ol>
-<li><h4 id="安装ceph软件"><a href="#安装ceph软件" class="headerlink" title="安装ceph软件"></a>安装ceph软件</h4></li>
-</ol>
-<p>在所有主机上安装ceph软件</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum install -y cephadm ceph-common</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看版本</span></span><br><span class="line">ceph -v</span><br></pre></td></tr></table></figure>
-
-<ol>
-<li><h4 id="启用admin节点"><a href="#启用admin节点" class="headerlink" title="启用admin节点"></a>启用admin节点</h4></li>
-</ol>
-<p>在10.10.3.117上启用集群</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">cephadm bootstrap --mon-ip 10.10.3.117</span><br></pre></td></tr></table></figure>
-
-<p>访问dashboard修改默认密码</p>
-<blockquote>
-<p>Fetching dashboard port number…</p>
-<p>Ceph Dashboard is now available at:</p>
-<p>​             URL: <a href="https://future-ceph-node0:8443/">https://future-ceph-node0:8443/</a></p>
-<p>​            User: admin</p>
-<p>​        Password: p4csdavtmr</p>
-<p>Enabling client.admin keyring and conf on hosts with “admin” label</p>
-<p>You can access the Ceph CLI with:</p>
-<p>​        sudo &#x2F;usr&#x2F;sbin&#x2F;cephadm shell –fsid 5f344e64-85e4-11ee-9181-0050569a1378 -c &#x2F;etc&#x2F;ceph&#x2F;ceph.conf -k &#x2F;etc&#x2F;ceph&#x2F;ceph.client.admin.keyring</p>
-</blockquote>
-<ol>
-<li><h4 id="添加节点"><a href="#添加节点" class="headerlink" title="添加节点"></a>添加节点</h4></li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启用ceph命令</span></span><br><span class="line">cephadm shell</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">添加ceph的免密访问</span></span><br><span class="line">ceph cephadm get-pub-key &gt; ~/ceph.pub</span><br><span class="line">ssh-copy-id -f -i ~/ceph.pub root@future-ceph-node1</span><br><span class="line">ssh-copy-id -f -i ~/ceph.pub root@future-ceph-node2</span><br><span class="line">ssh-copy-id -f -i ~/ceph.pub root@future-ceph-node3</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">添加ceph节点</span></span><br><span class="line">ceph orch host add future-ceph-node1 10.10.3.118</span><br><span class="line">ceph orch host add future-ceph-node2 10.10.3.119</span><br><span class="line">ceph orch host add future-ceph-node3 10.10.3.120</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看节点</span></span><br><span class="line">ceph orch host ls</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">添加_admin标签允许该节点运行ceph相关命令</span></span><br><span class="line">ceph orch host label add future-ceph-node1  _admin</span><br><span class="line">ceph orch host label add future-ceph-node2  _admin</span><br><span class="line">ceph orch host label add future-ceph-node3  _admin</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">将配置文件拷贝到其他节点</span></span><br><span class="line">scp /etc/ceph/ceph.conf future-ceph-node1:/etc/ceph/</span><br><span class="line">scp /etc/ceph/ceph.conf future-ceph-node2:/etc/ceph/</span><br><span class="line">scp /etc/ceph/ceph.conf future-ceph-node3:/etc/ceph/</span><br><span class="line">scp /etc/ceph/ceph.client.admin.keyring future-ceph-node1:/etc/ceph/</span><br><span class="line">scp /etc/ceph/ceph.client.admin.keyring future-ceph-node2:/etc/ceph/</span><br><span class="line">scp /etc/ceph/ceph.client.admin.keyring future-ceph-node3:/etc/ceph/</span><br></pre></td></tr></table></figure>
-
-<ol>
-<li><h4 id="设置mon节点（监控）"><a href="#设置mon节点（监控）" class="headerlink" title="设置mon节点（监控）"></a>设置mon节点（监控）</h4></li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">ceph orch apply mon --placement=&quot;4 future-ceph-node0 future-ceph-node1 future-ceph-node2 future-ceph-node3&quot;</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看mon的详细信息</span></span><br><span class="line">ceph mon dump</span><br></pre></td></tr></table></figure>
-
-<ol>
-<li><h4 id="设置mgr节点（管理）"><a href="#设置mgr节点（管理）" class="headerlink" title="设置mgr节点（管理）"></a>设置mgr节点（管理）</h4></li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">ceph orch apply mgr --placement=&quot;2 future-ceph-node0 future-ceph-node1 &quot;</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看详情</span></span><br><span class="line"> ceph orch ls</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">打上标签</span></span><br><span class="line"> ceph orch host label add future-ceph-node0 master</span><br><span class="line"> ceph orch host label add future-ceph-node1 master</span><br></pre></td></tr></table></figure>
-
-<ol>
-<li><h4 id="添加osd（存储数据）"><a href="#添加osd（存储数据）" class="headerlink" title="添加osd（存储数据）"></a>添加osd（存储数据）</h4></li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看要挂载的磁盘</span></span><br><span class="line">lsblk</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">所有节点</span></span><br><span class="line">ceph orch daemon add osd future-ceph-node0:/dev/sdb</span><br><span class="line">ceph orch daemon add osd future-ceph-node1:/dev/sdb</span><br><span class="line">ceph orch daemon add osd future-ceph-node2:/dev/sdb</span><br><span class="line">ceph orch daemon add osd future-ceph-node3:/dev/sdb</span><br></pre></td></tr></table></figure>
-
-<ol>
-<li><h4 id="创建mds（元数据）"><a href="#创建mds（元数据）" class="headerlink" title="创建mds（元数据）"></a>创建mds（元数据）</h4></li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">创建cephfs文件系统</span></span><br><span class="line">ceph osd pool create cephfs_data</span><br><span class="line">ceph osd pool create cephfs_metadata</span><br><span class="line">ceph fs new cephfs cephfs_metadata cephfs_data</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">设置mds组件</span></span><br><span class="line"> ceph orch apply mds cephfs --placement=&quot;4 future-ceph-node0 future-ceph-node1 future-ceph-node2 future-ceph-node3&quot;</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">查看mds状态</span></span><br><span class="line"> ceph orch ps --daemon-type mds</span><br></pre></td></tr></table></figure>
-
-<ol>
-<li><h4 id="配置rgw（对象网关）"><a href="#配置rgw（对象网关）" class="headerlink" title="配置rgw（对象网关）"></a>配置rgw（对象网关）</h4></li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">创建名为myorg的realm</span></span><br><span class="line">radosgw-admin realm create --rgw-realm=myorg </span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">创建名为default的区域组(设置为主区域组)</span></span><br><span class="line">radosgw-admin zonegroup create --rgw-zonegroup=default --master</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">创建名为cn-east-1的区域（设置为主区域）</span></span><br><span class="line"> radosgw-admin zone create --rgw-zonegroup=default --rgw-zone=cn-east-1 --master</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">为realm与区域配置radosgw</span></span><br><span class="line"> ceph orch apply rgw myorg cn-east-1 --placement=&quot;4 future-ceph-node0 future-ceph-node1 future-ceph-node2 future-ceph-node3&quot;</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">验证</span></span><br><span class="line"> ceph orch ps --daemon-type rgw</span><br><span class="line"> ceph -s</span><br></pre></td></tr></table></figure>
-
-<ol>
-<li><h4 id="访问测试"><a href="#访问测试" class="headerlink" title="访问测试"></a>访问测试</h4></li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">ceph-Dashboard</span></span><br><span class="line">https://10.10.3.117:8443</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">Prometheus</span></span><br><span class="line">http://10.10.3.117:9095/</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">Grafana</span></span><br><span class="line">https://10.10.3.117:3000/</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>ceph</category>
-        <category>cephadm</category>
-        <category>共享存储</category>
-        <category>ceph集群</category>
-      </categories>
-      <tags>
-        <tag>ceph</tag>
-        <tag>cephadm</tag>
-        <tag>共享存储</tag>
-        <tag>ceph集群</tag>
       </tags>
   </entry>
   <entry>
@@ -662,6 +407,150 @@
       </tags>
   </entry>
   <entry>
+    <title>docker 安装 redis</title>
+    <url>/yyg/6fffbcc4/</url>
+    <content><![CDATA[<h1 id="docker-安装-redis"><a href="#docker-安装-redis" class="headerlink" title="docker 安装 redis"></a>docker 安装 redis</h1><p>首先输入命令<code>docker pull redis</code> ，将最新版redis安装到本地</p>
+<p>输入以下命令,后台启动redis(注：<strong>该命令是一条命令</strong>)</p>
+<p>其中<code>--name</code>后面的是redis容器的名称，可自行更改</p>
+<blockquote>
+<p>docker run -p 6379:6379 –name mars1 –privileged&#x3D;true</p>
+<p> -v &#x2F;app&#x2F;redis&#x2F;redis.conf:&#x2F;etc&#x2F;redis&#x2F;redis.conf </p>
+<p>-v &#x2F;app&#x2F;redis&#x2F;data:&#x2F;data </p>
+<p>-d redis:latest redis-server &#x2F;etc&#x2F;redis&#x2F;redis.conf</p>
+</blockquote>
+<p>此命令也可解决在删除redis容器后，而出现的数据丢失的问题。若要找回数据，则只需重新运行命令即可。</p>
+<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230411164804210.png" alt="image-20230411164804210"></p>
+<p>运行<code>docker ps</code>命令，可查看到redis正在运行</p>
+<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230411163752381.png" alt="image-20230411163752381"></p>
+<p>然后执行<code>docker exec -it mars1 /bin/bash</code>命令，redis成功运行</p>
+<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230411180817939.png" alt="image-20230411180817939"></p>
+]]></content>
+      <categories>
+        <category>docker</category>
+      </categories>
+      <tags>
+        <tag>docker</tag>
+        <tag>redis</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>docker安装mysql</title>
+    <url>/yyg/25ae9841/</url>
+    <content><![CDATA[<h1 id="docker安装mysql"><a href="#docker安装mysql" class="headerlink" title="docker安装mysql"></a>docker安装mysql</h1><blockquote>
+<p><code>docker pull mysql</code> #拉取mysql镜像(最新版)</p>
+</blockquote>
+<p>若安装特定版本如6.0，则命令如下：</p>
+<p><code>docker pull mysql:6.0</code></p>
+<p>运行mysql，并分配3306端口，该命令如下：(<strong>注：下面的是一条命令</strong>)</p>
+<p>此命令中的<code>jiamian</code>为小编的liunx系统的用户名，用时需替换为自己的用户名</p>
+<p><code>MYSQL_ROOT_PASSWORD</code>后填的是mysql的密码，可自行替换</p>
+<p><code>--name</code>后填的mysql-1是运行的mysql容器的名称，也可自行替换</p>
+<blockquote>
+<p>docker run -d -p 3306:3306 –privileged&#x3D;true -v &#x2F;jiamian&#x2F;mysql&#x2F;log:&#x2F;var&#x2F;log&#x2F;mysql</p>
+<p>-v &#x2F;jiamian&#x2F;mysql&#x2F;data:&#x2F;var&#x2F;lib&#x2F;mysql -v &#x2F;jiamian&#x2F;mysql&#x2F;conf:&#x2F;etc&#x2F;mysql&#x2F;conf.d </p>
+<p>-e MYSQL_ROOT_PASSWORD&#x3D;123456 –name mysql-1 mysql</p>
+</blockquote>
+<p>此命令也可解决在删除mysql容器后，而出现的数据库数据丢失的问题。若要找回数据，则只需重新运行命令即可。</p>
+<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230410201124021.png" alt="image-20230410201124021"></p>
+<p>运行<code>docker ps</code>命令，可查看到mysql正在运行</p>
+<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230410201052873.png" alt="image-20230410201052873"></p>
+<h2 id="解决mysql插入中文乱码的情况"><a href="#解决mysql插入中文乱码的情况" class="headerlink" title="解决mysql插入中文乱码的情况"></a>解决mysql插入中文乱码的情况</h2><p>然后输入命令<code>cd /jiamian/mysql/conf</code>。进入该目录后，输入命令<code>vim my.cnf</code>，新建my.cnf文件，</p>
+<p>并输入以下代码</p>
+<blockquote>
+<p>[client]<br>default_character_set&#x3D;utf8<br>[mysqld]<br>collation_server &#x3D; utf8_general_ci<br>character_set_server &#x3D; utf8</p>
+</blockquote>
+<p>保存退出后，输入 <code>docker restart mysql-1</code>，重启mysql。</p>
+<p>再输入<code>docker exec -it mysql-1 /bin/bash</code>进入mysql环境，此时汉字可正常显示</p>
+<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230410202120798.png" alt="image-20230410202120798"></p>
+<h1 id="mysql主从复制"><a href="#mysql主从复制" class="headerlink" title="mysql主从复制"></a>mysql主从复制</h1><p>新建主服务器容器实例3307，具体命令如下：(<strong>注：下面的是一条命令</strong>)</p>
+<p><code>MYSQL_ROOT_PASSWORD</code>后填的是mysql的密码，可自行替换</p>
+<p><code>--name</code>后填的mysql-master是运行的mysql容器的名称，也可自行替换</p>
+<blockquote>
+<p>docker run -d -p 3307:3306 –name mysql-master </p>
+<p>-v &#x2F;mydata&#x2F;mysql-master&#x2F;log:&#x2F;var&#x2F;log&#x2F;mysql </p>
+<p>-v &#x2F;mydata&#x2F;mysql-master&#x2F;data:&#x2F;var&#x2F;lib&#x2F;mysql </p>
+<p>-v &#x2F;mydata&#x2F;mysql-master&#x2F;conf:&#x2F;etc&#x2F;mysql&#x2F;conf.d </p>
+<p>-e MYSQL_ROOT_PASSWORD&#x3D;root mysql:latest</p>
+</blockquote>
+<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230424155951733.png" alt="image-20230424155951733"></p>
+<p>进入&#x2F;mydata&#x2F;mysql–master&#x2F;conf目录下新建my.cnf</p>
+]]></content>
+      <categories>
+        <category>docker</category>
+      </categories>
+      <tags>
+        <tag>docker</tag>
+        <tag>mysql</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>docker基础知识</title>
+    <url>/yyg/7b36b89c/</url>
+    <content><![CDATA[<h1 id="docker基础知识"><a href="#docker基础知识" class="headerlink" title="docker基础知识"></a>docker基础知识</h1><p><code>docker search 镜像</code> #搜索要下载的镜像</p>
+<p><code>docker pull 镜像</code> #将镜像拉到本地</p>
+<p><code>docker images</code> #查看已拉取到本地的镜像</p>
+<p><code>docker rmi 镜像名或ID</code> #删除镜像</p>
+<p><code>docker rm 容器ID</code> #删除已停止容器</p>
+<blockquote>
+<p><code>docker rm -f 容器ID</code> #强制删除容器</p>
+</blockquote>
+<p>一次性删除多个容器</p>
+<blockquote>
+<p><code>docker rm -f $(docker ps -a -q)</code></p>
+<p><code>docker ps -a -q |xargs docker rm</code></p>
+</blockquote>
+<p>删除虚悬镜像</p>
+<blockquote>
+<p><code>docker image ls -f dangling=true</code> #显示所有的虚悬镜像</p>
+<p><code>docker image prune</code> #删除虚悬镜像</p>
+</blockquote>
+<p><code>docker ps</code> #查看正在运行的容器</p>
+<blockquote>
+<p><code>docker ps -a</code> #列出所有正在运行和曾运行过的容器</p>
+<p><code>docker ps -l</code> #显示最近创建的容器</p>
+<p><code>docker ps -n</code> #显示最近创建的n个容器</p>
+<p><code>docker ps -q</code> #只显示容器编号</p>
+</blockquote>
+<p><code>docker stop  容器名或ID</code> #结束容器运行</p>
+<p><code>docker kill  容器名或ID</code> #强制停止容器运行</p>
+<p><code>docker start 容器名或ID</code> #启动已停止的容器</p>
+<p><code>docker restart 容器名或ID</code> #重启容器</p>
+<p><code>docker run -it 镜像名或ID</code> #启动镜像(-it指交互式启动)</p>
+<blockquote>
+<p><code>docker run -d 容器名或ID</code> #容器后台运行</p>
+<p><code>docker run -it -p 端口号:端口号 容器名或ID</code> #以特定端口号运行容器</p>
+<p><code>docker run -it -P 容器名或ID</code> #随机分配端口号运行容器</p>
+<p>启动镜像后，按下<code>ctrl+p+q</code>，容器后台运行 </p>
+</blockquote>
+<p>重新进入后台运行的容器</p>
+<blockquote>
+<p><code>docker exec -it  容器ID</code> #在容器中打开新的终端，并且可以启动新的进程，用exit退出，不会导致容器的停止。(推荐使用)</p>
+<p><code>docker attach 容器ID</code>  #直接进入容器启动命令的终端，不会启动新的进程，用exit退出，会导致容器的停止。</p>
+</blockquote>
+<p><code>docker inspect 容器ID</code>#显示容器内的详细信息</p>
+<p><code>docker logs  容器ID</code> #查看容器日志</p>
+<p><code>docker top  容器ID</code> 查看容器内进程</p>
+<p><code>docker cp  容器ID:容器内路径 目的主机路径</code> #将文件从容器拷贝到主机</p>
+<p>容器的导入导出</p>
+<blockquote>
+<p><code>docker export  容器ID &gt;文件名.tar</code> #将容器及内容导出为tar包</p>
+<p><code>cat 文件名.tar | docker import -镜像用户/镜像名:镜像版本号</code> #从tar包中创建一个新文件系统再导入镜像</p>
+</blockquote>
+<p><code>docker run -it --privileged=true -v /宿主机目录:/容器内目录 镜像名</code>#宿主机与容器之间映射添加容器卷</p>
+<p><code>docker run -it --privileged=true -v /宿主机目录:/容器内目录:rw 镜像名</code>#宿主机与容器之间映射添加容器卷,容器内文件可读可写</p>
+<p><code>docker run -it --privileged=true -v /宿主机目录:/容器内目录:ro 镜像名</code>#宿主机与容器之间映射添加容器卷,容器内文件只可读</p>
+<p><code>docker run -it --privileged=true -volumes-from 父类 -name 容器2名称 镜像名</code> #容器2继承容器1的卷规则</p>
+<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230407171910378.png" alt="image-20230407171910378"></p>
+]]></content>
+      <categories>
+        <category>docker</category>
+      </categories>
+      <tags>
+        <tag>docker</tag>
+        <tag>docker基础</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>k8s集群对接ceph集群部署指南</title>
     <url>/yyg/57e2a956/</url>
     <content><![CDATA[<h1 id="k8s集群对接ceph集群部署指南"><a href="#k8s集群对接ceph集群部署指南" class="headerlink" title="k8s集群对接ceph集群部署指南"></a>k8s集群对接ceph集群部署指南</h1><h2 id="任务目标"><a href="#任务目标" class="headerlink" title="任务目标"></a>任务目标</h2><ol>
@@ -736,9 +625,9 @@ sed -i &#39;/^kind: ServiceAccount/a\  namespace: cephfs&#39; $(grep -rl &quot;^
         <category>docker</category>
         <category>k8s</category>
         <category>ceph</category>
-        <category>cephadm</category>
         <category>共享存储</category>
         <category>ceph集群</category>
+        <category>cephadm</category>
       </categories>
       <tags>
         <tag>docker</tag>
@@ -748,6 +637,117 @@ sed -i &#39;/^kind: ServiceAccount/a\  namespace: cephfs&#39; $(grep -rl &quot;^
         <tag>ceph集群</tag>
         <tag>容器云</tag>
         <tag>k8s对接ceph</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>使用cephadm方式部署ceph集群</title>
+    <url>/yyg/89bdf9b5/</url>
+    <content><![CDATA[<h1 id="使用cephadm方式部署ceph集群"><a href="#使用cephadm方式部署ceph集群" class="headerlink" title="使用cephadm方式部署ceph集群"></a>使用cephadm方式部署ceph集群</h1><h2 id="任务目标"><a href="#任务目标" class="headerlink" title="任务目标"></a>任务目标</h2><ol>
+<li>完成使用cephadm方式部署ceph集群</li>
+</ol>
+<h2 id="任务平台"><a href="#任务平台" class="headerlink" title="任务平台"></a>任务平台</h2><ol>
+<li>物理设备–</li>
+<li>操作系统：openEuler 22.03 LTS SP2</li>
+</ol>
+<h2 id="部署指南"><a href="#部署指南" class="headerlink" title="部署指南"></a>部署指南</h2><h3 id="任务一：配置准备"><a href="#任务一：配置准备" class="headerlink" title="任务一：配置准备"></a>任务一：配置准备</h3><ol>
+<li>重命名hostname</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">将10.10.3.117的主机名改为future-ceph-node0</span></span><br><span class="line">hostnamectl set-hostname future-ceph-node0 &amp;&amp; bash</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">将10.10.3.118的主机名改为future-ceph-node1</span></span><br><span class="line">hostnamectl set-hostname future-ceph-node1 &amp;&amp; bash</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">将10.10.3.119的主机名改为future-ceph-node2</span></span><br><span class="line">hostnamectl set-hostname future-ceph-node2 &amp;&amp; bash</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">将10.10.3.120的主机名改为future-ceph-node3</span></span><br><span class="line">hostnamectl set-hostname future-ceph-node3 &amp;&amp; bash</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>安装前的配置修改</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">关闭防火墙</span></span><br><span class="line">systemctl stop firewalld</span><br><span class="line">systemctl disable firewalld</span><br><span class="line">firewall-cmd --state</span><br><span class="line"><span class="meta prompt_"> </span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">selinux永久关闭</span></span><br><span class="line">setenforce 0</span><br><span class="line"> sed -i &#x27;s/^SELINUX=enforcing$/SELINUX=permissive/&#x27; /etc/selinux/config</span><br><span class="line">cat /etc/selinux/config</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">添加hosts</span></span><br><span class="line">cat &gt;&gt; /etc/hosts &lt;&lt; EOF</span><br><span class="line">10.10.3.117 future-ceph-node0</span><br><span class="line">10.10.3.118 future-ceph-node1</span><br><span class="line">10.10.3.119 future-ceph-node2</span><br><span class="line">10.10.3.120 future-ceph-node3</span><br><span class="line">EOF</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看</span></span><br><span class="line">cat /etc/hosts</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">同步时间</span></span><br><span class="line">yum install ntp -y</span><br><span class="line">systemctl start ntpd</span><br><span class="line">systemctl enable ntpd</span><br><span class="line">yum install chrony  -y</span><br><span class="line">systemctl start chronyd</span><br><span class="line">systemctl enable chronyd</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">修改配置，添加内容</span></span><br><span class="line">echo &quot;</span><br><span class="line">server 10.10.3.70 iburst</span><br><span class="line">allow 10.10.3.0/24</span><br><span class="line">&quot; &gt;&gt; /etc/chrony.conf</span><br><span class="line">timedatectl set-ntp true</span><br><span class="line">systemctl restart chronyd</span><br><span class="line">timedatectl status</span><br><span class="line">date</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>添加SSH免密通信</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">ssh-keygen -t rsa</span><br><span class="line">ssh-copy-id 10.10.3.118</span><br><span class="line">ssh-copy-id 10.10.3.119</span><br><span class="line">ssh-copy-id 10.10.3.120</span><br></pre></td></tr></table></figure>
+
+<h3 id="任务二：安装docker"><a href="#任务二：安装docker" class="headerlink" title="任务二：安装docker"></a>任务二：安装docker</h3><ol>
+<li>配置Docker CE的yum存储库。打开<code>docker-ce.repo</code>的文件，并将以下内容复制到文件中：</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">[docker-ce-stable]</span><br><span class="line">name=Docker CE Stable - $basearch</span><br><span class="line">baseurl=https://download.docker.com/linux/centos/7/$basearch/stable</span><br><span class="line">enabled=1</span><br><span class="line">gpgcheck=1</span><br><span class="line">gpgkey=https://download.docker.com/linux/centos/gpg &#x27; &gt; /etc/yum.repos.d/docker-ce.repo</span><br></pre></td></tr></table></figure>
+
+<p>保存并退出文件。</p>
+<ol>
+<li>安装Docker CE。运行以下命令来安装Docker CE：</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"> yum -y install docker-ce docker-ce-cli  containerd.io</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动docker并设置开机自启</span></span><br><span class="line">systemctl start docker  </span><br><span class="line">systemctl enable docker</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看版本</span></span><br><span class="line">docker -v</span><br><span class="line">docker compose version</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>Docker配置修改存储路径，配置修改为如下。</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">将配置写入daemon.json文件</span></span><br><span class="line">echo &#x27;&#123;</span><br><span class="line">  &quot;data-root&quot;: &quot;/data/docker&quot;</span><br><span class="line">&#125; &#x27; &gt; /etc/docker/daemon.json</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看</span></span><br><span class="line">cat /etc/docker/daemon.json</span><br><span class="line">systemctl daemon-reload</span><br><span class="line">systemctl restart docker</span><br><span class="line">docker info</span><br></pre></td></tr></table></figure>
+
+<h3 id="任务三：使用cephadm建设集群"><a href="#任务三：使用cephadm建设集群" class="headerlink" title="任务三：使用cephadm建设集群"></a>任务三：使用cephadm建设集群</h3><ol>
+<li><h4 id="安装ceph软件"><a href="#安装ceph软件" class="headerlink" title="安装ceph软件"></a>安装ceph软件</h4></li>
+</ol>
+<p>在所有主机上安装ceph软件</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum install -y cephadm ceph-common</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看版本</span></span><br><span class="line">ceph -v</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li><h4 id="启用admin节点"><a href="#启用admin节点" class="headerlink" title="启用admin节点"></a>启用admin节点</h4></li>
+</ol>
+<p>在10.10.3.117上启用集群</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">cephadm bootstrap --mon-ip 10.10.3.117</span><br></pre></td></tr></table></figure>
+
+<p>访问dashboard修改默认密码</p>
+<blockquote>
+<p>Fetching dashboard port number…</p>
+<p>Ceph Dashboard is now available at:</p>
+<p>​             URL: <a href="https://future-ceph-node0:8443/">https://future-ceph-node0:8443/</a></p>
+<p>​            User: admin</p>
+<p>​        Password: p4csdavtmr</p>
+<p>Enabling client.admin keyring and conf on hosts with “admin” label</p>
+<p>You can access the Ceph CLI with:</p>
+<p>​        sudo &#x2F;usr&#x2F;sbin&#x2F;cephadm shell –fsid 5f344e64-85e4-11ee-9181-0050569a1378 -c &#x2F;etc&#x2F;ceph&#x2F;ceph.conf -k &#x2F;etc&#x2F;ceph&#x2F;ceph.client.admin.keyring</p>
+</blockquote>
+<ol>
+<li><h4 id="添加节点"><a href="#添加节点" class="headerlink" title="添加节点"></a>添加节点</h4></li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启用ceph命令</span></span><br><span class="line">cephadm shell</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">添加ceph的免密访问</span></span><br><span class="line">ceph cephadm get-pub-key &gt; ~/ceph.pub</span><br><span class="line">ssh-copy-id -f -i ~/ceph.pub root@future-ceph-node1</span><br><span class="line">ssh-copy-id -f -i ~/ceph.pub root@future-ceph-node2</span><br><span class="line">ssh-copy-id -f -i ~/ceph.pub root@future-ceph-node3</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">添加ceph节点</span></span><br><span class="line">ceph orch host add future-ceph-node1 10.10.3.118</span><br><span class="line">ceph orch host add future-ceph-node2 10.10.3.119</span><br><span class="line">ceph orch host add future-ceph-node3 10.10.3.120</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看节点</span></span><br><span class="line">ceph orch host ls</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">添加_admin标签允许该节点运行ceph相关命令</span></span><br><span class="line">ceph orch host label add future-ceph-node1  _admin</span><br><span class="line">ceph orch host label add future-ceph-node2  _admin</span><br><span class="line">ceph orch host label add future-ceph-node3  _admin</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">将配置文件拷贝到其他节点</span></span><br><span class="line">scp /etc/ceph/ceph.conf future-ceph-node1:/etc/ceph/</span><br><span class="line">scp /etc/ceph/ceph.conf future-ceph-node2:/etc/ceph/</span><br><span class="line">scp /etc/ceph/ceph.conf future-ceph-node3:/etc/ceph/</span><br><span class="line">scp /etc/ceph/ceph.client.admin.keyring future-ceph-node1:/etc/ceph/</span><br><span class="line">scp /etc/ceph/ceph.client.admin.keyring future-ceph-node2:/etc/ceph/</span><br><span class="line">scp /etc/ceph/ceph.client.admin.keyring future-ceph-node3:/etc/ceph/</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li><h4 id="设置mon节点（监控）"><a href="#设置mon节点（监控）" class="headerlink" title="设置mon节点（监控）"></a>设置mon节点（监控）</h4></li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">ceph orch apply mon --placement=&quot;4 future-ceph-node0 future-ceph-node1 future-ceph-node2 future-ceph-node3&quot;</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看mon的详细信息</span></span><br><span class="line">ceph mon dump</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li><h4 id="设置mgr节点（管理）"><a href="#设置mgr节点（管理）" class="headerlink" title="设置mgr节点（管理）"></a>设置mgr节点（管理）</h4></li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">ceph orch apply mgr --placement=&quot;2 future-ceph-node0 future-ceph-node1 &quot;</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看详情</span></span><br><span class="line"> ceph orch ls</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">打上标签</span></span><br><span class="line"> ceph orch host label add future-ceph-node0 master</span><br><span class="line"> ceph orch host label add future-ceph-node1 master</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li><h4 id="添加osd（存储数据）"><a href="#添加osd（存储数据）" class="headerlink" title="添加osd（存储数据）"></a>添加osd（存储数据）</h4></li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看要挂载的磁盘</span></span><br><span class="line">lsblk</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">所有节点</span></span><br><span class="line">ceph orch daemon add osd future-ceph-node0:/dev/sdb</span><br><span class="line">ceph orch daemon add osd future-ceph-node1:/dev/sdb</span><br><span class="line">ceph orch daemon add osd future-ceph-node2:/dev/sdb</span><br><span class="line">ceph orch daemon add osd future-ceph-node3:/dev/sdb</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li><h4 id="创建mds（元数据）"><a href="#创建mds（元数据）" class="headerlink" title="创建mds（元数据）"></a>创建mds（元数据）</h4></li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">创建cephfs文件系统</span></span><br><span class="line">ceph osd pool create cephfs_data</span><br><span class="line">ceph osd pool create cephfs_metadata</span><br><span class="line">ceph fs new cephfs cephfs_metadata cephfs_data</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">设置mds组件</span></span><br><span class="line"> ceph orch apply mds cephfs --placement=&quot;4 future-ceph-node0 future-ceph-node1 future-ceph-node2 future-ceph-node3&quot;</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">查看mds状态</span></span><br><span class="line"> ceph orch ps --daemon-type mds</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li><h4 id="配置rgw（对象网关）"><a href="#配置rgw（对象网关）" class="headerlink" title="配置rgw（对象网关）"></a>配置rgw（对象网关）</h4></li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">创建名为myorg的realm</span></span><br><span class="line">radosgw-admin realm create --rgw-realm=myorg </span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">创建名为default的区域组(设置为主区域组)</span></span><br><span class="line">radosgw-admin zonegroup create --rgw-zonegroup=default --master</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">创建名为cn-east-1的区域（设置为主区域）</span></span><br><span class="line"> radosgw-admin zone create --rgw-zonegroup=default --rgw-zone=cn-east-1 --master</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">为realm与区域配置radosgw</span></span><br><span class="line"> ceph orch apply rgw myorg cn-east-1 --placement=&quot;4 future-ceph-node0 future-ceph-node1 future-ceph-node2 future-ceph-node3&quot;</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">验证</span></span><br><span class="line"> ceph orch ps --daemon-type rgw</span><br><span class="line"> ceph -s</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li><h4 id="访问测试"><a href="#访问测试" class="headerlink" title="访问测试"></a>访问测试</h4></li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">ceph-Dashboard</span></span><br><span class="line">https://10.10.3.117:8443</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">Prometheus</span></span><br><span class="line">http://10.10.3.117:9095/</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">Grafana</span></span><br><span class="line">https://10.10.3.117:3000/</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>ceph</category>
+        <category>共享存储</category>
+        <category>ceph集群</category>
+        <category>cephadm</category>
+      </categories>
+      <tags>
+        <tag>ceph</tag>
+        <tag>共享存储</tag>
+        <tag>ceph集群</tag>
+        <tag>cephadm</tag>
       </tags>
   </entry>
   <entry>
@@ -1681,9 +1681,9 @@ sed -i -e &quot;/^kind: ServiceAccount/&#123;N;N;a\  namespace: cephfs&#125;&quo
         <category>docker</category>
         <category>k8s</category>
         <category>ceph</category>
-        <category>cephadm</category>
         <category>共享存储</category>
         <category>ceph集群</category>
+        <category>cephadm</category>
       </categories>
       <tags>
         <tag>docker</tag>
