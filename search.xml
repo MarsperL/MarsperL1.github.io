@@ -55,113 +55,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Kubeadm方式搭建K8S集群</title>
-    <url>/yyg/12690776/</url>
-    <content><![CDATA[<h1 id="Kubeadm方式搭建K8S集群"><a href="#Kubeadm方式搭建K8S集群" class="headerlink" title="Kubeadm方式搭建K8S集群"></a>Kubeadm方式搭建K8S集群</h1><h3 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h3><p>在虚拟机里安装三台centos 7.x操作系统</p>
-<p>配置系统名称和ip地址(同一网段)如：</p>
-<table>
-<thead>
-<tr>
-<th>角色</th>
-<th>IP</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>master</td>
-<td>192.168.66.100</td>
-</tr>
-<tr>
-<td>node1</td>
-<td>192.168.66.101</td>
-</tr>
-<tr>
-<td>node2</td>
-<td>192.168.66.102</td>
-</tr>
-</tbody></table>
-<p>三台机器都要执行的命令:（使用xshell执行命令更方便）</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 关闭防火墙</span><br><span class="line">systemctl stop firewalld</span><br><span class="line">systemctl disable firewalld</span><br><span class="line"></span><br><span class="line"># selinux永久关闭</span><br><span class="line">sed -i &#x27;s/enforcing/disabled/&#x27; /etc/selinux/config</span><br><span class="line"></span><br><span class="line"># swap永久关闭</span><br><span class="line">sed -ri &#x27;s/.*swap.*/#&amp;/&#x27; /etc/fstab</span><br><span class="line"></span><br><span class="line"># 添加hosts</span><br><span class="line">cat &gt;&gt; /etc/hosts &lt;&lt; EOF</span><br><span class="line">192.168.66.100 master</span><br><span class="line">192.168.66.101 node1</span><br><span class="line">192.168.66.102 node2</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line"># 将桥接的IPv4流量传递到iptables的链</span><br><span class="line">cat &gt; /etc/sysctl.d/k8s.conf &lt;&lt; EOF</span><br><span class="line">net.bridge.bridge-nf-call-ip6tables = 1</span><br><span class="line">net.bridge.bridge-nf-call-iptables = 1</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line"># 生效</span><br><span class="line">sysctl --system  </span><br><span class="line"></span><br><span class="line"># 时间同步</span><br><span class="line">yum install ntpdate -y</span><br><span class="line">ntpdate time.windows.com</span><br></pre></td></tr></table></figure>
-
-<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230516173905682.png" alt="image-20230516173905682"></p>
-<h3 id="安装Docker（三台机器都需要安装）"><a href="#安装Docker（三台机器都需要安装）" class="headerlink" title="安装Docker（三台机器都需要安装）"></a>安装Docker（三台机器都需要安装）</h3><p>配置Docker的阿里yum源</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cat &gt;/etc/yum.repos.d/docker.repo&lt;&lt;EOF</span><br><span class="line">[docker-ce-edge]</span><br><span class="line">name=Docker CE Edge - \$basearch</span><br><span class="line">baseurl=https://mirrors.aliyun.com/docker-ce/linux/centos/7/\$basearch/edge</span><br><span class="line">enabled=1</span><br><span class="line">gpgcheck=1</span><br><span class="line">gpgkey=https://mirrors.aliyun.com/docker-ce/linux/centos/gpg</span><br><span class="line">EOF</span><br></pre></td></tr></table></figure>
-
-<p>以yum方式安装docker</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># yum安装</span><br><span class="line">yum -y install docker-ce</span><br><span class="line"></span><br><span class="line"># 查看docker版本</span><br><span class="line">docker --version  </span><br><span class="line"></span><br><span class="line"># 启动docker</span><br><span class="line">systemctl enable docker</span><br><span class="line">systemctl start docker</span><br></pre></td></tr></table></figure>
-
-<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230516180634916.png" alt="image-20230516180634916"></p>
-<p>配置docker的镜像源</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cat &gt;&gt; /etc/docker/daemon.json &lt;&lt; EOF</span><br><span class="line">&#123;</span><br><span class="line">  &quot;registry-mirrors&quot;: [&quot;https://b9pmyelo.mirror.aliyuncs.com&quot;]</span><br><span class="line">&#125;</span><br><span class="line">EOF</span><br></pre></td></tr></table></figure>
-
-<p>重启docker</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">systemctl restart docker</span><br></pre></td></tr></table></figure>
-
-<h3 id="添加kubernetes软件源"><a href="#添加kubernetes软件源" class="headerlink" title="添加kubernetes软件源"></a>添加kubernetes软件源</h3><p>配置yum的k8s软件源</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cat &gt; /etc/yum.repos.d/kubernetes.repo &lt;&lt; EOF</span><br><span class="line">[kubernetes]</span><br><span class="line">name=Kubernetes</span><br><span class="line">baseurl=https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64</span><br><span class="line">enabled=1</span><br><span class="line">gpgcheck=0</span><br><span class="line">repo_gpgcheck=0</span><br><span class="line">gpgkey=https://mirrors.aliyun.com/kubernetes/yum/doc/yum-key.gpg https://mirrors.aliyun.com/kubernetes/yum/doc/rpm-package-key.gpg</span><br><span class="line">EOF</span><br></pre></td></tr></table></figure>
-
-<h3 id="安装kubeadm，kubelet和kubectl"><a href="#安装kubeadm，kubelet和kubectl" class="headerlink" title="安装kubeadm，kubelet和kubectl"></a>安装kubeadm，kubelet和kubectl</h3><p>由于版本更新频繁，这里指定版本号部署：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 安装kubelet、kubeadm、kubectl，同时指定版本</span><br><span class="line">yum install -y kubelet-1.18.0 kubeadm-1.18.0 kubectl-1.18.0</span><br><span class="line"># 设置开机启动</span><br><span class="line">systemctl enable kubelet</span><br></pre></td></tr></table></figure>
-
-<h3 id="部署master节点"><a href="#部署master节点" class="headerlink" title="部署master节点"></a>部署master节点</h3><p>在master节点执行(此处的192.168.66.100为小编master机器的ip，需更换)</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">kubeadm init --apiserver-advertise-address=192.168.66.100 --image-repository registry.aliyuncs.com/google_containers --kubernetes-version v1.18.0 --service-cidr=10.96.0.0/12  --pod-network-cidr=10.244.0.0/16</span><br></pre></td></tr></table></figure>
-
-<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230516181339201.png" alt="image-20230516181339201"></p>
-<p>等待其出现成功提示</p>
-<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230516181608215.png" alt="image-20230516181608215"></p>
-<p>然后按提示在master节点上输入提示命令</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mkdir -p $HOME/.kube</span><br><span class="line">sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config</span><br><span class="line">sudo chown $(id -u):$(id -g) $HOME/.kube/config</span><br></pre></td></tr></table></figure>
-
-<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230516181720076.png" alt="image-20230516181720076"></p>
-<p>按照master生成的代码向集群添加新节点(node1和node2上的操作)</p>
-<p>在node1和node2上执行在master上产生的kubeadm join命令：（根据实际而定，下面的是小编机器上的，仅供参考）</p>
-<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230516182024786.png" alt="image-20230516182024786"></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">kubeadm join 192.168.66.100:6443 --token 7fqt6v.729wvdcjmgivns7y \</span><br><span class="line">    --discovery-token-ca-cert-hash sha256:ef79029853fa3c5454cbfc5273a636c843db0ab96e4592467b8a1490b6b6d3c6 </span><br></pre></td></tr></table></figure>
-
-<p>我们就可以去Master节点 执行下面命令查看情况</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">kubectl get node</span><br></pre></td></tr></table></figure>
-
-<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230516183426649.png" alt="image-20230516183426649"></p>
-<h3 id="部署CNI网络插件"><a href="#部署CNI网络插件" class="headerlink" title="部署CNI网络插件"></a>部署CNI网络插件</h3><p>上面的状态还是NotReady，下面我们需要网络插件，来进行联网访问</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 添加</span><br><span class="line">kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml</span><br></pre></td></tr></table></figure>
-
-<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230516183609956.png" alt="image-20230516183609956"></p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 查看状态 </span><br><span class="line">kubectl get pods -n kube-system</span><br></pre></td></tr></table></figure>
-
-<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230516183655302.png" alt="image-20230516183655302"></p>
-<p>此时还有未处于running状态的pod，再等些时间，再查看状态，全部变为running状态时，执行下面命令查看:</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">kubectl get node</span><br></pre></td></tr></table></figure>
-
-<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230516184424536.png" alt="image-20230516184424536"></p>
-<p>运行完成后，此时可以发现，已经变成了Ready状态。若还存在NotReady状态的节点，再等些时间，然后执行<code>kubectl get pods -n kube-system</code>命令，若状态为running，再执行<code>kubectl get node</code>查看即可</p>
-<h3 id="测试kubernetes集群"><a href="#测试kubernetes集群" class="headerlink" title="测试kubernetes集群"></a>测试kubernetes集群</h3><p>在Kubernetes集群中创建一个pod，验证是否正常运行：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 下载nginx </span><br><span class="line">kubectl create deployment nginx --image=nginx</span><br><span class="line"># 查看状态</span><br><span class="line">kubectl get pod</span><br></pre></td></tr></table></figure>
-
-<p>出现Running状态时，表示已经成功运行了</p>
-<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230516185059052.png" alt="image-20230516185059052"></p>
-<p>下面我们就需要将端口暴露出去，让其它外界能够访问</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 暴露端口</span><br><span class="line">kubectl expose deployment nginx --port=80 --type=NodePort</span><br><span class="line"># 查看一下对外的端口</span><br><span class="line">kubectl get pod,svc</span><br></pre></td></tr></table></figure>
-
-<p>能够看到，我们已经成功暴露了 80端口 到 30374上</p>
-<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230516185150167.png" alt="image-20230516185150167"></p>
-<p>在浏览器上，访问如下地址(任一一个节点的ip加上面显示的端口)</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">http://192.168.66.102:30374/</span><br></pre></td></tr></table></figure>
-
-<p>发现我们的nginx已经成功启动了</p>
-<p><img src="https://gitee.com/moxi159753/LearningNotes/raw/master/K8S/3_%E4%BD%BF%E7%94%A8kubeadm%E6%96%B9%E5%BC%8F%E6%90%AD%E5%BB%BAK8S%E9%9B%86%E7%BE%A4/images/image-20201113204056851.png" alt="image-20201113204056851"></p>
-]]></content>
-      <categories>
-        <category>docker</category>
-        <category>k8s</category>
-        <category>Kubeadm</category>
-      </categories>
-      <tags>
-        <tag>docker</tag>
-        <tag>k8s</tag>
-        <tag>Kubeadm</tag>
-        <tag>k8s集群</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>ceph集群部署指南</title>
     <url>/yyg/3fc2a251/</url>
     <content><![CDATA[<h1 id="ceph集群部署指南"><a href="#ceph集群部署指南" class="headerlink" title="ceph集群部署指南"></a>ceph集群部署指南</h1><h2 id="任务目标"><a href="#任务目标" class="headerlink" title="任务目标"></a>任务目标</h2><ol>
@@ -407,6 +300,73 @@
       </tags>
   </entry>
   <entry>
+    <title>docker基础知识</title>
+    <url>/yyg/7b36b89c/</url>
+    <content><![CDATA[<h1 id="docker基础知识"><a href="#docker基础知识" class="headerlink" title="docker基础知识"></a>docker基础知识</h1><p><code>docker search 镜像</code> #搜索要下载的镜像</p>
+<p><code>docker pull 镜像</code> #将镜像拉到本地</p>
+<p><code>docker images</code> #查看已拉取到本地的镜像</p>
+<p><code>docker rmi 镜像名或ID</code> #删除镜像</p>
+<p><code>docker rm 容器ID</code> #删除已停止容器</p>
+<blockquote>
+<p><code>docker rm -f 容器ID</code> #强制删除容器</p>
+</blockquote>
+<p>一次性删除多个容器</p>
+<blockquote>
+<p><code>docker rm -f $(docker ps -a -q)</code></p>
+<p><code>docker ps -a -q |xargs docker rm</code></p>
+</blockquote>
+<p>删除虚悬镜像</p>
+<blockquote>
+<p><code>docker image ls -f dangling=true</code> #显示所有的虚悬镜像</p>
+<p><code>docker image prune</code> #删除虚悬镜像</p>
+</blockquote>
+<p><code>docker ps</code> #查看正在运行的容器</p>
+<blockquote>
+<p><code>docker ps -a</code> #列出所有正在运行和曾运行过的容器</p>
+<p><code>docker ps -l</code> #显示最近创建的容器</p>
+<p><code>docker ps -n</code> #显示最近创建的n个容器</p>
+<p><code>docker ps -q</code> #只显示容器编号</p>
+</blockquote>
+<p><code>docker stop  容器名或ID</code> #结束容器运行</p>
+<p><code>docker kill  容器名或ID</code> #强制停止容器运行</p>
+<p><code>docker start 容器名或ID</code> #启动已停止的容器</p>
+<p><code>docker restart 容器名或ID</code> #重启容器</p>
+<p><code>docker run -it 镜像名或ID</code> #启动镜像(-it指交互式启动)</p>
+<blockquote>
+<p><code>docker run -d 容器名或ID</code> #容器后台运行</p>
+<p><code>docker run -it -p 端口号:端口号 容器名或ID</code> #以特定端口号运行容器</p>
+<p><code>docker run -it -P 容器名或ID</code> #随机分配端口号运行容器</p>
+<p>启动镜像后，按下<code>ctrl+p+q</code>，容器后台运行 </p>
+</blockquote>
+<p>重新进入后台运行的容器</p>
+<blockquote>
+<p><code>docker exec -it  容器ID</code> #在容器中打开新的终端，并且可以启动新的进程，用exit退出，不会导致容器的停止。(推荐使用)</p>
+<p><code>docker attach 容器ID</code>  #直接进入容器启动命令的终端，不会启动新的进程，用exit退出，会导致容器的停止。</p>
+</blockquote>
+<p><code>docker inspect 容器ID</code>#显示容器内的详细信息</p>
+<p><code>docker logs  容器ID</code> #查看容器日志</p>
+<p><code>docker top  容器ID</code> 查看容器内进程</p>
+<p><code>docker cp  容器ID:容器内路径 目的主机路径</code> #将文件从容器拷贝到主机</p>
+<p>容器的导入导出</p>
+<blockquote>
+<p><code>docker export  容器ID &gt;文件名.tar</code> #将容器及内容导出为tar包</p>
+<p><code>cat 文件名.tar | docker import -镜像用户/镜像名:镜像版本号</code> #从tar包中创建一个新文件系统再导入镜像</p>
+</blockquote>
+<p><code>docker run -it --privileged=true -v /宿主机目录:/容器内目录 镜像名</code>#宿主机与容器之间映射添加容器卷</p>
+<p><code>docker run -it --privileged=true -v /宿主机目录:/容器内目录:rw 镜像名</code>#宿主机与容器之间映射添加容器卷,容器内文件可读可写</p>
+<p><code>docker run -it --privileged=true -v /宿主机目录:/容器内目录:ro 镜像名</code>#宿主机与容器之间映射添加容器卷,容器内文件只可读</p>
+<p><code>docker run -it --privileged=true -volumes-from 父类 -name 容器2名称 镜像名</code> #容器2继承容器1的卷规则</p>
+<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230407171910378.png" alt="image-20230407171910378"></p>
+]]></content>
+      <categories>
+        <category>docker</category>
+      </categories>
+      <tags>
+        <tag>docker</tag>
+        <tag>docker基础</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>docker 安装 redis</title>
     <url>/yyg/6fffbcc4/</url>
     <content><![CDATA[<h1 id="docker-安装-redis"><a href="#docker-安装-redis" class="headerlink" title="docker 安装 redis"></a>docker 安装 redis</h1><p>首先输入命令<code>docker pull redis</code> ，将最新版redis安装到本地</p>
@@ -484,70 +444,110 @@
       </tags>
   </entry>
   <entry>
-    <title>docker基础知识</title>
-    <url>/yyg/7b36b89c/</url>
-    <content><![CDATA[<h1 id="docker基础知识"><a href="#docker基础知识" class="headerlink" title="docker基础知识"></a>docker基础知识</h1><p><code>docker search 镜像</code> #搜索要下载的镜像</p>
-<p><code>docker pull 镜像</code> #将镜像拉到本地</p>
-<p><code>docker images</code> #查看已拉取到本地的镜像</p>
-<p><code>docker rmi 镜像名或ID</code> #删除镜像</p>
-<p><code>docker rm 容器ID</code> #删除已停止容器</p>
-<blockquote>
-<p><code>docker rm -f 容器ID</code> #强制删除容器</p>
-</blockquote>
-<p>一次性删除多个容器</p>
-<blockquote>
-<p><code>docker rm -f $(docker ps -a -q)</code></p>
-<p><code>docker ps -a -q |xargs docker rm</code></p>
-</blockquote>
-<p>删除虚悬镜像</p>
-<blockquote>
-<p><code>docker image ls -f dangling=true</code> #显示所有的虚悬镜像</p>
-<p><code>docker image prune</code> #删除虚悬镜像</p>
-</blockquote>
-<p><code>docker ps</code> #查看正在运行的容器</p>
-<blockquote>
-<p><code>docker ps -a</code> #列出所有正在运行和曾运行过的容器</p>
-<p><code>docker ps -l</code> #显示最近创建的容器</p>
-<p><code>docker ps -n</code> #显示最近创建的n个容器</p>
-<p><code>docker ps -q</code> #只显示容器编号</p>
-</blockquote>
-<p><code>docker stop  容器名或ID</code> #结束容器运行</p>
-<p><code>docker kill  容器名或ID</code> #强制停止容器运行</p>
-<p><code>docker start 容器名或ID</code> #启动已停止的容器</p>
-<p><code>docker restart 容器名或ID</code> #重启容器</p>
-<p><code>docker run -it 镜像名或ID</code> #启动镜像(-it指交互式启动)</p>
-<blockquote>
-<p><code>docker run -d 容器名或ID</code> #容器后台运行</p>
-<p><code>docker run -it -p 端口号:端口号 容器名或ID</code> #以特定端口号运行容器</p>
-<p><code>docker run -it -P 容器名或ID</code> #随机分配端口号运行容器</p>
-<p>启动镜像后，按下<code>ctrl+p+q</code>，容器后台运行 </p>
-</blockquote>
-<p>重新进入后台运行的容器</p>
-<blockquote>
-<p><code>docker exec -it  容器ID</code> #在容器中打开新的终端，并且可以启动新的进程，用exit退出，不会导致容器的停止。(推荐使用)</p>
-<p><code>docker attach 容器ID</code>  #直接进入容器启动命令的终端，不会启动新的进程，用exit退出，会导致容器的停止。</p>
-</blockquote>
-<p><code>docker inspect 容器ID</code>#显示容器内的详细信息</p>
-<p><code>docker logs  容器ID</code> #查看容器日志</p>
-<p><code>docker top  容器ID</code> 查看容器内进程</p>
-<p><code>docker cp  容器ID:容器内路径 目的主机路径</code> #将文件从容器拷贝到主机</p>
-<p>容器的导入导出</p>
-<blockquote>
-<p><code>docker export  容器ID &gt;文件名.tar</code> #将容器及内容导出为tar包</p>
-<p><code>cat 文件名.tar | docker import -镜像用户/镜像名:镜像版本号</code> #从tar包中创建一个新文件系统再导入镜像</p>
-</blockquote>
-<p><code>docker run -it --privileged=true -v /宿主机目录:/容器内目录 镜像名</code>#宿主机与容器之间映射添加容器卷</p>
-<p><code>docker run -it --privileged=true -v /宿主机目录:/容器内目录:rw 镜像名</code>#宿主机与容器之间映射添加容器卷,容器内文件可读可写</p>
-<p><code>docker run -it --privileged=true -v /宿主机目录:/容器内目录:ro 镜像名</code>#宿主机与容器之间映射添加容器卷,容器内文件只可读</p>
-<p><code>docker run -it --privileged=true -volumes-from 父类 -name 容器2名称 镜像名</code> #容器2继承容器1的卷规则</p>
-<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230407171910378.png" alt="image-20230407171910378"></p>
+    <title>Kubeadm方式搭建K8S集群</title>
+    <url>/yyg/12690776/</url>
+    <content><![CDATA[<h1 id="Kubeadm方式搭建K8S集群"><a href="#Kubeadm方式搭建K8S集群" class="headerlink" title="Kubeadm方式搭建K8S集群"></a>Kubeadm方式搭建K8S集群</h1><h3 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h3><p>在虚拟机里安装三台centos 7.x操作系统</p>
+<p>配置系统名称和ip地址(同一网段)如：</p>
+<table>
+<thead>
+<tr>
+<th>角色</th>
+<th>IP</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>master</td>
+<td>192.168.66.100</td>
+</tr>
+<tr>
+<td>node1</td>
+<td>192.168.66.101</td>
+</tr>
+<tr>
+<td>node2</td>
+<td>192.168.66.102</td>
+</tr>
+</tbody></table>
+<p>三台机器都要执行的命令:（使用xshell执行命令更方便）</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 关闭防火墙</span><br><span class="line">systemctl stop firewalld</span><br><span class="line">systemctl disable firewalld</span><br><span class="line"></span><br><span class="line"># selinux永久关闭</span><br><span class="line">sed -i &#x27;s/enforcing/disabled/&#x27; /etc/selinux/config</span><br><span class="line"></span><br><span class="line"># swap永久关闭</span><br><span class="line">sed -ri &#x27;s/.*swap.*/#&amp;/&#x27; /etc/fstab</span><br><span class="line"></span><br><span class="line"># 添加hosts</span><br><span class="line">cat &gt;&gt; /etc/hosts &lt;&lt; EOF</span><br><span class="line">192.168.66.100 master</span><br><span class="line">192.168.66.101 node1</span><br><span class="line">192.168.66.102 node2</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line"># 将桥接的IPv4流量传递到iptables的链</span><br><span class="line">cat &gt; /etc/sysctl.d/k8s.conf &lt;&lt; EOF</span><br><span class="line">net.bridge.bridge-nf-call-ip6tables = 1</span><br><span class="line">net.bridge.bridge-nf-call-iptables = 1</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line"># 生效</span><br><span class="line">sysctl --system  </span><br><span class="line"></span><br><span class="line"># 时间同步</span><br><span class="line">yum install ntpdate -y</span><br><span class="line">ntpdate time.windows.com</span><br></pre></td></tr></table></figure>
+
+<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230516173905682.png" alt="image-20230516173905682"></p>
+<h3 id="安装Docker（三台机器都需要安装）"><a href="#安装Docker（三台机器都需要安装）" class="headerlink" title="安装Docker（三台机器都需要安装）"></a>安装Docker（三台机器都需要安装）</h3><p>配置Docker的阿里yum源</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cat &gt;/etc/yum.repos.d/docker.repo&lt;&lt;EOF</span><br><span class="line">[docker-ce-edge]</span><br><span class="line">name=Docker CE Edge - \$basearch</span><br><span class="line">baseurl=https://mirrors.aliyun.com/docker-ce/linux/centos/7/\$basearch/edge</span><br><span class="line">enabled=1</span><br><span class="line">gpgcheck=1</span><br><span class="line">gpgkey=https://mirrors.aliyun.com/docker-ce/linux/centos/gpg</span><br><span class="line">EOF</span><br></pre></td></tr></table></figure>
+
+<p>以yum方式安装docker</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># yum安装</span><br><span class="line">yum -y install docker-ce</span><br><span class="line"></span><br><span class="line"># 查看docker版本</span><br><span class="line">docker --version  </span><br><span class="line"></span><br><span class="line"># 启动docker</span><br><span class="line">systemctl enable docker</span><br><span class="line">systemctl start docker</span><br></pre></td></tr></table></figure>
+
+<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230516180634916.png" alt="image-20230516180634916"></p>
+<p>配置docker的镜像源</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cat &gt;&gt; /etc/docker/daemon.json &lt;&lt; EOF</span><br><span class="line">&#123;</span><br><span class="line">  &quot;registry-mirrors&quot;: [&quot;https://b9pmyelo.mirror.aliyuncs.com&quot;]</span><br><span class="line">&#125;</span><br><span class="line">EOF</span><br></pre></td></tr></table></figure>
+
+<p>重启docker</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">systemctl restart docker</span><br></pre></td></tr></table></figure>
+
+<h3 id="添加kubernetes软件源"><a href="#添加kubernetes软件源" class="headerlink" title="添加kubernetes软件源"></a>添加kubernetes软件源</h3><p>配置yum的k8s软件源</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cat &gt; /etc/yum.repos.d/kubernetes.repo &lt;&lt; EOF</span><br><span class="line">[kubernetes]</span><br><span class="line">name=Kubernetes</span><br><span class="line">baseurl=https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64</span><br><span class="line">enabled=1</span><br><span class="line">gpgcheck=0</span><br><span class="line">repo_gpgcheck=0</span><br><span class="line">gpgkey=https://mirrors.aliyun.com/kubernetes/yum/doc/yum-key.gpg https://mirrors.aliyun.com/kubernetes/yum/doc/rpm-package-key.gpg</span><br><span class="line">EOF</span><br></pre></td></tr></table></figure>
+
+<h3 id="安装kubeadm，kubelet和kubectl"><a href="#安装kubeadm，kubelet和kubectl" class="headerlink" title="安装kubeadm，kubelet和kubectl"></a>安装kubeadm，kubelet和kubectl</h3><p>由于版本更新频繁，这里指定版本号部署：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 安装kubelet、kubeadm、kubectl，同时指定版本</span><br><span class="line">yum install -y kubelet-1.18.0 kubeadm-1.18.0 kubectl-1.18.0</span><br><span class="line"># 设置开机启动</span><br><span class="line">systemctl enable kubelet</span><br></pre></td></tr></table></figure>
+
+<h3 id="部署master节点"><a href="#部署master节点" class="headerlink" title="部署master节点"></a>部署master节点</h3><p>在master节点执行(此处的192.168.66.100为小编master机器的ip，需更换)</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">kubeadm init --apiserver-advertise-address=192.168.66.100 --image-repository registry.aliyuncs.com/google_containers --kubernetes-version v1.18.0 --service-cidr=10.96.0.0/12  --pod-network-cidr=10.244.0.0/16</span><br></pre></td></tr></table></figure>
+
+<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230516181339201.png" alt="image-20230516181339201"></p>
+<p>等待其出现成功提示</p>
+<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230516181608215.png" alt="image-20230516181608215"></p>
+<p>然后按提示在master节点上输入提示命令</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mkdir -p $HOME/.kube</span><br><span class="line">sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config</span><br><span class="line">sudo chown $(id -u):$(id -g) $HOME/.kube/config</span><br></pre></td></tr></table></figure>
+
+<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230516181720076.png" alt="image-20230516181720076"></p>
+<p>按照master生成的代码向集群添加新节点(node1和node2上的操作)</p>
+<p>在node1和node2上执行在master上产生的kubeadm join命令：（根据实际而定，下面的是小编机器上的，仅供参考）</p>
+<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230516182024786.png" alt="image-20230516182024786"></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">kubeadm join 192.168.66.100:6443 --token 7fqt6v.729wvdcjmgivns7y \</span><br><span class="line">    --discovery-token-ca-cert-hash sha256:ef79029853fa3c5454cbfc5273a636c843db0ab96e4592467b8a1490b6b6d3c6 </span><br></pre></td></tr></table></figure>
+
+<p>我们就可以去Master节点 执行下面命令查看情况</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">kubectl get node</span><br></pre></td></tr></table></figure>
+
+<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230516183426649.png" alt="image-20230516183426649"></p>
+<h3 id="部署CNI网络插件"><a href="#部署CNI网络插件" class="headerlink" title="部署CNI网络插件"></a>部署CNI网络插件</h3><p>上面的状态还是NotReady，下面我们需要网络插件，来进行联网访问</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 添加</span><br><span class="line">kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml</span><br></pre></td></tr></table></figure>
+
+<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230516183609956.png" alt="image-20230516183609956"></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 查看状态 </span><br><span class="line">kubectl get pods -n kube-system</span><br></pre></td></tr></table></figure>
+
+<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230516183655302.png" alt="image-20230516183655302"></p>
+<p>此时还有未处于running状态的pod，再等些时间，再查看状态，全部变为running状态时，执行下面命令查看:</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">kubectl get node</span><br></pre></td></tr></table></figure>
+
+<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230516184424536.png" alt="image-20230516184424536"></p>
+<p>运行完成后，此时可以发现，已经变成了Ready状态。若还存在NotReady状态的节点，再等些时间，然后执行<code>kubectl get pods -n kube-system</code>命令，若状态为running，再执行<code>kubectl get node</code>查看即可</p>
+<h3 id="测试kubernetes集群"><a href="#测试kubernetes集群" class="headerlink" title="测试kubernetes集群"></a>测试kubernetes集群</h3><p>在Kubernetes集群中创建一个pod，验证是否正常运行：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 下载nginx </span><br><span class="line">kubectl create deployment nginx --image=nginx</span><br><span class="line"># 查看状态</span><br><span class="line">kubectl get pod</span><br></pre></td></tr></table></figure>
+
+<p>出现Running状态时，表示已经成功运行了</p>
+<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230516185059052.png" alt="image-20230516185059052"></p>
+<p>下面我们就需要将端口暴露出去，让其它外界能够访问</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 暴露端口</span><br><span class="line">kubectl expose deployment nginx --port=80 --type=NodePort</span><br><span class="line"># 查看一下对外的端口</span><br><span class="line">kubectl get pod,svc</span><br></pre></td></tr></table></figure>
+
+<p>能够看到，我们已经成功暴露了 80端口 到 30374上</p>
+<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230516185150167.png" alt="image-20230516185150167"></p>
+<p>在浏览器上，访问如下地址(任一一个节点的ip加上面显示的端口)</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">http://192.168.66.102:30374/</span><br></pre></td></tr></table></figure>
+
+<p>发现我们的nginx已经成功启动了</p>
+<p><img src="https://gitee.com/moxi159753/LearningNotes/raw/master/K8S/3_%E4%BD%BF%E7%94%A8kubeadm%E6%96%B9%E5%BC%8F%E6%90%AD%E5%BB%BAK8S%E9%9B%86%E7%BE%A4/images/image-20201113204056851.png" alt="image-20201113204056851"></p>
 ]]></content>
       <categories>
         <category>docker</category>
+        <category>k8s</category>
+        <category>Kubeadm</category>
       </categories>
       <tags>
         <tag>docker</tag>
-        <tag>docker基础</tag>
+        <tag>k8s</tag>
+        <tag>Kubeadm</tag>
+        <tag>k8s集群</tag>
       </tags>
   </entry>
   <entry>
@@ -623,18 +623,18 @@ sed -i &#39;/^kind: ServiceAccount/a\  namespace: cephfs&#39; $(grep -rl &quot;^
 <h3 id="任务六：创建pod，进行测试验证"><a href="#任务六：创建pod，进行测试验证" class="headerlink" title="任务六：创建pod，进行测试验证"></a>任务六：创建pod，进行测试验证</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: Pod</span><br><span class="line">metadata:</span><br><span class="line">  name: csi-rbd-demo-pod</span><br><span class="line">  namespace: cephfs</span><br><span class="line">spec:</span><br><span class="line">  containers:</span><br><span class="line">    - name: web-server</span><br><span class="line">      image: nginx:latest</span><br><span class="line">      volumeMounts:</span><br><span class="line">        - name: mypvc</span><br><span class="line">          mountPath: /var/lib/www/html</span><br><span class="line">  volumes:</span><br><span class="line">    - name: mypvc</span><br><span class="line">      persistentVolumeClaim:</span><br><span class="line">        claimName: rbd-pvc  #对应的PVC名称</span><br><span class="line">        readOnly: false</span><br><span class="line">&#x27; &gt; pod.yaml</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">执行</span></span><br><span class="line"> kubectl apply -f pod.yaml</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">进入容器查看挂载信息</span></span><br><span class="line"> kubectl exec -it csi-rbd-demo-pod bash</span><br><span class="line"> lsblk -l|grep rbd</span><br></pre></td></tr></table></figure>]]></content>
       <categories>
         <category>docker</category>
-        <category>k8s</category>
         <category>ceph</category>
+        <category>k8s</category>
+        <category>cephadm</category>
         <category>共享存储</category>
         <category>ceph集群</category>
-        <category>cephadm</category>
       </categories>
       <tags>
         <tag>docker</tag>
-        <tag>k8s</tag>
         <tag>ceph</tag>
         <tag>共享存储</tag>
         <tag>ceph集群</tag>
+        <tag>k8s</tag>
         <tag>容器云</tag>
         <tag>k8s对接ceph</tag>
       </tags>
@@ -739,9 +739,9 @@ sed -i &#39;/^kind: ServiceAccount/a\  namespace: cephfs&#39; $(grep -rl &quot;^
 <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">ceph-Dashboard</span></span><br><span class="line">https://10.10.3.117:8443</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">Prometheus</span></span><br><span class="line">http://10.10.3.117:9095/</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">Grafana</span></span><br><span class="line">https://10.10.3.117:3000/</span><br></pre></td></tr></table></figure>]]></content>
       <categories>
         <category>ceph</category>
+        <category>cephadm</category>
         <category>共享存储</category>
         <category>ceph集群</category>
-        <category>cephadm</category>
       </categories>
       <tags>
         <tag>ceph</tag>
@@ -1679,18 +1679,18 @@ sed -i -e &quot;/^kind: ServiceAccount/&#123;N;N;a\  namespace: cephfs&#125;&quo
 ]]></content>
       <categories>
         <category>docker</category>
-        <category>k8s</category>
         <category>ceph</category>
+        <category>k8s</category>
+        <category>cephadm</category>
         <category>共享存储</category>
         <category>ceph集群</category>
-        <category>cephadm</category>
       </categories>
       <tags>
         <tag>docker</tag>
-        <tag>k8s</tag>
         <tag>ceph</tag>
         <tag>共享存储</tag>
         <tag>ceph集群</tag>
+        <tag>k8s</tag>
         <tag>容器云</tag>
       </tags>
   </entry>
