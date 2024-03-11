@@ -15,15 +15,15 @@
           
           <category> docker </category>
           
-          <category> k8s </category>
-          
           <category> ceph </category>
+          
+          <category> k8s </category>
           
           <category> 共享存储 </category>
           
-          <category> ceph集群 </category>
-          
           <category> cephadm </category>
+          
+          <category> ceph集群 </category>
           
       </categories>
       
@@ -32,13 +32,13 @@
             
             <tag> docker </tag>
             
-            <tag> k8s </tag>
-            
             <tag> ceph </tag>
             
             <tag> 共享存储 </tag>
             
             <tag> ceph集群 </tag>
+            
+            <tag> k8s </tag>
             
             <tag> 容器云 </tag>
             
@@ -126,9 +126,9 @@
           
           <category> 共享存储 </category>
           
-          <category> ceph集群 </category>
-          
           <category> cephadm </category>
+          
+          <category> ceph集群 </category>
           
       </categories>
       
@@ -196,15 +196,15 @@
           
           <category> docker </category>
           
-          <category> k8s </category>
-          
           <category> ceph </category>
+          
+          <category> k8s </category>
           
           <category> 共享存储 </category>
           
-          <category> ceph集群 </category>
-          
           <category> cephadm </category>
+          
+          <category> ceph集群 </category>
           
       </categories>
       
@@ -213,13 +213,13 @@
             
             <tag> docker </tag>
             
-            <tag> k8s </tag>
-            
             <tag> ceph </tag>
             
             <tag> 共享存储 </tag>
             
             <tag> ceph集群 </tag>
+            
+            <tag> k8s </tag>
             
             <tag> 容器云 </tag>
             
