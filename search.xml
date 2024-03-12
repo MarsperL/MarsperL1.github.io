@@ -1,6 +1,60 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>Docker Swarm集群部署</title>
+    <url>/yyg/71468332/</url>
+    <content><![CDATA[<h2 id="Docker-Swarm集群部署"><a href="#Docker-Swarm集群部署" class="headerlink" title="Docker Swarm集群部署"></a><strong>Docker Swarm集群部署</strong></h2><p><strong>任务平台</strong></p>
+<p>3台虚拟机，一台作为manager 节点，另两台作为work节点。</p>
+<p><strong>部署指南</strong></p>
+<p>[TOC]</p>
+<h3 id="安装docker"><a href="#安装docker" class="headerlink" title="安装docker"></a>安装docker</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">下载并安装docker文件及依赖</span></span><br><span class="line">yum install -y yum-utils</span><br><span class="line">yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo</span><br><span class="line">yum install -y docker-ce docker-ce-cli containerd.io</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动docker并设置开机自启</span></span><br><span class="line">systemctl start docker  </span><br><span class="line">systemctl enable docker</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看版本</span></span><br><span class="line">docker -v</span><br></pre></td></tr></table></figure>
+
+<h3 id="配置防火墙开放端口"><a href="#配置防火墙开放端口" class="headerlink" title="配置防火墙开放端口"></a>配置防火墙开放端口</h3><p>TCP协议端口 2377 ：集群管理端口<br>TCP协议端口 7946 ：节点之间通讯端口（不开放则会负载均衡失效）<br>UDP协议端口 4789 ：overlay网络通讯端口</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">firewall-cmd --zone=public --add-port=2377/tcp --permanent</span><br><span class="line">firewall-cmd --zone=public --add-port=7946/tcp --permanent</span><br><span class="line">firewall-cmd --zone=public --add-port=7946/udp --permanent</span><br><span class="line">firewall-cmd --zone=public --add-port=4789/tcp --permanent</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重载防火墙</span></span><br><span class="line">firewall-cmd --reload</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看80端口是否开放</span></span><br><span class="line">firewall-cmd --query-port=80/tcp</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看所有放行的端口</span></span><br><span class="line">firewall-cmd --zone=public --list-ports</span><br></pre></td></tr></table></figure>
+
+<h3 id="在-manager-节点创建-Swarm-集群"><a href="#在-manager-节点创建-Swarm-集群" class="headerlink" title="在 manager 节点创建 Swarm 集群"></a>在 manager 节点创建 Swarm 集群</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker swarm init --advertise-addr=本机ip:2377 --listen-addr=本机ip:2377</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Swarm initialized: current node (608u180nsa654xbxdthdhl0f6) is now a manager.</p>
+<p>To add a worker to this swarm, run the following command:</p>
+<p>​    <code>docker swarm join --token SWMTKN-1-13dv43qm3tdux7243z3c0najcetizjpgly1urd4uchtcooxe87-4eh15dbayxttxipm34s5tod6t 172.20.1.51:2377</code></p>
+<p>To add a manager to this swarm, run ‘docker swarm join-token manager’ and follow the instructions.</p>
+</blockquote>
+<p>将执行后产生的命令（如上标红的），分别加入到其他主机中，执行后产生如下结果。即为成功加入。</p>
+<p>或者执行下面命令产生令牌，并且是定期轮换计划（推荐）</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker swarm join-token  --rotate worker</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>This node joined a swarm as a worker.</p>
+</blockquote>
+<p>（扩展）加入管理节点的命令</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker swarm join-token --rotate manager</span><br></pre></td></tr></table></figure>
+
+<p>在manager节点上输入<code>docker node ls</code> 可查看所有节点。</p>
+<p><img src="https://yeesoftware.feishu.cn/space/api/box/stream/download/asynccode/?code=ZDg4MDcwMjQzMjkyOWZmMjc1YzdmNWMzMGYzM2U0N2RfcGVTQjBRSmgzeUxOMHRKUFlteWJBS0VHcTMwVEhabUxfVG9rZW46RmE3OGJlVmNtb3VFY1h4UmdNSmNRT3FvbnFmXzE2OTQ3OTI5NzM6MTY5NDc5NjU3M19WNA" alt="img"></p>
+<h3 id="创建用于swarm服务的自定义的overlay网络"><a href="#创建用于swarm服务的自定义的overlay网络" class="headerlink" title="创建用于swarm服务的自定义的overlay网络"></a>创建用于swarm服务的自定义的overlay网络</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">方式一</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">--attachable选项表示该网络是可附加的，即其他容器可以连接到该网络</span>  </span><br><span class="line">docker network create -d overlay --attachable my-overlay</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">方式二</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">--subnet:子网 --gateway:网关</span></span><br><span class="line">docker network create --driver overlay --subnet 10.0.9.0/24 --gateway 10.0.9.99 my-overlay</span><br><span class="line">  </span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">查看docker网络</span></span><br><span class="line"> docker network ls</span><br></pre></td></tr></table></figure>
+
+<h3 id="测试跨主机容器通信"><a href="#测试跨主机容器通信" class="headerlink" title="测试跨主机容器通信"></a>测试跨主机容器通信</h3><ol>
+<li>在三台主机上各部署一个容器，进行相互ping，结果如下图。</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一</span></span><br><span class="line">docker run -it --name master --net=my-overlay ubuntu:latest</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二</span></span><br><span class="line">docker run -it --name node1 --net=my-overlay ubuntu:latest</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机三</span></span><br><span class="line">docker run -it --name node2 --net=my-overlay ubuntu:latest</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>安装测试工具</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">apt-get update</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ping工具</span></span><br><span class="line">apt-get install inetutils-ping -y</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ip查看工具</span></span><br><span class="line">apt-get install net-tools -y</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://yeesoftware.feishu.cn/space/api/box/stream/download/asynccode/?code=OWFjMjlmYmQ3OWVmZWU0OWYyYTNlMjY0ZTk4NTEzYmZfdlU1SUduZ2VSdW50U1ZtMThQaGJSTjNsQnU2M1VETldfVG9rZW46RDVnUmJNOTk4b2dPYUt4UnVhbWNCUVNYbjRjXzE2OTQ3OTI5NzM6MTY5NDc5NjU3M19WNA" alt="img"></p>
+]]></content>
+      <categories>
+        <category>docker</category>
+      </categories>
+      <tags>
+        <tag>docker</tag>
+        <tag>docker Swarm</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Kubeadm方式搭建K8S集群</title>
     <url>/yyg/12690776/</url>
     <content><![CDATA[<h1 id="Kubeadm方式搭建K8S集群"><a href="#Kubeadm方式搭建K8S集群" class="headerlink" title="Kubeadm方式搭建K8S集群"></a>Kubeadm方式搭建K8S集群</h1><h3 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h3><p>在虚拟机里安装三台centos 7.x操作系统</p>
@@ -96,69 +150,15 @@
 <p><img src="https://gitee.com/moxi159753/LearningNotes/raw/master/K8S/3_%E4%BD%BF%E7%94%A8kubeadm%E6%96%B9%E5%BC%8F%E6%90%AD%E5%BB%BAK8S%E9%9B%86%E7%BE%A4/images/image-20201113204056851.png" alt="image-20201113204056851"></p>
 ]]></content>
       <categories>
-        <category>k8s</category>
         <category>docker</category>
+        <category>k8s</category>
         <category>Kubeadm</category>
       </categories>
       <tags>
+        <tag>docker</tag>
         <tag>k8s</tag>
         <tag>Kubeadm</tag>
-        <tag>docker</tag>
         <tag>k8s集群</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Docker Swarm集群部署</title>
-    <url>/yyg/71468332/</url>
-    <content><![CDATA[<h2 id="Docker-Swarm集群部署"><a href="#Docker-Swarm集群部署" class="headerlink" title="Docker Swarm集群部署"></a><strong>Docker Swarm集群部署</strong></h2><p><strong>任务平台</strong></p>
-<p>3台虚拟机，一台作为manager 节点，另两台作为work节点。</p>
-<p><strong>部署指南</strong></p>
-<p>[TOC]</p>
-<h3 id="安装docker"><a href="#安装docker" class="headerlink" title="安装docker"></a>安装docker</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">下载并安装docker文件及依赖</span></span><br><span class="line">yum install -y yum-utils</span><br><span class="line">yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo</span><br><span class="line">yum install -y docker-ce docker-ce-cli containerd.io</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动docker并设置开机自启</span></span><br><span class="line">systemctl start docker  </span><br><span class="line">systemctl enable docker</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看版本</span></span><br><span class="line">docker -v</span><br></pre></td></tr></table></figure>
-
-<h3 id="配置防火墙开放端口"><a href="#配置防火墙开放端口" class="headerlink" title="配置防火墙开放端口"></a>配置防火墙开放端口</h3><p>TCP协议端口 2377 ：集群管理端口<br>TCP协议端口 7946 ：节点之间通讯端口（不开放则会负载均衡失效）<br>UDP协议端口 4789 ：overlay网络通讯端口</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">firewall-cmd --zone=public --add-port=2377/tcp --permanent</span><br><span class="line">firewall-cmd --zone=public --add-port=7946/tcp --permanent</span><br><span class="line">firewall-cmd --zone=public --add-port=7946/udp --permanent</span><br><span class="line">firewall-cmd --zone=public --add-port=4789/tcp --permanent</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重载防火墙</span></span><br><span class="line">firewall-cmd --reload</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看80端口是否开放</span></span><br><span class="line">firewall-cmd --query-port=80/tcp</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看所有放行的端口</span></span><br><span class="line">firewall-cmd --zone=public --list-ports</span><br></pre></td></tr></table></figure>
-
-<h3 id="在-manager-节点创建-Swarm-集群"><a href="#在-manager-节点创建-Swarm-集群" class="headerlink" title="在 manager 节点创建 Swarm 集群"></a>在 manager 节点创建 Swarm 集群</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker swarm init --advertise-addr=本机ip:2377 --listen-addr=本机ip:2377</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>Swarm initialized: current node (608u180nsa654xbxdthdhl0f6) is now a manager.</p>
-<p>To add a worker to this swarm, run the following command:</p>
-<p>​    <code>docker swarm join --token SWMTKN-1-13dv43qm3tdux7243z3c0najcetizjpgly1urd4uchtcooxe87-4eh15dbayxttxipm34s5tod6t 172.20.1.51:2377</code></p>
-<p>To add a manager to this swarm, run ‘docker swarm join-token manager’ and follow the instructions.</p>
-</blockquote>
-<p>将执行后产生的命令（如上标红的），分别加入到其他主机中，执行后产生如下结果。即为成功加入。</p>
-<p>或者执行下面命令产生令牌，并且是定期轮换计划（推荐）</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker swarm join-token  --rotate worker</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>This node joined a swarm as a worker.</p>
-</blockquote>
-<p>（扩展）加入管理节点的命令</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker swarm join-token --rotate manager</span><br></pre></td></tr></table></figure>
-
-<p>在manager节点上输入<code>docker node ls</code> 可查看所有节点。</p>
-<p><img src="https://yeesoftware.feishu.cn/space/api/box/stream/download/asynccode/?code=ZDg4MDcwMjQzMjkyOWZmMjc1YzdmNWMzMGYzM2U0N2RfcGVTQjBRSmgzeUxOMHRKUFlteWJBS0VHcTMwVEhabUxfVG9rZW46RmE3OGJlVmNtb3VFY1h4UmdNSmNRT3FvbnFmXzE2OTQ3OTI5NzM6MTY5NDc5NjU3M19WNA" alt="img"></p>
-<h3 id="创建用于swarm服务的自定义的overlay网络"><a href="#创建用于swarm服务的自定义的overlay网络" class="headerlink" title="创建用于swarm服务的自定义的overlay网络"></a>创建用于swarm服务的自定义的overlay网络</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">方式一</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">--attachable选项表示该网络是可附加的，即其他容器可以连接到该网络</span>  </span><br><span class="line">docker network create -d overlay --attachable my-overlay</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">方式二</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">--subnet:子网 --gateway:网关</span></span><br><span class="line">docker network create --driver overlay --subnet 10.0.9.0/24 --gateway 10.0.9.99 my-overlay</span><br><span class="line">  </span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">查看docker网络</span></span><br><span class="line"> docker network ls</span><br></pre></td></tr></table></figure>
-
-<h3 id="测试跨主机容器通信"><a href="#测试跨主机容器通信" class="headerlink" title="测试跨主机容器通信"></a>测试跨主机容器通信</h3><ol>
-<li>在三台主机上各部署一个容器，进行相互ping，结果如下图。</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一</span></span><br><span class="line">docker run -it --name master --net=my-overlay ubuntu:latest</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二</span></span><br><span class="line">docker run -it --name node1 --net=my-overlay ubuntu:latest</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机三</span></span><br><span class="line">docker run -it --name node2 --net=my-overlay ubuntu:latest</span><br></pre></td></tr></table></figure>
-
-<ol start="2">
-<li>安装测试工具</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">apt-get update</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ping工具</span></span><br><span class="line">apt-get install inetutils-ping -y</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ip查看工具</span></span><br><span class="line">apt-get install net-tools -y</span><br></pre></td></tr></table></figure>
-
-<p><img src="https://yeesoftware.feishu.cn/space/api/box/stream/download/asynccode/?code=OWFjMjlmYmQ3OWVmZWU0OWYyYTNlMjY0ZTk4NTEzYmZfdlU1SUduZ2VSdW50U1ZtMThQaGJSTjNsQnU2M1VETldfVG9rZW46RDVnUmJNOTk4b2dPYUt4UnVhbWNCUVNYbjRjXzE2OTQ3OTI5NzM6MTY5NDc5NjU3M19WNA" alt="img"></p>
-]]></content>
-      <categories>
-        <category>docker</category>
-      </categories>
-      <tags>
-        <tag>docker</tag>
-        <tag>docker Swarm</tag>
       </tags>
   </entry>
   <entry>
@@ -622,16 +622,16 @@ sed -i &#39;/^kind: ServiceAccount/a\  namespace: cephfs&#39; $(grep -rl &quot;^
 
 <h3 id="任务六：创建pod，进行测试验证"><a href="#任务六：创建pod，进行测试验证" class="headerlink" title="任务六：创建pod，进行测试验证"></a>任务六：创建pod，进行测试验证</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: Pod</span><br><span class="line">metadata:</span><br><span class="line">  name: csi-rbd-demo-pod</span><br><span class="line">  namespace: cephfs</span><br><span class="line">spec:</span><br><span class="line">  containers:</span><br><span class="line">    - name: web-server</span><br><span class="line">      image: nginx:latest</span><br><span class="line">      volumeMounts:</span><br><span class="line">        - name: mypvc</span><br><span class="line">          mountPath: /var/lib/www/html</span><br><span class="line">  volumes:</span><br><span class="line">    - name: mypvc</span><br><span class="line">      persistentVolumeClaim:</span><br><span class="line">        claimName: rbd-pvc  #对应的PVC名称</span><br><span class="line">        readOnly: false</span><br><span class="line">&#x27; &gt; pod.yaml</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">执行</span></span><br><span class="line"> kubectl apply -f pod.yaml</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">进入容器查看挂载信息</span></span><br><span class="line"> kubectl exec -it csi-rbd-demo-pod bash</span><br><span class="line"> lsblk -l|grep rbd</span><br></pre></td></tr></table></figure>]]></content>
       <categories>
-        <category>k8s</category>
         <category>docker</category>
+        <category>k8s</category>
         <category>ceph</category>
         <category>共享存储</category>
-        <category>ceph集群</category>
         <category>cephadm</category>
+        <category>ceph集群</category>
       </categories>
       <tags>
-        <tag>k8s</tag>
         <tag>docker</tag>
+        <tag>k8s</tag>
         <tag>ceph</tag>
         <tag>共享存储</tag>
         <tag>ceph集群</tag>
@@ -740,8 +740,8 @@ sed -i &#39;/^kind: ServiceAccount/a\  namespace: cephfs&#39; $(grep -rl &quot;^
       <categories>
         <category>ceph</category>
         <category>共享存储</category>
-        <category>ceph集群</category>
         <category>cephadm</category>
+        <category>ceph集群</category>
       </categories>
       <tags>
         <tag>ceph</tag>
@@ -1103,14 +1103,14 @@ vrrp_instance VI_1 &#123;
 
 <h3 id="任务十二：配置Dashboard代理"><a href="#任务十二：配置Dashboard代理" class="headerlink" title="任务十二：配置Dashboard代理"></a>任务十二：配置<strong>Dashboard代理</strong></h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: networking.k8s.io/v1</span><br><span class="line">kind: Ingress</span><br><span class="line">metadata:</span><br><span class="line">  name: k8s-dashboard</span><br><span class="line">  namespace: kubernetes-dashboard</span><br><span class="line">  labels:</span><br><span class="line">    ingress: k8s-dashboard</span><br><span class="line">  annotations:</span><br><span class="line">    nginx.ingress.kubernetes.io/rewrite-target: /  #重写路径</span><br><span class="line">    nginx.ingress.kubernetes.io/force-ssl-redirect: &quot;true&quot;  #http自动转https</span><br><span class="line">    nginx.ingress.kubernetes.io/use-regex: &quot;true&quot;</span><br><span class="line">    nginx.ingress.kubernetes.io/backend-protocol: &quot;HTTPS&quot;</span><br><span class="line"></span><br><span class="line">spec:</span><br><span class="line">  ingressClassName: nginx </span><br><span class="line">  rules:</span><br><span class="line">    - host: k8s.yjs.51xueweb.cn</span><br><span class="line">      http:</span><br><span class="line">        paths:</span><br><span class="line">          - path: /</span><br><span class="line">            pathType: Prefix</span><br><span class="line">            backend:</span><br><span class="line">              service:</span><br><span class="line">                name: kubernetes-dashboard</span><br><span class="line">                port:</span><br><span class="line">                  number: 443</span><br><span class="line">&#x27; &gt; /data/dashboard/dashboard-ingress.yaml</span><br></pre></td></tr></table></figure>]]></content>
       <categories>
-        <category>k8s</category>
         <category>docker</category>
+        <category>k8s</category>
         <category>Kubeadm</category>
       </categories>
       <tags>
+        <tag>docker</tag>
         <tag>k8s</tag>
         <tag>Kubeadm</tag>
-        <tag>docker</tag>
         <tag>k8s集群</tag>
         <tag>高可用</tag>
       </tags>
@@ -1678,16 +1678,16 @@ sed -i -e &quot;/^kind: ServiceAccount/&#123;N;N;a\  namespace: cephfs&#125;&quo
 
 ]]></content>
       <categories>
-        <category>k8s</category>
         <category>docker</category>
+        <category>k8s</category>
         <category>ceph</category>
         <category>共享存储</category>
-        <category>ceph集群</category>
         <category>cephadm</category>
+        <category>ceph集群</category>
       </categories>
       <tags>
-        <tag>k8s</tag>
         <tag>docker</tag>
+        <tag>k8s</tag>
         <tag>ceph</tag>
         <tag>共享存储</tag>
         <tag>ceph集群</tag>
