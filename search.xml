@@ -1,60 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>Docker Swarm集群部署</title>
-    <url>/yyg/71468332/</url>
-    <content><![CDATA[<h2 id="Docker-Swarm集群部署"><a href="#Docker-Swarm集群部署" class="headerlink" title="Docker Swarm集群部署"></a><strong>Docker Swarm集群部署</strong></h2><p><strong>任务平台</strong></p>
-<p>3台虚拟机，一台作为manager 节点，另两台作为work节点。</p>
-<p><strong>部署指南</strong></p>
-<p>[TOC]</p>
-<h3 id="安装docker"><a href="#安装docker" class="headerlink" title="安装docker"></a>安装docker</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">下载并安装docker文件及依赖</span></span><br><span class="line">yum install -y yum-utils</span><br><span class="line">yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo</span><br><span class="line">yum install -y docker-ce docker-ce-cli containerd.io</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动docker并设置开机自启</span></span><br><span class="line">systemctl start docker  </span><br><span class="line">systemctl enable docker</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看版本</span></span><br><span class="line">docker -v</span><br></pre></td></tr></table></figure>
-
-<h3 id="配置防火墙开放端口"><a href="#配置防火墙开放端口" class="headerlink" title="配置防火墙开放端口"></a>配置防火墙开放端口</h3><p>TCP协议端口 2377 ：集群管理端口<br>TCP协议端口 7946 ：节点之间通讯端口（不开放则会负载均衡失效）<br>UDP协议端口 4789 ：overlay网络通讯端口</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">firewall-cmd --zone=public --add-port=2377/tcp --permanent</span><br><span class="line">firewall-cmd --zone=public --add-port=7946/tcp --permanent</span><br><span class="line">firewall-cmd --zone=public --add-port=7946/udp --permanent</span><br><span class="line">firewall-cmd --zone=public --add-port=4789/tcp --permanent</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重载防火墙</span></span><br><span class="line">firewall-cmd --reload</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看80端口是否开放</span></span><br><span class="line">firewall-cmd --query-port=80/tcp</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看所有放行的端口</span></span><br><span class="line">firewall-cmd --zone=public --list-ports</span><br></pre></td></tr></table></figure>
-
-<h3 id="在-manager-节点创建-Swarm-集群"><a href="#在-manager-节点创建-Swarm-集群" class="headerlink" title="在 manager 节点创建 Swarm 集群"></a>在 manager 节点创建 Swarm 集群</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker swarm init --advertise-addr=本机ip:2377 --listen-addr=本机ip:2377</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>Swarm initialized: current node (608u180nsa654xbxdthdhl0f6) is now a manager.</p>
-<p>To add a worker to this swarm, run the following command:</p>
-<p>​    <code>docker swarm join --token SWMTKN-1-13dv43qm3tdux7243z3c0najcetizjpgly1urd4uchtcooxe87-4eh15dbayxttxipm34s5tod6t 172.20.1.51:2377</code></p>
-<p>To add a manager to this swarm, run ‘docker swarm join-token manager’ and follow the instructions.</p>
-</blockquote>
-<p>将执行后产生的命令（如上标红的），分别加入到其他主机中，执行后产生如下结果。即为成功加入。</p>
-<p>或者执行下面命令产生令牌，并且是定期轮换计划（推荐）</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker swarm join-token  --rotate worker</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>This node joined a swarm as a worker.</p>
-</blockquote>
-<p>（扩展）加入管理节点的命令</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker swarm join-token --rotate manager</span><br></pre></td></tr></table></figure>
-
-<p>在manager节点上输入<code>docker node ls</code> 可查看所有节点。</p>
-<p><img src="https://yeesoftware.feishu.cn/space/api/box/stream/download/asynccode/?code=ZDg4MDcwMjQzMjkyOWZmMjc1YzdmNWMzMGYzM2U0N2RfcGVTQjBRSmgzeUxOMHRKUFlteWJBS0VHcTMwVEhabUxfVG9rZW46RmE3OGJlVmNtb3VFY1h4UmdNSmNRT3FvbnFmXzE2OTQ3OTI5NzM6MTY5NDc5NjU3M19WNA" alt="img"></p>
-<h3 id="创建用于swarm服务的自定义的overlay网络"><a href="#创建用于swarm服务的自定义的overlay网络" class="headerlink" title="创建用于swarm服务的自定义的overlay网络"></a>创建用于swarm服务的自定义的overlay网络</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">方式一</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">--attachable选项表示该网络是可附加的，即其他容器可以连接到该网络</span>  </span><br><span class="line">docker network create -d overlay --attachable my-overlay</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">方式二</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">--subnet:子网 --gateway:网关</span></span><br><span class="line">docker network create --driver overlay --subnet 10.0.9.0/24 --gateway 10.0.9.99 my-overlay</span><br><span class="line">  </span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">查看docker网络</span></span><br><span class="line"> docker network ls</span><br></pre></td></tr></table></figure>
-
-<h3 id="测试跨主机容器通信"><a href="#测试跨主机容器通信" class="headerlink" title="测试跨主机容器通信"></a>测试跨主机容器通信</h3><ol>
-<li>在三台主机上各部署一个容器，进行相互ping，结果如下图。</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一</span></span><br><span class="line">docker run -it --name master --net=my-overlay ubuntu:latest</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二</span></span><br><span class="line">docker run -it --name node1 --net=my-overlay ubuntu:latest</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机三</span></span><br><span class="line">docker run -it --name node2 --net=my-overlay ubuntu:latest</span><br></pre></td></tr></table></figure>
-
-<ol start="2">
-<li>安装测试工具</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">apt-get update</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ping工具</span></span><br><span class="line">apt-get install inetutils-ping -y</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ip查看工具</span></span><br><span class="line">apt-get install net-tools -y</span><br></pre></td></tr></table></figure>
-
-<p><img src="https://yeesoftware.feishu.cn/space/api/box/stream/download/asynccode/?code=OWFjMjlmYmQ3OWVmZWU0OWYyYTNlMjY0ZTk4NTEzYmZfdlU1SUduZ2VSdW50U1ZtMThQaGJSTjNsQnU2M1VETldfVG9rZW46RDVnUmJNOTk4b2dPYUt4UnVhbWNCUVNYbjRjXzE2OTQ3OTI5NzM6MTY5NDc5NjU3M19WNA" alt="img"></p>
-]]></content>
-      <categories>
-        <category>docker</category>
-      </categories>
-      <tags>
-        <tag>docker</tag>
-        <tag>docker Swarm</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Kubeadm方式搭建K8S集群</title>
     <url>/yyg/12690776/</url>
     <content><![CDATA[<h1 id="Kubeadm方式搭建K8S集群"><a href="#Kubeadm方式搭建K8S集群" class="headerlink" title="Kubeadm方式搭建K8S集群"></a>Kubeadm方式搭建K8S集群</h1><h3 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h3><p>在虚拟机里安装三台centos 7.x操作系统</p>
@@ -150,15 +96,69 @@
 <p><img src="https://gitee.com/moxi159753/LearningNotes/raw/master/K8S/3_%E4%BD%BF%E7%94%A8kubeadm%E6%96%B9%E5%BC%8F%E6%90%AD%E5%BB%BAK8S%E9%9B%86%E7%BE%A4/images/image-20201113204056851.png" alt="image-20201113204056851"></p>
 ]]></content>
       <categories>
-        <category>docker</category>
         <category>k8s</category>
+        <category>docker</category>
         <category>Kubeadm</category>
       </categories>
       <tags>
-        <tag>docker</tag>
         <tag>k8s</tag>
         <tag>Kubeadm</tag>
+        <tag>docker</tag>
         <tag>k8s集群</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Docker Swarm集群部署</title>
+    <url>/yyg/71468332/</url>
+    <content><![CDATA[<h2 id="Docker-Swarm集群部署"><a href="#Docker-Swarm集群部署" class="headerlink" title="Docker Swarm集群部署"></a><strong>Docker Swarm集群部署</strong></h2><p><strong>任务平台</strong></p>
+<p>3台虚拟机，一台作为manager 节点，另两台作为work节点。</p>
+<p><strong>部署指南</strong></p>
+<p>[TOC]</p>
+<h3 id="安装docker"><a href="#安装docker" class="headerlink" title="安装docker"></a>安装docker</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">下载并安装docker文件及依赖</span></span><br><span class="line">yum install -y yum-utils</span><br><span class="line">yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo</span><br><span class="line">yum install -y docker-ce docker-ce-cli containerd.io</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动docker并设置开机自启</span></span><br><span class="line">systemctl start docker  </span><br><span class="line">systemctl enable docker</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看版本</span></span><br><span class="line">docker -v</span><br></pre></td></tr></table></figure>
+
+<h3 id="配置防火墙开放端口"><a href="#配置防火墙开放端口" class="headerlink" title="配置防火墙开放端口"></a>配置防火墙开放端口</h3><p>TCP协议端口 2377 ：集群管理端口<br>TCP协议端口 7946 ：节点之间通讯端口（不开放则会负载均衡失效）<br>UDP协议端口 4789 ：overlay网络通讯端口</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">firewall-cmd --zone=public --add-port=2377/tcp --permanent</span><br><span class="line">firewall-cmd --zone=public --add-port=7946/tcp --permanent</span><br><span class="line">firewall-cmd --zone=public --add-port=7946/udp --permanent</span><br><span class="line">firewall-cmd --zone=public --add-port=4789/tcp --permanent</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重载防火墙</span></span><br><span class="line">firewall-cmd --reload</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看80端口是否开放</span></span><br><span class="line">firewall-cmd --query-port=80/tcp</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看所有放行的端口</span></span><br><span class="line">firewall-cmd --zone=public --list-ports</span><br></pre></td></tr></table></figure>
+
+<h3 id="在-manager-节点创建-Swarm-集群"><a href="#在-manager-节点创建-Swarm-集群" class="headerlink" title="在 manager 节点创建 Swarm 集群"></a>在 manager 节点创建 Swarm 集群</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker swarm init --advertise-addr=本机ip:2377 --listen-addr=本机ip:2377</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Swarm initialized: current node (608u180nsa654xbxdthdhl0f6) is now a manager.</p>
+<p>To add a worker to this swarm, run the following command:</p>
+<p>​    <code>docker swarm join --token SWMTKN-1-13dv43qm3tdux7243z3c0najcetizjpgly1urd4uchtcooxe87-4eh15dbayxttxipm34s5tod6t 172.20.1.51:2377</code></p>
+<p>To add a manager to this swarm, run ‘docker swarm join-token manager’ and follow the instructions.</p>
+</blockquote>
+<p>将执行后产生的命令（如上标红的），分别加入到其他主机中，执行后产生如下结果。即为成功加入。</p>
+<p>或者执行下面命令产生令牌，并且是定期轮换计划（推荐）</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker swarm join-token  --rotate worker</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>This node joined a swarm as a worker.</p>
+</blockquote>
+<p>（扩展）加入管理节点的命令</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker swarm join-token --rotate manager</span><br></pre></td></tr></table></figure>
+
+<p>在manager节点上输入<code>docker node ls</code> 可查看所有节点。</p>
+<p><img src="https://yeesoftware.feishu.cn/space/api/box/stream/download/asynccode/?code=ZDg4MDcwMjQzMjkyOWZmMjc1YzdmNWMzMGYzM2U0N2RfcGVTQjBRSmgzeUxOMHRKUFlteWJBS0VHcTMwVEhabUxfVG9rZW46RmE3OGJlVmNtb3VFY1h4UmdNSmNRT3FvbnFmXzE2OTQ3OTI5NzM6MTY5NDc5NjU3M19WNA" alt="img"></p>
+<h3 id="创建用于swarm服务的自定义的overlay网络"><a href="#创建用于swarm服务的自定义的overlay网络" class="headerlink" title="创建用于swarm服务的自定义的overlay网络"></a>创建用于swarm服务的自定义的overlay网络</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">方式一</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">--attachable选项表示该网络是可附加的，即其他容器可以连接到该网络</span>  </span><br><span class="line">docker network create -d overlay --attachable my-overlay</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">方式二</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">--subnet:子网 --gateway:网关</span></span><br><span class="line">docker network create --driver overlay --subnet 10.0.9.0/24 --gateway 10.0.9.99 my-overlay</span><br><span class="line">  </span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">查看docker网络</span></span><br><span class="line"> docker network ls</span><br></pre></td></tr></table></figure>
+
+<h3 id="测试跨主机容器通信"><a href="#测试跨主机容器通信" class="headerlink" title="测试跨主机容器通信"></a>测试跨主机容器通信</h3><ol>
+<li>在三台主机上各部署一个容器，进行相互ping，结果如下图。</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一</span></span><br><span class="line">docker run -it --name master --net=my-overlay ubuntu:latest</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二</span></span><br><span class="line">docker run -it --name node1 --net=my-overlay ubuntu:latest</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机三</span></span><br><span class="line">docker run -it --name node2 --net=my-overlay ubuntu:latest</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>安装测试工具</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">apt-get update</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ping工具</span></span><br><span class="line">apt-get install inetutils-ping -y</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ip查看工具</span></span><br><span class="line">apt-get install net-tools -y</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://yeesoftware.feishu.cn/space/api/box/stream/download/asynccode/?code=OWFjMjlmYmQ3OWVmZWU0OWYyYTNlMjY0ZTk4NTEzYmZfdlU1SUduZ2VSdW50U1ZtMThQaGJSTjNsQnU2M1VETldfVG9rZW46RDVnUmJNOTk4b2dPYUt4UnVhbWNCUVNYbjRjXzE2OTQ3OTI5NzM6MTY5NDc5NjU3M19WNA" alt="img"></p>
+]]></content>
+      <categories>
+        <category>docker</category>
+      </categories>
+      <tags>
+        <tag>docker</tag>
+        <tag>docker Swarm</tag>
       </tags>
   </entry>
   <entry>
@@ -407,6 +407,33 @@
       </tags>
   </entry>
   <entry>
+    <title>docker 安装 redis</title>
+    <url>/yyg/6fffbcc4/</url>
+    <content><![CDATA[<h1 id="docker-安装-redis"><a href="#docker-安装-redis" class="headerlink" title="docker 安装 redis"></a>docker 安装 redis</h1><p>首先输入命令<code>docker pull redis</code> ，将最新版redis安装到本地</p>
+<p>输入以下命令,后台启动redis(注：<strong>该命令是一条命令</strong>)</p>
+<p>其中<code>--name</code>后面的是redis容器的名称，可自行更改</p>
+<blockquote>
+<p>docker run -p 6379:6379 –name mars1 –privileged&#x3D;true</p>
+<p> -v &#x2F;app&#x2F;redis&#x2F;redis.conf:&#x2F;etc&#x2F;redis&#x2F;redis.conf </p>
+<p>-v &#x2F;app&#x2F;redis&#x2F;data:&#x2F;data </p>
+<p>-d redis:latest redis-server &#x2F;etc&#x2F;redis&#x2F;redis.conf</p>
+</blockquote>
+<p>此命令也可解决在删除redis容器后，而出现的数据丢失的问题。若要找回数据，则只需重新运行命令即可。</p>
+<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230411164804210.png" alt="image-20230411164804210"></p>
+<p>运行<code>docker ps</code>命令，可查看到redis正在运行</p>
+<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230411163752381.png" alt="image-20230411163752381"></p>
+<p>然后执行<code>docker exec -it mars1 /bin/bash</code>命令，redis成功运行</p>
+<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230411180817939.png" alt="image-20230411180817939"></p>
+]]></content>
+      <categories>
+        <category>docker</category>
+      </categories>
+      <tags>
+        <tag>docker</tag>
+        <tag>redis</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>docker基础知识</title>
     <url>/yyg/7b36b89c/</url>
     <content><![CDATA[<h1 id="docker基础知识"><a href="#docker基础知识" class="headerlink" title="docker基础知识"></a>docker基础知识</h1><p><code>docker search 镜像</code> #搜索要下载的镜像</p>
@@ -471,33 +498,6 @@
       <tags>
         <tag>docker</tag>
         <tag>docker基础</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>docker 安装 redis</title>
-    <url>/yyg/6fffbcc4/</url>
-    <content><![CDATA[<h1 id="docker-安装-redis"><a href="#docker-安装-redis" class="headerlink" title="docker 安装 redis"></a>docker 安装 redis</h1><p>首先输入命令<code>docker pull redis</code> ，将最新版redis安装到本地</p>
-<p>输入以下命令,后台启动redis(注：<strong>该命令是一条命令</strong>)</p>
-<p>其中<code>--name</code>后面的是redis容器的名称，可自行更改</p>
-<blockquote>
-<p>docker run -p 6379:6379 –name mars1 –privileged&#x3D;true</p>
-<p> -v &#x2F;app&#x2F;redis&#x2F;redis.conf:&#x2F;etc&#x2F;redis&#x2F;redis.conf </p>
-<p>-v &#x2F;app&#x2F;redis&#x2F;data:&#x2F;data </p>
-<p>-d redis:latest redis-server &#x2F;etc&#x2F;redis&#x2F;redis.conf</p>
-</blockquote>
-<p>此命令也可解决在删除redis容器后，而出现的数据丢失的问题。若要找回数据，则只需重新运行命令即可。</p>
-<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230411164804210.png" alt="image-20230411164804210"></p>
-<p>运行<code>docker ps</code>命令，可查看到redis正在运行</p>
-<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230411163752381.png" alt="image-20230411163752381"></p>
-<p>然后执行<code>docker exec -it mars1 /bin/bash</code>命令，redis成功运行</p>
-<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230411180817939.png" alt="image-20230411180817939"></p>
-]]></content>
-      <categories>
-        <category>docker</category>
-      </categories>
-      <tags>
-        <tag>docker</tag>
-        <tag>redis</tag>
       </tags>
   </entry>
   <entry>
@@ -622,16 +622,16 @@ sed -i &#39;/^kind: ServiceAccount/a\  namespace: cephfs&#39; $(grep -rl &quot;^
 
 <h3 id="任务六：创建pod，进行测试验证"><a href="#任务六：创建pod，进行测试验证" class="headerlink" title="任务六：创建pod，进行测试验证"></a>任务六：创建pod，进行测试验证</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: Pod</span><br><span class="line">metadata:</span><br><span class="line">  name: csi-rbd-demo-pod</span><br><span class="line">  namespace: cephfs</span><br><span class="line">spec:</span><br><span class="line">  containers:</span><br><span class="line">    - name: web-server</span><br><span class="line">      image: nginx:latest</span><br><span class="line">      volumeMounts:</span><br><span class="line">        - name: mypvc</span><br><span class="line">          mountPath: /var/lib/www/html</span><br><span class="line">  volumes:</span><br><span class="line">    - name: mypvc</span><br><span class="line">      persistentVolumeClaim:</span><br><span class="line">        claimName: rbd-pvc  #对应的PVC名称</span><br><span class="line">        readOnly: false</span><br><span class="line">&#x27; &gt; pod.yaml</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">执行</span></span><br><span class="line"> kubectl apply -f pod.yaml</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">进入容器查看挂载信息</span></span><br><span class="line"> kubectl exec -it csi-rbd-demo-pod bash</span><br><span class="line"> lsblk -l|grep rbd</span><br></pre></td></tr></table></figure>]]></content>
       <categories>
-        <category>docker</category>
         <category>k8s</category>
+        <category>docker</category>
         <category>ceph</category>
         <category>共享存储</category>
-        <category>cephadm</category>
         <category>ceph集群</category>
+        <category>cephadm</category>
       </categories>
       <tags>
-        <tag>docker</tag>
         <tag>k8s</tag>
+        <tag>docker</tag>
         <tag>ceph</tag>
         <tag>共享存储</tag>
         <tag>ceph集群</tag>
@@ -740,14 +740,91 @@ sed -i &#39;/^kind: ServiceAccount/a\  namespace: cephfs&#39; $(grep -rl &quot;^
       <categories>
         <category>ceph</category>
         <category>共享存储</category>
-        <category>cephadm</category>
         <category>ceph集群</category>
+        <category>cephadm</category>
       </categories>
       <tags>
         <tag>ceph</tag>
         <tag>共享存储</tag>
         <tag>ceph集群</tag>
         <tag>cephadm</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>实现Docker 容器跨主机通讯</title>
+    <url>/yyg/60ed202a/</url>
+    <content><![CDATA[<h2 id="实现Docker-容器跨主机通讯"><a href="#实现Docker-容器跨主机通讯" class="headerlink" title="实现Docker 容器跨主机通讯"></a>实现Docker 容器跨主机通讯</h2><p>[TOC]</p>
+<h3 id="方案一：docker-swarm集群"><a href="#方案一：docker-swarm集群" class="headerlink" title="方案一：docker swarm集群"></a>方案一：docker swarm集群</h3><p><a href="https://blog.csdn.net/AMCUL/article/details/132913280">https://blog.csdn.net/AMCUL/article/details/132913280</a></p>
+<h3 id="方案二：直接路由法"><a href="#方案二：直接路由法" class="headerlink" title="方案二：直接路由法"></a>方案二：直接路由法</h3><p>在部署指南中提到的方法的实现分固定网段、路由持久化、IP转发三部分组成。</p>
+<h4 id="方法1："><a href="#方法1：" class="headerlink" title="方法1："></a>方法1：</h4><h5 id="修改并固定docker0的默认网段"><a href="#修改并固定docker0的默认网段" class="headerlink" title="修改并固定docker0的默认网段"></a>修改并固定docker0的默认网段</h5><ol>
+<li>修改docker0网段ip，在主机的&#x2F;etc&#x2F;docker&#x2F;daemon.json文件中，加入如下内容：</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">打开daemon.json文件</span></span><br><span class="line">vi /etc/docker/daemon.json</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一中添加的内容</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">172.16.200.1 为主机一的docker网段ip</span></span><br><span class="line">&#123;</span><br><span class="line"> &quot;bip&quot;: &quot;172.16.200.1/24&quot;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二中添加的内容</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">172.16.210.1 为主机二的docker网段ip</span></span><br><span class="line">&#123;</span><br><span class="line"> &quot;bip&quot;: &quot;172.16.210.1/24&quot;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重启docker服务</span></span><br><span class="line">systemctl restart docker </span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>添加路由规则，主机间互相添加</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机1上添加路由规则（添加主机2的ip和网段）</span></span><br><span class="line">ip route add 172.16.210.0/24 via 172.20.1.52</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机2上添加路由规则（添加主机1的ip和网段）</span></span><br><span class="line">ip route add 172.16.200.0/24 via 172.20.1.51</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">方式一：</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">开启路由转发</span></span><br><span class="line">iptables -P FORWARD ACCEPT</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">方式二：</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">配置iptables规则（本机的网段）</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一</span></span><br><span class="line">iptables -t nat -F POSTROUTING</span><br><span class="line">iptables -t nat -A POSTROUTING -s 172.16.200.0/24 ! -d 172.16.0.0/16 -j MASQUERADE</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二</span></span><br><span class="line">iptables -t nat -F POSTROUTING</span><br><span class="line">iptables -t nat -A POSTROUTING -s 172.16.210.0/24 ! -d 172.16.0.0/16 -j MASQUERADE</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>启动容器并测试</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">主机1上启动ubuntu容器</span></span><br><span class="line">docker run -it --name node1 ubuntu:latest /bin/bash</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">主机2上启动ubuntu容器</span></span><br><span class="line">docker run -it --name node2 ubuntu:latest /bin/bash</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装测试工具</span></span><br><span class="line">apt-get update</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ping工具</span></span><br><span class="line">apt-get install inetutils-ping -y</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ip查看工具</span></span><br><span class="line">apt-get install net-tools -y</span><br></pre></td></tr></table></figure>
+
+<h5 id="路由持久化（防止主机重启路由丢失）"><a href="#路由持久化（防止主机重启路由丢失）" class="headerlink" title="路由持久化（防止主机重启路由丢失）"></a>路由持久化（防止主机重启路由丢失）</h5><h6 id="法一：（推荐）"><a href="#法一：（推荐）" class="headerlink" title="法一：（推荐）"></a>法一：（推荐）</h6><p>在<code>/etc/sysconfig/network-scripts/</code>目录下创建名为<code>route-enp0s3</code>(enp0s3为主机网卡的名字，以实际为准)的文件 </p>
+<p>推荐此方法，注意创建时<code>route-</code>后跟的是本机主机的网卡名</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">vi /etc/sysconfig/network-scripts/route-enp0s3</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">在此文件添加如下格式的内容</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一中添加</span></span><br><span class="line">172.16.230.0/24 via 172.20.1.52</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二中添加</span></span><br><span class="line">172.16.220.0/24 via 172.20.1.51</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重启网络验证</span></span><br><span class="line">service network restart</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看路由表中是否有刚才添加的路由</span></span><br><span class="line">ip route show | column -t</span><br></pre></td></tr></table></figure>
+
+<h6 id="法二："><a href="#法二：" class="headerlink" title="法二："></a>法二：</h6><p>在<code>/etc/sysconfig/static-routes</code> 文件里添加如下内容 (没有static-routes需手动建立)</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一中添加</span></span><br><span class="line">any net 172.16.230.0/24 via 172.20.1.52</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二中添加</span></span><br><span class="line">any net 172.16.220.0/24 via 172.20.1.51</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重启网络服务</span></span><br><span class="line">systemctl restart network</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看路由表中是否有刚才添加的路由</span></span><br><span class="line">ip route show | column -t</span><br></pre></td></tr></table></figure>
+
+<h5 id="开启IP转发"><a href="#开启IP转发" class="headerlink" title="开启IP转发"></a>开启IP转发</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">永久开启</span></span><br><span class="line">vi /etc/sysctl.conf</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">修改</span></span><br><span class="line">net.ipv4.ip_forward=1</span><br></pre></td></tr></table></figure>
+
+<h4 id="方法2：（适用于使用固定ip的容器）"><a href="#方法2：（适用于使用固定ip的容器）" class="headerlink" title="方法2：（适用于使用固定ip的容器）"></a>方法2：（适用于使用固定ip的容器）</h4><h5 id="创建docker网络"><a href="#创建docker网络" class="headerlink" title="创建docker网络"></a>创建docker网络</h5><ol>
+<li>docker桥接类型网络创建</li>
+</ol>
+<p>分别对两台服务器中的docker创建名字为test的网络，指定子网范围为 172.16.220.0&#x2F;24 、172.16.230.0&#x2F;24</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一</span></span><br><span class="line">docker network create test --driver bridge --ipam-driver default --subnet 172.16.220.0/24</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二</span></span><br><span class="line">docker network create test --driver bridge --ipam-driver default --subnet 172.16.230.0/24</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看网络</span></span><br><span class="line">docker network ls</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>设置静态路由</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机1上添加路由规则（添加主机2的ip和网段）</span></span><br><span class="line">ip route add 172.16.230.0/24 via 172.20.1.52</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机2上添加路由规则（添加主机1的ip和网段）</span></span><br><span class="line">ip route add 172.16.220.0/24 via 172.20.1.51</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">开启路由转发</span></span><br><span class="line">iptables -P FORWARD ACCEPT</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>启动容器并测试</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">主机1上启动ubuntu容器(加上创建的桥接网络)</span></span><br><span class="line">docker run -it --name node1 --net=test ubuntu:latest /bin/bash</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">主机2上启动ubuntu容器(加上创建的桥接网络)</span></span><br><span class="line">docker run -it --name node2 --net=test ubuntu:latest /bin/bash</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装测试工具</span></span><br><span class="line">apt-get update</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ping工具</span></span><br><span class="line">apt-get install inetutils-ping -y</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ip查看工具</span></span><br><span class="line">apt-get install net-tools -y</span><br></pre></td></tr></table></figure>
+
+<h5 id="路由持久化（防止主机重启路由丢失）-1"><a href="#路由持久化（防止主机重启路由丢失）-1" class="headerlink" title="路由持久化（防止主机重启路由丢失）"></a>路由持久化（防止主机重启路由丢失）</h5><p>使用<strong>nmtui图形化界面添加</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">下载nmtui</span></span><br><span class="line">yum install net-tools -y</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">显示nmtui图形化界面</span></span><br><span class="line">nmtui</span><br></pre></td></tr></table></figure>
+
+<p>在主机一网卡中配置主机二的docker网络的ip段和ip，在主机二网卡中配置主机一的docker网络的ip段和ip</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一中添加</span></span><br><span class="line">172.16.230.0/24  172.20.1.52</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二中添加</span></span><br><span class="line">172.16.220.0/24  172.20.1.51</span><br></pre></td></tr></table></figure>
+
+<p>配置完成会在&#x2F;etc&#x2F;sysconfig&#x2F;network-scripts文件夹下看到</p>
+<p><img src="https://yeesoftware.feishu.cn/space/api/box/stream/download/asynccode/?code=YmI3YjUxODk0OGNiMjU1ZjI4YjQ3ZTAzNDdjYjlmNzNfMFY0S2dQck8xUW5vb3BCeWZkMFNPTXFiS2dqMmE2NjJfVG9rZW46Vjk5aGIzZTU3b0RtUmJ4R21pY2NSVlRlbk9kXzE2OTQ3OTQyNjg6MTY5NDc5Nzg2OF9WNA" alt="img"></p>
+<p><img src="https://yeesoftware.feishu.cn/space/api/box/stream/download/asynccode/?code=ZjI3NDk3Y2M4NWQ4YzMxODhmZTljM2U3MDM0MzQxZGJfQk01NlNPSnVCUENZU0xDamphbVdlR2k0ZG5XTzkwQ0xfVG9rZW46UGN0aWJlMU9Qb2tYSlZ4dGhIZGNhYmpwbnRiXzE2OTQ3OTQyNjg6MTY5NDc5Nzg2OF9WNA" alt="img"></p>
+<p>启动对应主机的新创建的网卡（网络重启或系统重启后会失效）</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一</span></span><br><span class="line">nmcli c up br-aed92de88760</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二</span></span><br><span class="line">nmcli c up br-0ab3914edle2</span><br></pre></td></tr></table></figure>
+
+<p>要使新网卡保持启动则需将对应新创建的网卡文件中的<code>ONBOOT=no</code>改为<code>ONBOOT=yes</code></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一</span></span><br><span class="line">vi ifcfg-br-aed92de88760</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">ONBOOT=no改为ONBOOT=<span class="built_in">yes</span></span></span><br><span class="line">ONBOOT=yes</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二</span></span><br><span class="line">vi ifcfg-br-0ab3914edle2</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">ONBOOT=no改为ONBOOT=<span class="built_in">yes</span></span></span><br><span class="line">ONBOOT=yes</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重启网络服务</span></span><br><span class="line">systemctl restart network</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://yeesoftware.feishu.cn/space/api/box/stream/download/asynccode/?code=M2Y4OGJlNjgxOWU5YmE0NzJhMzcwMGVkMzQ3ZDQ5OWJfQjNRVXprRkx1bjQ2eVN4c2t0UWptd2lXY3Q4OURPREhfVG9rZW46QmNvUWI3Z1Ntb2s2VGV4MkI0RmMxZU55bmpjXzE2OTQ3OTQyNjg6MTY5NDc5Nzg2OF9WNA" alt="img"></p>
+<h5 id="开启IP转发-1"><a href="#开启IP转发-1" class="headerlink" title="开启IP转发"></a>开启IP转发</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">永久开启</span></span><br><span class="line">vi /etc/sysctl.conf</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">修改</span></span><br><span class="line">net.ipv4.ip_forward=1</span><br></pre></td></tr></table></figure>
+
+<p>此时容器不受网络重启影响，可实现跨主机通讯。</p>
+<p>但系统重启后，所创建的docker网络和容器均失效。</p>
+<p>需要重新创建docker网络和容器，此后docker网络和容器均不受系统重启和网络重启的影响，成功实现docker容器的跨主机通讯。</p>
+<p><img src="https://yeesoftware.feishu.cn/space/api/box/stream/download/asynccode/?code=YWQyMmQ3ZDY4YjU5M2NmZDE5MTg2MjRhZWExNzM2NGNfdjRueUt2THN1MDAzOElqcllsdWlCVnBIREVwMnRIbElfVG9rZW46SDkzTWJ3YmFXb1lETnd4M0pOZ2N2ejZWbjNiXzE2OTQ3OTQyNjg6MTY5NDc5Nzg2OF9WNA" alt="img"></p>
+]]></content>
+      <categories>
+        <category>docker</category>
+      </categories>
+      <tags>
+        <tag>docker</tag>
+        <tag>容器通信</tag>
       </tags>
   </entry>
   <entry>
@@ -1026,93 +1103,16 @@ vrrp_instance VI_1 &#123;
 
 <h3 id="任务十二：配置Dashboard代理"><a href="#任务十二：配置Dashboard代理" class="headerlink" title="任务十二：配置Dashboard代理"></a>任务十二：配置<strong>Dashboard代理</strong></h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: networking.k8s.io/v1</span><br><span class="line">kind: Ingress</span><br><span class="line">metadata:</span><br><span class="line">  name: k8s-dashboard</span><br><span class="line">  namespace: kubernetes-dashboard</span><br><span class="line">  labels:</span><br><span class="line">    ingress: k8s-dashboard</span><br><span class="line">  annotations:</span><br><span class="line">    nginx.ingress.kubernetes.io/rewrite-target: /  #重写路径</span><br><span class="line">    nginx.ingress.kubernetes.io/force-ssl-redirect: &quot;true&quot;  #http自动转https</span><br><span class="line">    nginx.ingress.kubernetes.io/use-regex: &quot;true&quot;</span><br><span class="line">    nginx.ingress.kubernetes.io/backend-protocol: &quot;HTTPS&quot;</span><br><span class="line"></span><br><span class="line">spec:</span><br><span class="line">  ingressClassName: nginx </span><br><span class="line">  rules:</span><br><span class="line">    - host: k8s.yjs.51xueweb.cn</span><br><span class="line">      http:</span><br><span class="line">        paths:</span><br><span class="line">          - path: /</span><br><span class="line">            pathType: Prefix</span><br><span class="line">            backend:</span><br><span class="line">              service:</span><br><span class="line">                name: kubernetes-dashboard</span><br><span class="line">                port:</span><br><span class="line">                  number: 443</span><br><span class="line">&#x27; &gt; /data/dashboard/dashboard-ingress.yaml</span><br></pre></td></tr></table></figure>]]></content>
       <categories>
-        <category>docker</category>
         <category>k8s</category>
+        <category>docker</category>
         <category>Kubeadm</category>
       </categories>
       <tags>
-        <tag>docker</tag>
         <tag>k8s</tag>
         <tag>Kubeadm</tag>
+        <tag>docker</tag>
         <tag>k8s集群</tag>
         <tag>高可用</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>实现Docker 容器跨主机通讯</title>
-    <url>/yyg/60ed202a/</url>
-    <content><![CDATA[<h2 id="实现Docker-容器跨主机通讯"><a href="#实现Docker-容器跨主机通讯" class="headerlink" title="实现Docker 容器跨主机通讯"></a>实现Docker 容器跨主机通讯</h2><p>[TOC]</p>
-<h3 id="方案一：docker-swarm集群"><a href="#方案一：docker-swarm集群" class="headerlink" title="方案一：docker swarm集群"></a>方案一：docker swarm集群</h3><p><a href="https://blog.csdn.net/AMCUL/article/details/132913280">https://blog.csdn.net/AMCUL/article/details/132913280</a></p>
-<h3 id="方案二：直接路由法"><a href="#方案二：直接路由法" class="headerlink" title="方案二：直接路由法"></a>方案二：直接路由法</h3><p>在部署指南中提到的方法的实现分固定网段、路由持久化、IP转发三部分组成。</p>
-<h4 id="方法1："><a href="#方法1：" class="headerlink" title="方法1："></a>方法1：</h4><h5 id="修改并固定docker0的默认网段"><a href="#修改并固定docker0的默认网段" class="headerlink" title="修改并固定docker0的默认网段"></a>修改并固定docker0的默认网段</h5><ol>
-<li>修改docker0网段ip，在主机的&#x2F;etc&#x2F;docker&#x2F;daemon.json文件中，加入如下内容：</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">打开daemon.json文件</span></span><br><span class="line">vi /etc/docker/daemon.json</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一中添加的内容</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">172.16.200.1 为主机一的docker网段ip</span></span><br><span class="line">&#123;</span><br><span class="line"> &quot;bip&quot;: &quot;172.16.200.1/24&quot;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二中添加的内容</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">172.16.210.1 为主机二的docker网段ip</span></span><br><span class="line">&#123;</span><br><span class="line"> &quot;bip&quot;: &quot;172.16.210.1/24&quot;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重启docker服务</span></span><br><span class="line">systemctl restart docker </span><br></pre></td></tr></table></figure>
-
-<ol>
-<li>添加路由规则，主机间互相添加</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机1上添加路由规则（添加主机2的ip和网段）</span></span><br><span class="line">ip route add 172.16.210.0/24 via 172.20.1.52</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机2上添加路由规则（添加主机1的ip和网段）</span></span><br><span class="line">ip route add 172.16.200.0/24 via 172.20.1.51</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">方式一：</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">开启路由转发</span></span><br><span class="line">iptables -P FORWARD ACCEPT</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">方式二：</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">配置iptables规则（本机的网段）</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一</span></span><br><span class="line">iptables -t nat -F POSTROUTING</span><br><span class="line">iptables -t nat -A POSTROUTING -s 172.16.200.0/24 ! -d 172.16.0.0/16 -j MASQUERADE</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二</span></span><br><span class="line">iptables -t nat -F POSTROUTING</span><br><span class="line">iptables -t nat -A POSTROUTING -s 172.16.210.0/24 ! -d 172.16.0.0/16 -j MASQUERADE</span><br></pre></td></tr></table></figure>
-
-<ol>
-<li>启动容器并测试</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">主机1上启动ubuntu容器</span></span><br><span class="line">docker run -it --name node1 ubuntu:latest /bin/bash</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">主机2上启动ubuntu容器</span></span><br><span class="line">docker run -it --name node2 ubuntu:latest /bin/bash</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装测试工具</span></span><br><span class="line">apt-get update</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ping工具</span></span><br><span class="line">apt-get install inetutils-ping -y</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ip查看工具</span></span><br><span class="line">apt-get install net-tools -y</span><br></pre></td></tr></table></figure>
-
-<h5 id="路由持久化（防止主机重启路由丢失）"><a href="#路由持久化（防止主机重启路由丢失）" class="headerlink" title="路由持久化（防止主机重启路由丢失）"></a>路由持久化（防止主机重启路由丢失）</h5><h6 id="法一：（推荐）"><a href="#法一：（推荐）" class="headerlink" title="法一：（推荐）"></a>法一：（推荐）</h6><p>在<code>/etc/sysconfig/network-scripts/</code>目录下创建名为<code>route-enp0s3</code>(enp0s3为主机网卡的名字，以实际为准)的文件 </p>
-<p>推荐此方法，注意创建时<code>route-</code>后跟的是本机主机的网卡名</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">vi /etc/sysconfig/network-scripts/route-enp0s3</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">在此文件添加如下格式的内容</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一中添加</span></span><br><span class="line">172.16.230.0/24 via 172.20.1.52</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二中添加</span></span><br><span class="line">172.16.220.0/24 via 172.20.1.51</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重启网络验证</span></span><br><span class="line">service network restart</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看路由表中是否有刚才添加的路由</span></span><br><span class="line">ip route show | column -t</span><br></pre></td></tr></table></figure>
-
-<h6 id="法二："><a href="#法二：" class="headerlink" title="法二："></a>法二：</h6><p>在<code>/etc/sysconfig/static-routes</code> 文件里添加如下内容 (没有static-routes需手动建立)</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一中添加</span></span><br><span class="line">any net 172.16.230.0/24 via 172.20.1.52</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二中添加</span></span><br><span class="line">any net 172.16.220.0/24 via 172.20.1.51</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重启网络服务</span></span><br><span class="line">systemctl restart network</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看路由表中是否有刚才添加的路由</span></span><br><span class="line">ip route show | column -t</span><br></pre></td></tr></table></figure>
-
-<h5 id="开启IP转发"><a href="#开启IP转发" class="headerlink" title="开启IP转发"></a>开启IP转发</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">永久开启</span></span><br><span class="line">vi /etc/sysctl.conf</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">修改</span></span><br><span class="line">net.ipv4.ip_forward=1</span><br></pre></td></tr></table></figure>
-
-<h4 id="方法2：（适用于使用固定ip的容器）"><a href="#方法2：（适用于使用固定ip的容器）" class="headerlink" title="方法2：（适用于使用固定ip的容器）"></a>方法2：（适用于使用固定ip的容器）</h4><h5 id="创建docker网络"><a href="#创建docker网络" class="headerlink" title="创建docker网络"></a>创建docker网络</h5><ol>
-<li>docker桥接类型网络创建</li>
-</ol>
-<p>分别对两台服务器中的docker创建名字为test的网络，指定子网范围为 172.16.220.0&#x2F;24 、172.16.230.0&#x2F;24</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一</span></span><br><span class="line">docker network create test --driver bridge --ipam-driver default --subnet 172.16.220.0/24</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二</span></span><br><span class="line">docker network create test --driver bridge --ipam-driver default --subnet 172.16.230.0/24</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看网络</span></span><br><span class="line">docker network ls</span><br></pre></td></tr></table></figure>
-
-<ol>
-<li>设置静态路由</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机1上添加路由规则（添加主机2的ip和网段）</span></span><br><span class="line">ip route add 172.16.230.0/24 via 172.20.1.52</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机2上添加路由规则（添加主机1的ip和网段）</span></span><br><span class="line">ip route add 172.16.220.0/24 via 172.20.1.51</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">开启路由转发</span></span><br><span class="line">iptables -P FORWARD ACCEPT</span><br></pre></td></tr></table></figure>
-
-<ol>
-<li>启动容器并测试</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">主机1上启动ubuntu容器(加上创建的桥接网络)</span></span><br><span class="line">docker run -it --name node1 --net=test ubuntu:latest /bin/bash</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">主机2上启动ubuntu容器(加上创建的桥接网络)</span></span><br><span class="line">docker run -it --name node2 --net=test ubuntu:latest /bin/bash</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装测试工具</span></span><br><span class="line">apt-get update</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ping工具</span></span><br><span class="line">apt-get install inetutils-ping -y</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ip查看工具</span></span><br><span class="line">apt-get install net-tools -y</span><br></pre></td></tr></table></figure>
-
-<h5 id="路由持久化（防止主机重启路由丢失）-1"><a href="#路由持久化（防止主机重启路由丢失）-1" class="headerlink" title="路由持久化（防止主机重启路由丢失）"></a>路由持久化（防止主机重启路由丢失）</h5><p>使用<strong>nmtui图形化界面添加</strong></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">下载nmtui</span></span><br><span class="line">yum install net-tools -y</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">显示nmtui图形化界面</span></span><br><span class="line">nmtui</span><br></pre></td></tr></table></figure>
-
-<p>在主机一网卡中配置主机二的docker网络的ip段和ip，在主机二网卡中配置主机一的docker网络的ip段和ip</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一中添加</span></span><br><span class="line">172.16.230.0/24  172.20.1.52</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二中添加</span></span><br><span class="line">172.16.220.0/24  172.20.1.51</span><br></pre></td></tr></table></figure>
-
-<p>配置完成会在&#x2F;etc&#x2F;sysconfig&#x2F;network-scripts文件夹下看到</p>
-<p><img src="https://yeesoftware.feishu.cn/space/api/box/stream/download/asynccode/?code=YmI3YjUxODk0OGNiMjU1ZjI4YjQ3ZTAzNDdjYjlmNzNfMFY0S2dQck8xUW5vb3BCeWZkMFNPTXFiS2dqMmE2NjJfVG9rZW46Vjk5aGIzZTU3b0RtUmJ4R21pY2NSVlRlbk9kXzE2OTQ3OTQyNjg6MTY5NDc5Nzg2OF9WNA" alt="img"></p>
-<p><img src="https://yeesoftware.feishu.cn/space/api/box/stream/download/asynccode/?code=ZjI3NDk3Y2M4NWQ4YzMxODhmZTljM2U3MDM0MzQxZGJfQk01NlNPSnVCUENZU0xDamphbVdlR2k0ZG5XTzkwQ0xfVG9rZW46UGN0aWJlMU9Qb2tYSlZ4dGhIZGNhYmpwbnRiXzE2OTQ3OTQyNjg6MTY5NDc5Nzg2OF9WNA" alt="img"></p>
-<p>启动对应主机的新创建的网卡（网络重启或系统重启后会失效）</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一</span></span><br><span class="line">nmcli c up br-aed92de88760</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二</span></span><br><span class="line">nmcli c up br-0ab3914edle2</span><br></pre></td></tr></table></figure>
-
-<p>要使新网卡保持启动则需将对应新创建的网卡文件中的<code>ONBOOT=no</code>改为<code>ONBOOT=yes</code></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一</span></span><br><span class="line">vi ifcfg-br-aed92de88760</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">ONBOOT=no改为ONBOOT=<span class="built_in">yes</span></span></span><br><span class="line">ONBOOT=yes</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二</span></span><br><span class="line">vi ifcfg-br-0ab3914edle2</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">ONBOOT=no改为ONBOOT=<span class="built_in">yes</span></span></span><br><span class="line">ONBOOT=yes</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重启网络服务</span></span><br><span class="line">systemctl restart network</span><br></pre></td></tr></table></figure>
-
-<p><img src="https://yeesoftware.feishu.cn/space/api/box/stream/download/asynccode/?code=M2Y4OGJlNjgxOWU5YmE0NzJhMzcwMGVkMzQ3ZDQ5OWJfQjNRVXprRkx1bjQ2eVN4c2t0UWptd2lXY3Q4OURPREhfVG9rZW46QmNvUWI3Z1Ntb2s2VGV4MkI0RmMxZU55bmpjXzE2OTQ3OTQyNjg6MTY5NDc5Nzg2OF9WNA" alt="img"></p>
-<h5 id="开启IP转发-1"><a href="#开启IP转发-1" class="headerlink" title="开启IP转发"></a>开启IP转发</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">永久开启</span></span><br><span class="line">vi /etc/sysctl.conf</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">修改</span></span><br><span class="line">net.ipv4.ip_forward=1</span><br></pre></td></tr></table></figure>
-
-<p>此时容器不受网络重启影响，可实现跨主机通讯。</p>
-<p>但系统重启后，所创建的docker网络和容器均失效。</p>
-<p>需要重新创建docker网络和容器，此后docker网络和容器均不受系统重启和网络重启的影响，成功实现docker容器的跨主机通讯。</p>
-<p><img src="https://yeesoftware.feishu.cn/space/api/box/stream/download/asynccode/?code=YWQyMmQ3ZDY4YjU5M2NmZDE5MTg2MjRhZWExNzM2NGNfdjRueUt2THN1MDAzOElqcllsdWlCVnBIREVwMnRIbElfVG9rZW46SDkzTWJ3YmFXb1lETnd4M0pOZ2N2ejZWbjNiXzE2OTQ3OTQyNjg6MTY5NDc5Nzg2OF9WNA" alt="img"></p>
-]]></content>
-      <categories>
-        <category>docker</category>
-      </categories>
-      <tags>
-        <tag>docker</tag>
-        <tag>容器通信</tag>
       </tags>
   </entry>
   <entry>
@@ -1678,16 +1678,16 @@ sed -i -e &quot;/^kind: ServiceAccount/&#123;N;N;a\  namespace: cephfs&#125;&quo
 
 ]]></content>
       <categories>
-        <category>docker</category>
         <category>k8s</category>
+        <category>docker</category>
         <category>ceph</category>
         <category>共享存储</category>
-        <category>cephadm</category>
         <category>ceph集群</category>
+        <category>cephadm</category>
       </categories>
       <tags>
-        <tag>docker</tag>
         <tag>k8s</tag>
+        <tag>docker</tag>
         <tag>ceph</tag>
         <tag>共享存储</tag>
         <tag>ceph集群</tag>
