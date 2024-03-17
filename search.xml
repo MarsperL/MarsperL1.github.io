@@ -1,6 +1,60 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>Docker Swarm集群部署</title>
+    <url>/yyg/71468332/</url>
+    <content><![CDATA[<h2 id="Docker-Swarm集群部署"><a href="#Docker-Swarm集群部署" class="headerlink" title="Docker Swarm集群部署"></a><strong>Docker Swarm集群部署</strong></h2><p><strong>任务平台</strong></p>
+<p>3台虚拟机，一台作为manager 节点，另两台作为work节点。</p>
+<p><strong>部署指南</strong></p>
+<p>[TOC]</p>
+<h3 id="安装docker"><a href="#安装docker" class="headerlink" title="安装docker"></a>安装docker</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">下载并安装docker文件及依赖</span></span><br><span class="line">yum install -y yum-utils</span><br><span class="line">yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo</span><br><span class="line">yum install -y docker-ce docker-ce-cli containerd.io</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动docker并设置开机自启</span></span><br><span class="line">systemctl start docker  </span><br><span class="line">systemctl enable docker</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看版本</span></span><br><span class="line">docker -v</span><br></pre></td></tr></table></figure>
+
+<h3 id="配置防火墙开放端口"><a href="#配置防火墙开放端口" class="headerlink" title="配置防火墙开放端口"></a>配置防火墙开放端口</h3><p>TCP协议端口 2377 ：集群管理端口<br>TCP协议端口 7946 ：节点之间通讯端口（不开放则会负载均衡失效）<br>UDP协议端口 4789 ：overlay网络通讯端口</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">firewall-cmd --zone=public --add-port=2377/tcp --permanent</span><br><span class="line">firewall-cmd --zone=public --add-port=7946/tcp --permanent</span><br><span class="line">firewall-cmd --zone=public --add-port=7946/udp --permanent</span><br><span class="line">firewall-cmd --zone=public --add-port=4789/tcp --permanent</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重载防火墙</span></span><br><span class="line">firewall-cmd --reload</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看80端口是否开放</span></span><br><span class="line">firewall-cmd --query-port=80/tcp</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看所有放行的端口</span></span><br><span class="line">firewall-cmd --zone=public --list-ports</span><br></pre></td></tr></table></figure>
+
+<h3 id="在-manager-节点创建-Swarm-集群"><a href="#在-manager-节点创建-Swarm-集群" class="headerlink" title="在 manager 节点创建 Swarm 集群"></a>在 manager 节点创建 Swarm 集群</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker swarm init --advertise-addr=本机ip:2377 --listen-addr=本机ip:2377</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Swarm initialized: current node (608u180nsa654xbxdthdhl0f6) is now a manager.</p>
+<p>To add a worker to this swarm, run the following command:</p>
+<p>​    <code>docker swarm join --token SWMTKN-1-13dv43qm3tdux7243z3c0najcetizjpgly1urd4uchtcooxe87-4eh15dbayxttxipm34s5tod6t 172.20.1.51:2377</code></p>
+<p>To add a manager to this swarm, run ‘docker swarm join-token manager’ and follow the instructions.</p>
+</blockquote>
+<p>将执行后产生的命令（如上标红的），分别加入到其他主机中，执行后产生如下结果。即为成功加入。</p>
+<p>或者执行下面命令产生令牌，并且是定期轮换计划（推荐）</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker swarm join-token  --rotate worker</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>This node joined a swarm as a worker.</p>
+</blockquote>
+<p>（扩展）加入管理节点的命令</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker swarm join-token --rotate manager</span><br></pre></td></tr></table></figure>
+
+<p>在manager节点上输入<code>docker node ls</code> 可查看所有节点。</p>
+<p><img src="https://yeesoftware.feishu.cn/space/api/box/stream/download/asynccode/?code=ZDg4MDcwMjQzMjkyOWZmMjc1YzdmNWMzMGYzM2U0N2RfcGVTQjBRSmgzeUxOMHRKUFlteWJBS0VHcTMwVEhabUxfVG9rZW46RmE3OGJlVmNtb3VFY1h4UmdNSmNRT3FvbnFmXzE2OTQ3OTI5NzM6MTY5NDc5NjU3M19WNA" alt="img"></p>
+<h3 id="创建用于swarm服务的自定义的overlay网络"><a href="#创建用于swarm服务的自定义的overlay网络" class="headerlink" title="创建用于swarm服务的自定义的overlay网络"></a>创建用于swarm服务的自定义的overlay网络</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">方式一</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">--attachable选项表示该网络是可附加的，即其他容器可以连接到该网络</span>  </span><br><span class="line">docker network create -d overlay --attachable my-overlay</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">方式二</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">--subnet:子网 --gateway:网关</span></span><br><span class="line">docker network create --driver overlay --subnet 10.0.9.0/24 --gateway 10.0.9.99 my-overlay</span><br><span class="line">  </span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">查看docker网络</span></span><br><span class="line"> docker network ls</span><br></pre></td></tr></table></figure>
+
+<h3 id="测试跨主机容器通信"><a href="#测试跨主机容器通信" class="headerlink" title="测试跨主机容器通信"></a>测试跨主机容器通信</h3><ol>
+<li>在三台主机上各部署一个容器，进行相互ping，结果如下图。</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一</span></span><br><span class="line">docker run -it --name master --net=my-overlay ubuntu:latest</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二</span></span><br><span class="line">docker run -it --name node1 --net=my-overlay ubuntu:latest</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机三</span></span><br><span class="line">docker run -it --name node2 --net=my-overlay ubuntu:latest</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>安装测试工具</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">apt-get update</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ping工具</span></span><br><span class="line">apt-get install inetutils-ping -y</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ip查看工具</span></span><br><span class="line">apt-get install net-tools -y</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://yeesoftware.feishu.cn/space/api/box/stream/download/asynccode/?code=OWFjMjlmYmQ3OWVmZWU0OWYyYTNlMjY0ZTk4NTEzYmZfdlU1SUduZ2VSdW50U1ZtMThQaGJSTjNsQnU2M1VETldfVG9rZW46RDVnUmJNOTk4b2dPYUt4UnVhbWNCUVNYbjRjXzE2OTQ3OTI5NzM6MTY5NDc5NjU3M19WNA" alt="img"></p>
+]]></content>
+      <categories>
+        <category>docker</category>
+      </categories>
+      <tags>
+        <tag>docker</tag>
+        <tag>docker Swarm</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Kubeadm方式搭建K8S集群</title>
     <url>/yyg/12690776/</url>
     <content><![CDATA[<h1 id="Kubeadm方式搭建K8S集群"><a href="#Kubeadm方式搭建K8S集群" class="headerlink" title="Kubeadm方式搭建K8S集群"></a>Kubeadm方式搭建K8S集群</h1><h3 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h3><p>在虚拟机里安装三台centos 7.x操作系统</p>
@@ -99,208 +153,10 @@
         <category>k8s</category>
       </categories>
       <tags>
+        <tag>docker</tag>
         <tag>k8s</tag>
         <tag>Kubeadm</tag>
-        <tag>docker</tag>
         <tag>k8s集群</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Docker Swarm集群部署</title>
-    <url>/yyg/71468332/</url>
-    <content><![CDATA[<h2 id="Docker-Swarm集群部署"><a href="#Docker-Swarm集群部署" class="headerlink" title="Docker Swarm集群部署"></a><strong>Docker Swarm集群部署</strong></h2><p><strong>任务平台</strong></p>
-<p>3台虚拟机，一台作为manager 节点，另两台作为work节点。</p>
-<p><strong>部署指南</strong></p>
-<p>[TOC]</p>
-<h3 id="安装docker"><a href="#安装docker" class="headerlink" title="安装docker"></a>安装docker</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">下载并安装docker文件及依赖</span></span><br><span class="line">yum install -y yum-utils</span><br><span class="line">yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo</span><br><span class="line">yum install -y docker-ce docker-ce-cli containerd.io</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动docker并设置开机自启</span></span><br><span class="line">systemctl start docker  </span><br><span class="line">systemctl enable docker</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看版本</span></span><br><span class="line">docker -v</span><br></pre></td></tr></table></figure>
-
-<h3 id="配置防火墙开放端口"><a href="#配置防火墙开放端口" class="headerlink" title="配置防火墙开放端口"></a>配置防火墙开放端口</h3><p>TCP协议端口 2377 ：集群管理端口<br>TCP协议端口 7946 ：节点之间通讯端口（不开放则会负载均衡失效）<br>UDP协议端口 4789 ：overlay网络通讯端口</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">firewall-cmd --zone=public --add-port=2377/tcp --permanent</span><br><span class="line">firewall-cmd --zone=public --add-port=7946/tcp --permanent</span><br><span class="line">firewall-cmd --zone=public --add-port=7946/udp --permanent</span><br><span class="line">firewall-cmd --zone=public --add-port=4789/tcp --permanent</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重载防火墙</span></span><br><span class="line">firewall-cmd --reload</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看80端口是否开放</span></span><br><span class="line">firewall-cmd --query-port=80/tcp</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看所有放行的端口</span></span><br><span class="line">firewall-cmd --zone=public --list-ports</span><br></pre></td></tr></table></figure>
-
-<h3 id="在-manager-节点创建-Swarm-集群"><a href="#在-manager-节点创建-Swarm-集群" class="headerlink" title="在 manager 节点创建 Swarm 集群"></a>在 manager 节点创建 Swarm 集群</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker swarm init --advertise-addr=本机ip:2377 --listen-addr=本机ip:2377</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>Swarm initialized: current node (608u180nsa654xbxdthdhl0f6) is now a manager.</p>
-<p>To add a worker to this swarm, run the following command:</p>
-<p>​    <code>docker swarm join --token SWMTKN-1-13dv43qm3tdux7243z3c0najcetizjpgly1urd4uchtcooxe87-4eh15dbayxttxipm34s5tod6t 172.20.1.51:2377</code></p>
-<p>To add a manager to this swarm, run ‘docker swarm join-token manager’ and follow the instructions.</p>
-</blockquote>
-<p>将执行后产生的命令（如上标红的），分别加入到其他主机中，执行后产生如下结果。即为成功加入。</p>
-<p>或者执行下面命令产生令牌，并且是定期轮换计划（推荐）</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker swarm join-token  --rotate worker</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>This node joined a swarm as a worker.</p>
-</blockquote>
-<p>（扩展）加入管理节点的命令</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker swarm join-token --rotate manager</span><br></pre></td></tr></table></figure>
-
-<p>在manager节点上输入<code>docker node ls</code> 可查看所有节点。</p>
-<p><img src="https://yeesoftware.feishu.cn/space/api/box/stream/download/asynccode/?code=ZDg4MDcwMjQzMjkyOWZmMjc1YzdmNWMzMGYzM2U0N2RfcGVTQjBRSmgzeUxOMHRKUFlteWJBS0VHcTMwVEhabUxfVG9rZW46RmE3OGJlVmNtb3VFY1h4UmdNSmNRT3FvbnFmXzE2OTQ3OTI5NzM6MTY5NDc5NjU3M19WNA" alt="img"></p>
-<h3 id="创建用于swarm服务的自定义的overlay网络"><a href="#创建用于swarm服务的自定义的overlay网络" class="headerlink" title="创建用于swarm服务的自定义的overlay网络"></a>创建用于swarm服务的自定义的overlay网络</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">方式一</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">--attachable选项表示该网络是可附加的，即其他容器可以连接到该网络</span>  </span><br><span class="line">docker network create -d overlay --attachable my-overlay</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">方式二</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">--subnet:子网 --gateway:网关</span></span><br><span class="line">docker network create --driver overlay --subnet 10.0.9.0/24 --gateway 10.0.9.99 my-overlay</span><br><span class="line">  </span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">查看docker网络</span></span><br><span class="line"> docker network ls</span><br></pre></td></tr></table></figure>
-
-<h3 id="测试跨主机容器通信"><a href="#测试跨主机容器通信" class="headerlink" title="测试跨主机容器通信"></a>测试跨主机容器通信</h3><ol>
-<li>在三台主机上各部署一个容器，进行相互ping，结果如下图。</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一</span></span><br><span class="line">docker run -it --name master --net=my-overlay ubuntu:latest</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二</span></span><br><span class="line">docker run -it --name node1 --net=my-overlay ubuntu:latest</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机三</span></span><br><span class="line">docker run -it --name node2 --net=my-overlay ubuntu:latest</span><br></pre></td></tr></table></figure>
-
-<ol start="2">
-<li>安装测试工具</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">apt-get update</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ping工具</span></span><br><span class="line">apt-get install inetutils-ping -y</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ip查看工具</span></span><br><span class="line">apt-get install net-tools -y</span><br></pre></td></tr></table></figure>
-
-<p><img src="https://yeesoftware.feishu.cn/space/api/box/stream/download/asynccode/?code=OWFjMjlmYmQ3OWVmZWU0OWYyYTNlMjY0ZTk4NTEzYmZfdlU1SUduZ2VSdW50U1ZtMThQaGJSTjNsQnU2M1VETldfVG9rZW46RDVnUmJNOTk4b2dPYUt4UnVhbWNCUVNYbjRjXzE2OTQ3OTI5NzM6MTY5NDc5NjU3M19WNA" alt="img"></p>
-]]></content>
-      <categories>
-        <category>docker</category>
-      </categories>
-      <tags>
-        <tag>docker</tag>
-        <tag>docker Swarm</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>docker基础知识</title>
-    <url>/yyg/7b36b89c/</url>
-    <content><![CDATA[<h1 id="docker基础知识"><a href="#docker基础知识" class="headerlink" title="docker基础知识"></a>docker基础知识</h1><p><code>docker search 镜像</code> #搜索要下载的镜像</p>
-<p><code>docker pull 镜像</code> #将镜像拉到本地</p>
-<p><code>docker images</code> #查看已拉取到本地的镜像</p>
-<p><code>docker rmi 镜像名或ID</code> #删除镜像</p>
-<p><code>docker rm 容器ID</code> #删除已停止容器</p>
-<blockquote>
-<p><code>docker rm -f 容器ID</code> #强制删除容器</p>
-</blockquote>
-<p>一次性删除多个容器</p>
-<blockquote>
-<p><code>docker rm -f $(docker ps -a -q)</code></p>
-<p><code>docker ps -a -q |xargs docker rm</code></p>
-</blockquote>
-<p>删除虚悬镜像</p>
-<blockquote>
-<p><code>docker image ls -f dangling=true</code> #显示所有的虚悬镜像</p>
-<p><code>docker image prune</code> #删除虚悬镜像</p>
-</blockquote>
-<p><code>docker ps</code> #查看正在运行的容器</p>
-<blockquote>
-<p><code>docker ps -a</code> #列出所有正在运行和曾运行过的容器</p>
-<p><code>docker ps -l</code> #显示最近创建的容器</p>
-<p><code>docker ps -n</code> #显示最近创建的n个容器</p>
-<p><code>docker ps -q</code> #只显示容器编号</p>
-</blockquote>
-<p><code>docker stop  容器名或ID</code> #结束容器运行</p>
-<p><code>docker kill  容器名或ID</code> #强制停止容器运行</p>
-<p><code>docker start 容器名或ID</code> #启动已停止的容器</p>
-<p><code>docker restart 容器名或ID</code> #重启容器</p>
-<p><code>docker run -it 镜像名或ID</code> #启动镜像(-it指交互式启动)</p>
-<blockquote>
-<p><code>docker run -d 容器名或ID</code> #容器后台运行</p>
-<p><code>docker run -it -p 端口号:端口号 容器名或ID</code> #以特定端口号运行容器</p>
-<p><code>docker run -it -P 容器名或ID</code> #随机分配端口号运行容器</p>
-<p>启动镜像后，按下<code>ctrl+p+q</code>，容器后台运行 </p>
-</blockquote>
-<p>重新进入后台运行的容器</p>
-<blockquote>
-<p><code>docker exec -it  容器ID</code> #在容器中打开新的终端，并且可以启动新的进程，用exit退出，不会导致容器的停止。(推荐使用)</p>
-<p><code>docker attach 容器ID</code>  #直接进入容器启动命令的终端，不会启动新的进程，用exit退出，会导致容器的停止。</p>
-</blockquote>
-<p><code>docker inspect 容器ID</code>#显示容器内的详细信息</p>
-<p><code>docker logs  容器ID</code> #查看容器日志</p>
-<p><code>docker top  容器ID</code> 查看容器内进程</p>
-<p><code>docker cp  容器ID:容器内路径 目的主机路径</code> #将文件从容器拷贝到主机</p>
-<p>容器的导入导出</p>
-<blockquote>
-<p><code>docker export  容器ID &gt;文件名.tar</code> #将容器及内容导出为tar包</p>
-<p><code>cat 文件名.tar | docker import -镜像用户/镜像名:镜像版本号</code> #从tar包中创建一个新文件系统再导入镜像</p>
-</blockquote>
-<p><code>docker run -it --privileged=true -v /宿主机目录:/容器内目录 镜像名</code>#宿主机与容器之间映射添加容器卷</p>
-<p><code>docker run -it --privileged=true -v /宿主机目录:/容器内目录:rw 镜像名</code>#宿主机与容器之间映射添加容器卷,容器内文件可读可写</p>
-<p><code>docker run -it --privileged=true -v /宿主机目录:/容器内目录:ro 镜像名</code>#宿主机与容器之间映射添加容器卷,容器内文件只可读</p>
-<p><code>docker run -it --privileged=true -volumes-from 父类 -name 容器2名称 镜像名</code> #容器2继承容器1的卷规则</p>
-<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230407171910378.png" alt="image-20230407171910378"></p>
-]]></content>
-      <categories>
-        <category>docker</category>
-      </categories>
-      <tags>
-        <tag>docker</tag>
-        <tag>docker基础</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>docker安装mysql</title>
-    <url>/yyg/25ae9841/</url>
-    <content><![CDATA[<h1 id="docker安装mysql"><a href="#docker安装mysql" class="headerlink" title="docker安装mysql"></a>docker安装mysql</h1><blockquote>
-<p><code>docker pull mysql</code> #拉取mysql镜像(最新版)</p>
-</blockquote>
-<p>若安装特定版本如6.0，则命令如下：</p>
-<p><code>docker pull mysql:6.0</code></p>
-<p>运行mysql，并分配3306端口，该命令如下：(<strong>注：下面的是一条命令</strong>)</p>
-<p>此命令中的<code>jiamian</code>为小编的liunx系统的用户名，用时需替换为自己的用户名</p>
-<p><code>MYSQL_ROOT_PASSWORD</code>后填的是mysql的密码，可自行替换</p>
-<p><code>--name</code>后填的mysql-1是运行的mysql容器的名称，也可自行替换</p>
-<blockquote>
-<p>docker run -d -p 3306:3306 –privileged&#x3D;true -v &#x2F;jiamian&#x2F;mysql&#x2F;log:&#x2F;var&#x2F;log&#x2F;mysql</p>
-<p>-v &#x2F;jiamian&#x2F;mysql&#x2F;data:&#x2F;var&#x2F;lib&#x2F;mysql -v &#x2F;jiamian&#x2F;mysql&#x2F;conf:&#x2F;etc&#x2F;mysql&#x2F;conf.d </p>
-<p>-e MYSQL_ROOT_PASSWORD&#x3D;123456 –name mysql-1 mysql</p>
-</blockquote>
-<p>此命令也可解决在删除mysql容器后，而出现的数据库数据丢失的问题。若要找回数据，则只需重新运行命令即可。</p>
-<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230410201124021.png" alt="image-20230410201124021"></p>
-<p>运行<code>docker ps</code>命令，可查看到mysql正在运行</p>
-<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230410201052873.png" alt="image-20230410201052873"></p>
-<h2 id="解决mysql插入中文乱码的情况"><a href="#解决mysql插入中文乱码的情况" class="headerlink" title="解决mysql插入中文乱码的情况"></a>解决mysql插入中文乱码的情况</h2><p>然后输入命令<code>cd /jiamian/mysql/conf</code>。进入该目录后，输入命令<code>vim my.cnf</code>，新建my.cnf文件，</p>
-<p>并输入以下代码</p>
-<blockquote>
-<p>[client]<br>default_character_set&#x3D;utf8<br>[mysqld]<br>collation_server &#x3D; utf8_general_ci<br>character_set_server &#x3D; utf8</p>
-</blockquote>
-<p>保存退出后，输入 <code>docker restart mysql-1</code>，重启mysql。</p>
-<p>再输入<code>docker exec -it mysql-1 /bin/bash</code>进入mysql环境，此时汉字可正常显示</p>
-<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230410202120798.png" alt="image-20230410202120798"></p>
-<h1 id="mysql主从复制"><a href="#mysql主从复制" class="headerlink" title="mysql主从复制"></a>mysql主从复制</h1><p>新建主服务器容器实例3307，具体命令如下：(<strong>注：下面的是一条命令</strong>)</p>
-<p><code>MYSQL_ROOT_PASSWORD</code>后填的是mysql的密码，可自行替换</p>
-<p><code>--name</code>后填的mysql-master是运行的mysql容器的名称，也可自行替换</p>
-<blockquote>
-<p>docker run -d -p 3307:3306 –name mysql-master </p>
-<p>-v &#x2F;mydata&#x2F;mysql-master&#x2F;log:&#x2F;var&#x2F;log&#x2F;mysql </p>
-<p>-v &#x2F;mydata&#x2F;mysql-master&#x2F;data:&#x2F;var&#x2F;lib&#x2F;mysql </p>
-<p>-v &#x2F;mydata&#x2F;mysql-master&#x2F;conf:&#x2F;etc&#x2F;mysql&#x2F;conf.d </p>
-<p>-e MYSQL_ROOT_PASSWORD&#x3D;root mysql:latest</p>
-</blockquote>
-<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230424155951733.png" alt="image-20230424155951733"></p>
-<p>进入&#x2F;mydata&#x2F;mysql–master&#x2F;conf目录下新建my.cnf</p>
-]]></content>
-      <categories>
-        <category>docker</category>
-      </categories>
-      <tags>
-        <tag>docker</tag>
-        <tag>mysql</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>docker 安装 redis</title>
-    <url>/yyg/6fffbcc4/</url>
-    <content><![CDATA[<h1 id="docker-安装-redis"><a href="#docker-安装-redis" class="headerlink" title="docker 安装 redis"></a>docker 安装 redis</h1><p>首先输入命令<code>docker pull redis</code> ，将最新版redis安装到本地</p>
-<p>输入以下命令,后台启动redis(注：<strong>该命令是一条命令</strong>)</p>
-<p>其中<code>--name</code>后面的是redis容器的名称，可自行更改</p>
-<blockquote>
-<p>docker run -p 6379:6379 –name mars1 –privileged&#x3D;true</p>
-<p> -v &#x2F;app&#x2F;redis&#x2F;redis.conf:&#x2F;etc&#x2F;redis&#x2F;redis.conf </p>
-<p>-v &#x2F;app&#x2F;redis&#x2F;data:&#x2F;data </p>
-<p>-d redis:latest redis-server &#x2F;etc&#x2F;redis&#x2F;redis.conf</p>
-</blockquote>
-<p>此命令也可解决在删除redis容器后，而出现的数据丢失的问题。若要找回数据，则只需重新运行命令即可。</p>
-<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230411164804210.png" alt="image-20230411164804210"></p>
-<p>运行<code>docker ps</code>命令，可查看到redis正在运行</p>
-<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230411163752381.png" alt="image-20230411163752381"></p>
-<p>然后执行<code>docker exec -it mars1 /bin/bash</code>命令，redis成功运行</p>
-<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230411180817939.png" alt="image-20230411180817939"></p>
-]]></content>
-      <categories>
-        <category>docker</category>
-      </categories>
-      <tags>
-        <tag>docker</tag>
-        <tag>redis</tag>
       </tags>
   </entry>
   <entry>
@@ -547,6 +403,150 @@
       </tags>
   </entry>
   <entry>
+    <title>docker基础知识</title>
+    <url>/yyg/7b36b89c/</url>
+    <content><![CDATA[<h1 id="docker基础知识"><a href="#docker基础知识" class="headerlink" title="docker基础知识"></a>docker基础知识</h1><p><code>docker search 镜像</code> #搜索要下载的镜像</p>
+<p><code>docker pull 镜像</code> #将镜像拉到本地</p>
+<p><code>docker images</code> #查看已拉取到本地的镜像</p>
+<p><code>docker rmi 镜像名或ID</code> #删除镜像</p>
+<p><code>docker rm 容器ID</code> #删除已停止容器</p>
+<blockquote>
+<p><code>docker rm -f 容器ID</code> #强制删除容器</p>
+</blockquote>
+<p>一次性删除多个容器</p>
+<blockquote>
+<p><code>docker rm -f $(docker ps -a -q)</code></p>
+<p><code>docker ps -a -q |xargs docker rm</code></p>
+</blockquote>
+<p>删除虚悬镜像</p>
+<blockquote>
+<p><code>docker image ls -f dangling=true</code> #显示所有的虚悬镜像</p>
+<p><code>docker image prune</code> #删除虚悬镜像</p>
+</blockquote>
+<p><code>docker ps</code> #查看正在运行的容器</p>
+<blockquote>
+<p><code>docker ps -a</code> #列出所有正在运行和曾运行过的容器</p>
+<p><code>docker ps -l</code> #显示最近创建的容器</p>
+<p><code>docker ps -n</code> #显示最近创建的n个容器</p>
+<p><code>docker ps -q</code> #只显示容器编号</p>
+</blockquote>
+<p><code>docker stop  容器名或ID</code> #结束容器运行</p>
+<p><code>docker kill  容器名或ID</code> #强制停止容器运行</p>
+<p><code>docker start 容器名或ID</code> #启动已停止的容器</p>
+<p><code>docker restart 容器名或ID</code> #重启容器</p>
+<p><code>docker run -it 镜像名或ID</code> #启动镜像(-it指交互式启动)</p>
+<blockquote>
+<p><code>docker run -d 容器名或ID</code> #容器后台运行</p>
+<p><code>docker run -it -p 端口号:端口号 容器名或ID</code> #以特定端口号运行容器</p>
+<p><code>docker run -it -P 容器名或ID</code> #随机分配端口号运行容器</p>
+<p>启动镜像后，按下<code>ctrl+p+q</code>，容器后台运行 </p>
+</blockquote>
+<p>重新进入后台运行的容器</p>
+<blockquote>
+<p><code>docker exec -it  容器ID</code> #在容器中打开新的终端，并且可以启动新的进程，用exit退出，不会导致容器的停止。(推荐使用)</p>
+<p><code>docker attach 容器ID</code>  #直接进入容器启动命令的终端，不会启动新的进程，用exit退出，会导致容器的停止。</p>
+</blockquote>
+<p><code>docker inspect 容器ID</code>#显示容器内的详细信息</p>
+<p><code>docker logs  容器ID</code> #查看容器日志</p>
+<p><code>docker top  容器ID</code> 查看容器内进程</p>
+<p><code>docker cp  容器ID:容器内路径 目的主机路径</code> #将文件从容器拷贝到主机</p>
+<p>容器的导入导出</p>
+<blockquote>
+<p><code>docker export  容器ID &gt;文件名.tar</code> #将容器及内容导出为tar包</p>
+<p><code>cat 文件名.tar | docker import -镜像用户/镜像名:镜像版本号</code> #从tar包中创建一个新文件系统再导入镜像</p>
+</blockquote>
+<p><code>docker run -it --privileged=true -v /宿主机目录:/容器内目录 镜像名</code>#宿主机与容器之间映射添加容器卷</p>
+<p><code>docker run -it --privileged=true -v /宿主机目录:/容器内目录:rw 镜像名</code>#宿主机与容器之间映射添加容器卷,容器内文件可读可写</p>
+<p><code>docker run -it --privileged=true -v /宿主机目录:/容器内目录:ro 镜像名</code>#宿主机与容器之间映射添加容器卷,容器内文件只可读</p>
+<p><code>docker run -it --privileged=true -volumes-from 父类 -name 容器2名称 镜像名</code> #容器2继承容器1的卷规则</p>
+<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230407171910378.png" alt="image-20230407171910378"></p>
+]]></content>
+      <categories>
+        <category>docker</category>
+      </categories>
+      <tags>
+        <tag>docker</tag>
+        <tag>docker基础</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>docker 安装 redis</title>
+    <url>/yyg/6fffbcc4/</url>
+    <content><![CDATA[<h1 id="docker-安装-redis"><a href="#docker-安装-redis" class="headerlink" title="docker 安装 redis"></a>docker 安装 redis</h1><p>首先输入命令<code>docker pull redis</code> ，将最新版redis安装到本地</p>
+<p>输入以下命令,后台启动redis(注：<strong>该命令是一条命令</strong>)</p>
+<p>其中<code>--name</code>后面的是redis容器的名称，可自行更改</p>
+<blockquote>
+<p>docker run -p 6379:6379 –name mars1 –privileged&#x3D;true</p>
+<p> -v &#x2F;app&#x2F;redis&#x2F;redis.conf:&#x2F;etc&#x2F;redis&#x2F;redis.conf </p>
+<p>-v &#x2F;app&#x2F;redis&#x2F;data:&#x2F;data </p>
+<p>-d redis:latest redis-server &#x2F;etc&#x2F;redis&#x2F;redis.conf</p>
+</blockquote>
+<p>此命令也可解决在删除redis容器后，而出现的数据丢失的问题。若要找回数据，则只需重新运行命令即可。</p>
+<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230411164804210.png" alt="image-20230411164804210"></p>
+<p>运行<code>docker ps</code>命令，可查看到redis正在运行</p>
+<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230411163752381.png" alt="image-20230411163752381"></p>
+<p>然后执行<code>docker exec -it mars1 /bin/bash</code>命令，redis成功运行</p>
+<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230411180817939.png" alt="image-20230411180817939"></p>
+]]></content>
+      <categories>
+        <category>docker</category>
+      </categories>
+      <tags>
+        <tag>docker</tag>
+        <tag>redis</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>docker安装mysql</title>
+    <url>/yyg/25ae9841/</url>
+    <content><![CDATA[<h1 id="docker安装mysql"><a href="#docker安装mysql" class="headerlink" title="docker安装mysql"></a>docker安装mysql</h1><blockquote>
+<p><code>docker pull mysql</code> #拉取mysql镜像(最新版)</p>
+</blockquote>
+<p>若安装特定版本如6.0，则命令如下：</p>
+<p><code>docker pull mysql:6.0</code></p>
+<p>运行mysql，并分配3306端口，该命令如下：(<strong>注：下面的是一条命令</strong>)</p>
+<p>此命令中的<code>jiamian</code>为小编的liunx系统的用户名，用时需替换为自己的用户名</p>
+<p><code>MYSQL_ROOT_PASSWORD</code>后填的是mysql的密码，可自行替换</p>
+<p><code>--name</code>后填的mysql-1是运行的mysql容器的名称，也可自行替换</p>
+<blockquote>
+<p>docker run -d -p 3306:3306 –privileged&#x3D;true -v &#x2F;jiamian&#x2F;mysql&#x2F;log:&#x2F;var&#x2F;log&#x2F;mysql</p>
+<p>-v &#x2F;jiamian&#x2F;mysql&#x2F;data:&#x2F;var&#x2F;lib&#x2F;mysql -v &#x2F;jiamian&#x2F;mysql&#x2F;conf:&#x2F;etc&#x2F;mysql&#x2F;conf.d </p>
+<p>-e MYSQL_ROOT_PASSWORD&#x3D;123456 –name mysql-1 mysql</p>
+</blockquote>
+<p>此命令也可解决在删除mysql容器后，而出现的数据库数据丢失的问题。若要找回数据，则只需重新运行命令即可。</p>
+<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230410201124021.png" alt="image-20230410201124021"></p>
+<p>运行<code>docker ps</code>命令，可查看到mysql正在运行</p>
+<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230410201052873.png" alt="image-20230410201052873"></p>
+<h2 id="解决mysql插入中文乱码的情况"><a href="#解决mysql插入中文乱码的情况" class="headerlink" title="解决mysql插入中文乱码的情况"></a>解决mysql插入中文乱码的情况</h2><p>然后输入命令<code>cd /jiamian/mysql/conf</code>。进入该目录后，输入命令<code>vim my.cnf</code>，新建my.cnf文件，</p>
+<p>并输入以下代码</p>
+<blockquote>
+<p>[client]<br>default_character_set&#x3D;utf8<br>[mysqld]<br>collation_server &#x3D; utf8_general_ci<br>character_set_server &#x3D; utf8</p>
+</blockquote>
+<p>保存退出后，输入 <code>docker restart mysql-1</code>，重启mysql。</p>
+<p>再输入<code>docker exec -it mysql-1 /bin/bash</code>进入mysql环境，此时汉字可正常显示</p>
+<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230410202120798.png" alt="image-20230410202120798"></p>
+<h1 id="mysql主从复制"><a href="#mysql主从复制" class="headerlink" title="mysql主从复制"></a>mysql主从复制</h1><p>新建主服务器容器实例3307，具体命令如下：(<strong>注：下面的是一条命令</strong>)</p>
+<p><code>MYSQL_ROOT_PASSWORD</code>后填的是mysql的密码，可自行替换</p>
+<p><code>--name</code>后填的mysql-master是运行的mysql容器的名称，也可自行替换</p>
+<blockquote>
+<p>docker run -d -p 3307:3306 –name mysql-master </p>
+<p>-v &#x2F;mydata&#x2F;mysql-master&#x2F;log:&#x2F;var&#x2F;log&#x2F;mysql </p>
+<p>-v &#x2F;mydata&#x2F;mysql-master&#x2F;data:&#x2F;var&#x2F;lib&#x2F;mysql </p>
+<p>-v &#x2F;mydata&#x2F;mysql-master&#x2F;conf:&#x2F;etc&#x2F;mysql&#x2F;conf.d </p>
+<p>-e MYSQL_ROOT_PASSWORD&#x3D;root mysql:latest</p>
+</blockquote>
+<p><img src="C:\Users\123\AppData\Roaming\Typora\typora-user-images\image-20230424155951733.png" alt="image-20230424155951733"></p>
+<p>进入&#x2F;mydata&#x2F;mysql–master&#x2F;conf目录下新建my.cnf</p>
+]]></content>
+      <categories>
+        <category>docker</category>
+      </categories>
+      <tags>
+        <tag>docker</tag>
+        <tag>mysql</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>k8s集群对接ceph集群部署指南</title>
     <url>/yyg/57e2a956/</url>
     <content><![CDATA[<h1 id="k8s集群对接ceph集群部署指南"><a href="#k8s集群对接ceph集群部署指南" class="headerlink" title="k8s集群对接ceph集群部署指南"></a>k8s集群对接ceph集群部署指南</h1><h2 id="任务目标"><a href="#任务目标" class="headerlink" title="任务目标"></a>任务目标</h2><ol>
@@ -622,8 +622,8 @@ sed -i &#39;/^kind: ServiceAccount/a\  namespace: cephfs&#39; $(grep -rl &quot;^
         <category>ceph共享存储</category>
       </categories>
       <tags>
-        <tag>k8s</tag>
         <tag>docker</tag>
+        <tag>k8s</tag>
         <tag>ceph</tag>
         <tag>共享存储</tag>
         <tag>ceph集群</tag>
@@ -1095,9 +1095,9 @@ vrrp_instance VI_1 &#123;
         <category>k8s</category>
       </categories>
       <tags>
+        <tag>docker</tag>
         <tag>k8s</tag>
         <tag>Kubeadm</tag>
-        <tag>docker</tag>
         <tag>k8s集群</tag>
         <tag>高可用</tag>
       </tags>
@@ -1669,8 +1669,8 @@ sed -i -e &quot;/^kind: ServiceAccount/&#123;N;N;a\  namespace: cephfs&#125;&quo
         <category>ceph共享存储</category>
       </categories>
       <tags>
-        <tag>k8s</tag>
         <tag>docker</tag>
+        <tag>k8s</tag>
         <tag>ceph</tag>
         <tag>共享存储</tag>
         <tag>ceph集群</tag>
