@@ -700,6 +700,83 @@ cp hub-docker.tiliatech.net.key /data/cert/
       </tags>
   </entry>
   <entry>
+    <title>实现Docker 容器跨主机通讯</title>
+    <url>/yyg/60ed202a/</url>
+    <content><![CDATA[<h2 id="实现Docker-容器跨主机通讯"><a href="#实现Docker-容器跨主机通讯" class="headerlink" title="实现Docker 容器跨主机通讯"></a>实现Docker 容器跨主机通讯</h2><p>[TOC]</p>
+<h3 id="方案一：docker-swarm集群"><a href="#方案一：docker-swarm集群" class="headerlink" title="方案一：docker swarm集群"></a>方案一：docker swarm集群</h3><p><a href="https://blog.csdn.net/AMCUL/article/details/132913280">https://blog.csdn.net/AMCUL/article/details/132913280</a></p>
+<h3 id="方案二：直接路由法"><a href="#方案二：直接路由法" class="headerlink" title="方案二：直接路由法"></a>方案二：直接路由法</h3><p>在部署指南中提到的方法的实现分固定网段、路由持久化、IP转发三部分组成。</p>
+<h4 id="方法1："><a href="#方法1：" class="headerlink" title="方法1："></a>方法1：</h4><h5 id="修改并固定docker0的默认网段"><a href="#修改并固定docker0的默认网段" class="headerlink" title="修改并固定docker0的默认网段"></a>修改并固定docker0的默认网段</h5><ol>
+<li>修改docker0网段ip，在主机的&#x2F;etc&#x2F;docker&#x2F;daemon.json文件中，加入如下内容：</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">打开daemon.json文件</span></span><br><span class="line">vi /etc/docker/daemon.json</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一中添加的内容</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">172.16.200.1 为主机一的docker网段ip</span></span><br><span class="line">&#123;</span><br><span class="line"> &quot;bip&quot;: &quot;172.16.200.1/24&quot;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二中添加的内容</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">172.16.210.1 为主机二的docker网段ip</span></span><br><span class="line">&#123;</span><br><span class="line"> &quot;bip&quot;: &quot;172.16.210.1/24&quot;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重启docker服务</span></span><br><span class="line">systemctl restart docker </span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>添加路由规则，主机间互相添加</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机1上添加路由规则（添加主机2的ip和网段）</span></span><br><span class="line">ip route add 172.16.210.0/24 via 172.20.1.52</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机2上添加路由规则（添加主机1的ip和网段）</span></span><br><span class="line">ip route add 172.16.200.0/24 via 172.20.1.51</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">方式一：</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">开启路由转发</span></span><br><span class="line">iptables -P FORWARD ACCEPT</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">方式二：</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">配置iptables规则（本机的网段）</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一</span></span><br><span class="line">iptables -t nat -F POSTROUTING</span><br><span class="line">iptables -t nat -A POSTROUTING -s 172.16.200.0/24 ! -d 172.16.0.0/16 -j MASQUERADE</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二</span></span><br><span class="line">iptables -t nat -F POSTROUTING</span><br><span class="line">iptables -t nat -A POSTROUTING -s 172.16.210.0/24 ! -d 172.16.0.0/16 -j MASQUERADE</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>启动容器并测试</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">主机1上启动ubuntu容器</span></span><br><span class="line">docker run -it --name node1 ubuntu:latest /bin/bash</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">主机2上启动ubuntu容器</span></span><br><span class="line">docker run -it --name node2 ubuntu:latest /bin/bash</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装测试工具</span></span><br><span class="line">apt-get update</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ping工具</span></span><br><span class="line">apt-get install inetutils-ping -y</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ip查看工具</span></span><br><span class="line">apt-get install net-tools -y</span><br></pre></td></tr></table></figure>
+
+<h5 id="路由持久化（防止主机重启路由丢失）"><a href="#路由持久化（防止主机重启路由丢失）" class="headerlink" title="路由持久化（防止主机重启路由丢失）"></a>路由持久化（防止主机重启路由丢失）</h5><h6 id="法一：（推荐）"><a href="#法一：（推荐）" class="headerlink" title="法一：（推荐）"></a>法一：（推荐）</h6><p>在<code>/etc/sysconfig/network-scripts/</code>目录下创建名为<code>route-enp0s3</code>(enp0s3为主机网卡的名字，以实际为准)的文件 </p>
+<p>推荐此方法，注意创建时<code>route-</code>后跟的是本机主机的网卡名</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">vi /etc/sysconfig/network-scripts/route-enp0s3</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">在此文件添加如下格式的内容</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一中添加</span></span><br><span class="line">172.16.230.0/24 via 172.20.1.52</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二中添加</span></span><br><span class="line">172.16.220.0/24 via 172.20.1.51</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重启网络验证</span></span><br><span class="line">service network restart</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看路由表中是否有刚才添加的路由</span></span><br><span class="line">ip route show | column -t</span><br></pre></td></tr></table></figure>
+
+<h6 id="法二："><a href="#法二：" class="headerlink" title="法二："></a>法二：</h6><p>在<code>/etc/sysconfig/static-routes</code> 文件里添加如下内容 (没有static-routes需手动建立)</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一中添加</span></span><br><span class="line">any net 172.16.230.0/24 via 172.20.1.52</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二中添加</span></span><br><span class="line">any net 172.16.220.0/24 via 172.20.1.51</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重启网络服务</span></span><br><span class="line">systemctl restart network</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看路由表中是否有刚才添加的路由</span></span><br><span class="line">ip route show | column -t</span><br></pre></td></tr></table></figure>
+
+<h5 id="开启IP转发"><a href="#开启IP转发" class="headerlink" title="开启IP转发"></a>开启IP转发</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">永久开启</span></span><br><span class="line">vi /etc/sysctl.conf</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">修改</span></span><br><span class="line">net.ipv4.ip_forward=1</span><br></pre></td></tr></table></figure>
+
+<h4 id="方法2：（适用于使用固定ip的容器）"><a href="#方法2：（适用于使用固定ip的容器）" class="headerlink" title="方法2：（适用于使用固定ip的容器）"></a>方法2：（适用于使用固定ip的容器）</h4><h5 id="创建docker网络"><a href="#创建docker网络" class="headerlink" title="创建docker网络"></a>创建docker网络</h5><ol>
+<li>docker桥接类型网络创建</li>
+</ol>
+<p>分别对两台服务器中的docker创建名字为test的网络，指定子网范围为 172.16.220.0&#x2F;24 、172.16.230.0&#x2F;24</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一</span></span><br><span class="line">docker network create test --driver bridge --ipam-driver default --subnet 172.16.220.0/24</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二</span></span><br><span class="line">docker network create test --driver bridge --ipam-driver default --subnet 172.16.230.0/24</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看网络</span></span><br><span class="line">docker network ls</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>设置静态路由</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机1上添加路由规则（添加主机2的ip和网段）</span></span><br><span class="line">ip route add 172.16.230.0/24 via 172.20.1.52</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机2上添加路由规则（添加主机1的ip和网段）</span></span><br><span class="line">ip route add 172.16.220.0/24 via 172.20.1.51</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">开启路由转发</span></span><br><span class="line">iptables -P FORWARD ACCEPT</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>启动容器并测试</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">主机1上启动ubuntu容器(加上创建的桥接网络)</span></span><br><span class="line">docker run -it --name node1 --net=test ubuntu:latest /bin/bash</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">主机2上启动ubuntu容器(加上创建的桥接网络)</span></span><br><span class="line">docker run -it --name node2 --net=test ubuntu:latest /bin/bash</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装测试工具</span></span><br><span class="line">apt-get update</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ping工具</span></span><br><span class="line">apt-get install inetutils-ping -y</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ip查看工具</span></span><br><span class="line">apt-get install net-tools -y</span><br></pre></td></tr></table></figure>
+
+<h5 id="路由持久化（防止主机重启路由丢失）-1"><a href="#路由持久化（防止主机重启路由丢失）-1" class="headerlink" title="路由持久化（防止主机重启路由丢失）"></a>路由持久化（防止主机重启路由丢失）</h5><p>使用<strong>nmtui图形化界面添加</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">下载nmtui</span></span><br><span class="line">yum install net-tools -y</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">显示nmtui图形化界面</span></span><br><span class="line">nmtui</span><br></pre></td></tr></table></figure>
+
+<p>在主机一网卡中配置主机二的docker网络的ip段和ip，在主机二网卡中配置主机一的docker网络的ip段和ip</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一中添加</span></span><br><span class="line">172.16.230.0/24  172.20.1.52</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二中添加</span></span><br><span class="line">172.16.220.0/24  172.20.1.51</span><br></pre></td></tr></table></figure>
+
+<p>配置完成会在&#x2F;etc&#x2F;sysconfig&#x2F;network-scripts文件夹下看到</p>
+<p><img src="https://yeesoftware.feishu.cn/space/api/box/stream/download/asynccode/?code=YmI3YjUxODk0OGNiMjU1ZjI4YjQ3ZTAzNDdjYjlmNzNfMFY0S2dQck8xUW5vb3BCeWZkMFNPTXFiS2dqMmE2NjJfVG9rZW46Vjk5aGIzZTU3b0RtUmJ4R21pY2NSVlRlbk9kXzE2OTQ3OTQyNjg6MTY5NDc5Nzg2OF9WNA" alt="img"></p>
+<p><img src="https://yeesoftware.feishu.cn/space/api/box/stream/download/asynccode/?code=ZjI3NDk3Y2M4NWQ4YzMxODhmZTljM2U3MDM0MzQxZGJfQk01NlNPSnVCUENZU0xDamphbVdlR2k0ZG5XTzkwQ0xfVG9rZW46UGN0aWJlMU9Qb2tYSlZ4dGhIZGNhYmpwbnRiXzE2OTQ3OTQyNjg6MTY5NDc5Nzg2OF9WNA" alt="img"></p>
+<p>启动对应主机的新创建的网卡（网络重启或系统重启后会失效）</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一</span></span><br><span class="line">nmcli c up br-aed92de88760</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二</span></span><br><span class="line">nmcli c up br-0ab3914edle2</span><br></pre></td></tr></table></figure>
+
+<p>要使新网卡保持启动则需将对应新创建的网卡文件中的<code>ONBOOT=no</code>改为<code>ONBOOT=yes</code></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一</span></span><br><span class="line">vi ifcfg-br-aed92de88760</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">ONBOOT=no改为ONBOOT=<span class="built_in">yes</span></span></span><br><span class="line">ONBOOT=yes</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二</span></span><br><span class="line">vi ifcfg-br-0ab3914edle2</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">ONBOOT=no改为ONBOOT=<span class="built_in">yes</span></span></span><br><span class="line">ONBOOT=yes</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重启网络服务</span></span><br><span class="line">systemctl restart network</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://yeesoftware.feishu.cn/space/api/box/stream/download/asynccode/?code=M2Y4OGJlNjgxOWU5YmE0NzJhMzcwMGVkMzQ3ZDQ5OWJfQjNRVXprRkx1bjQ2eVN4c2t0UWptd2lXY3Q4OURPREhfVG9rZW46QmNvUWI3Z1Ntb2s2VGV4MkI0RmMxZU55bmpjXzE2OTQ3OTQyNjg6MTY5NDc5Nzg2OF9WNA" alt="img"></p>
+<h5 id="开启IP转发-1"><a href="#开启IP转发-1" class="headerlink" title="开启IP转发"></a>开启IP转发</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">永久开启</span></span><br><span class="line">vi /etc/sysctl.conf</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">修改</span></span><br><span class="line">net.ipv4.ip_forward=1</span><br></pre></td></tr></table></figure>
+
+<p>此时容器不受网络重启影响，可实现跨主机通讯。</p>
+<p>但系统重启后，所创建的docker网络和容器均失效。</p>
+<p>需要重新创建docker网络和容器，此后docker网络和容器均不受系统重启和网络重启的影响，成功实现docker容器的跨主机通讯。</p>
+<p><img src="https://yeesoftware.feishu.cn/space/api/box/stream/download/asynccode/?code=YWQyMmQ3ZDY4YjU5M2NmZDE5MTg2MjRhZWExNzM2NGNfdjRueUt2THN1MDAzOElqcllsdWlCVnBIREVwMnRIbElfVG9rZW46SDkzTWJ3YmFXb1lETnd4M0pOZ2N2ejZWbjNiXzE2OTQ3OTQyNjg6MTY5NDc5Nzg2OF9WNA" alt="img"></p>
+]]></content>
+      <categories>
+        <category>docker</category>
+      </categories>
+      <tags>
+        <tag>docker</tag>
+        <tag>容器通信</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>k8s集群对接ceph集群部署指南</title>
     <url>/yyg/57e2a956/</url>
     <content><![CDATA[<h1 id="k8s集群对接ceph集群部署指南"><a href="#k8s集群对接ceph集群部署指南" class="headerlink" title="k8s集群对接ceph集群部署指南"></a>k8s集群对接ceph集群部署指南</h1><h2 id="任务目标"><a href="#任务目标" class="headerlink" title="任务目标"></a>任务目标</h2><ol>
@@ -1176,83 +1253,6 @@ vrrp_instance VI_1 &#123;
         <tag>Kubeadm</tag>
         <tag>k8s集群</tag>
         <tag>高可用</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>实现Docker 容器跨主机通讯</title>
-    <url>/yyg/60ed202a/</url>
-    <content><![CDATA[<h2 id="实现Docker-容器跨主机通讯"><a href="#实现Docker-容器跨主机通讯" class="headerlink" title="实现Docker 容器跨主机通讯"></a>实现Docker 容器跨主机通讯</h2><p>[TOC]</p>
-<h3 id="方案一：docker-swarm集群"><a href="#方案一：docker-swarm集群" class="headerlink" title="方案一：docker swarm集群"></a>方案一：docker swarm集群</h3><p><a href="https://blog.csdn.net/AMCUL/article/details/132913280">https://blog.csdn.net/AMCUL/article/details/132913280</a></p>
-<h3 id="方案二：直接路由法"><a href="#方案二：直接路由法" class="headerlink" title="方案二：直接路由法"></a>方案二：直接路由法</h3><p>在部署指南中提到的方法的实现分固定网段、路由持久化、IP转发三部分组成。</p>
-<h4 id="方法1："><a href="#方法1：" class="headerlink" title="方法1："></a>方法1：</h4><h5 id="修改并固定docker0的默认网段"><a href="#修改并固定docker0的默认网段" class="headerlink" title="修改并固定docker0的默认网段"></a>修改并固定docker0的默认网段</h5><ol>
-<li>修改docker0网段ip，在主机的&#x2F;etc&#x2F;docker&#x2F;daemon.json文件中，加入如下内容：</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">打开daemon.json文件</span></span><br><span class="line">vi /etc/docker/daemon.json</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一中添加的内容</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">172.16.200.1 为主机一的docker网段ip</span></span><br><span class="line">&#123;</span><br><span class="line"> &quot;bip&quot;: &quot;172.16.200.1/24&quot;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二中添加的内容</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">172.16.210.1 为主机二的docker网段ip</span></span><br><span class="line">&#123;</span><br><span class="line"> &quot;bip&quot;: &quot;172.16.210.1/24&quot;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重启docker服务</span></span><br><span class="line">systemctl restart docker </span><br></pre></td></tr></table></figure>
-
-<ol>
-<li>添加路由规则，主机间互相添加</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机1上添加路由规则（添加主机2的ip和网段）</span></span><br><span class="line">ip route add 172.16.210.0/24 via 172.20.1.52</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机2上添加路由规则（添加主机1的ip和网段）</span></span><br><span class="line">ip route add 172.16.200.0/24 via 172.20.1.51</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">方式一：</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">开启路由转发</span></span><br><span class="line">iptables -P FORWARD ACCEPT</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">方式二：</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">配置iptables规则（本机的网段）</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一</span></span><br><span class="line">iptables -t nat -F POSTROUTING</span><br><span class="line">iptables -t nat -A POSTROUTING -s 172.16.200.0/24 ! -d 172.16.0.0/16 -j MASQUERADE</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二</span></span><br><span class="line">iptables -t nat -F POSTROUTING</span><br><span class="line">iptables -t nat -A POSTROUTING -s 172.16.210.0/24 ! -d 172.16.0.0/16 -j MASQUERADE</span><br></pre></td></tr></table></figure>
-
-<ol>
-<li>启动容器并测试</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">主机1上启动ubuntu容器</span></span><br><span class="line">docker run -it --name node1 ubuntu:latest /bin/bash</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">主机2上启动ubuntu容器</span></span><br><span class="line">docker run -it --name node2 ubuntu:latest /bin/bash</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装测试工具</span></span><br><span class="line">apt-get update</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ping工具</span></span><br><span class="line">apt-get install inetutils-ping -y</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ip查看工具</span></span><br><span class="line">apt-get install net-tools -y</span><br></pre></td></tr></table></figure>
-
-<h5 id="路由持久化（防止主机重启路由丢失）"><a href="#路由持久化（防止主机重启路由丢失）" class="headerlink" title="路由持久化（防止主机重启路由丢失）"></a>路由持久化（防止主机重启路由丢失）</h5><h6 id="法一：（推荐）"><a href="#法一：（推荐）" class="headerlink" title="法一：（推荐）"></a>法一：（推荐）</h6><p>在<code>/etc/sysconfig/network-scripts/</code>目录下创建名为<code>route-enp0s3</code>(enp0s3为主机网卡的名字，以实际为准)的文件 </p>
-<p>推荐此方法，注意创建时<code>route-</code>后跟的是本机主机的网卡名</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">vi /etc/sysconfig/network-scripts/route-enp0s3</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">在此文件添加如下格式的内容</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一中添加</span></span><br><span class="line">172.16.230.0/24 via 172.20.1.52</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二中添加</span></span><br><span class="line">172.16.220.0/24 via 172.20.1.51</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重启网络验证</span></span><br><span class="line">service network restart</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看路由表中是否有刚才添加的路由</span></span><br><span class="line">ip route show | column -t</span><br></pre></td></tr></table></figure>
-
-<h6 id="法二："><a href="#法二：" class="headerlink" title="法二："></a>法二：</h6><p>在<code>/etc/sysconfig/static-routes</code> 文件里添加如下内容 (没有static-routes需手动建立)</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一中添加</span></span><br><span class="line">any net 172.16.230.0/24 via 172.20.1.52</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二中添加</span></span><br><span class="line">any net 172.16.220.0/24 via 172.20.1.51</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重启网络服务</span></span><br><span class="line">systemctl restart network</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看路由表中是否有刚才添加的路由</span></span><br><span class="line">ip route show | column -t</span><br></pre></td></tr></table></figure>
-
-<h5 id="开启IP转发"><a href="#开启IP转发" class="headerlink" title="开启IP转发"></a>开启IP转发</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">永久开启</span></span><br><span class="line">vi /etc/sysctl.conf</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">修改</span></span><br><span class="line">net.ipv4.ip_forward=1</span><br></pre></td></tr></table></figure>
-
-<h4 id="方法2：（适用于使用固定ip的容器）"><a href="#方法2：（适用于使用固定ip的容器）" class="headerlink" title="方法2：（适用于使用固定ip的容器）"></a>方法2：（适用于使用固定ip的容器）</h4><h5 id="创建docker网络"><a href="#创建docker网络" class="headerlink" title="创建docker网络"></a>创建docker网络</h5><ol>
-<li>docker桥接类型网络创建</li>
-</ol>
-<p>分别对两台服务器中的docker创建名字为test的网络，指定子网范围为 172.16.220.0&#x2F;24 、172.16.230.0&#x2F;24</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一</span></span><br><span class="line">docker network create test --driver bridge --ipam-driver default --subnet 172.16.220.0/24</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二</span></span><br><span class="line">docker network create test --driver bridge --ipam-driver default --subnet 172.16.230.0/24</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看网络</span></span><br><span class="line">docker network ls</span><br></pre></td></tr></table></figure>
-
-<ol>
-<li>设置静态路由</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机1上添加路由规则（添加主机2的ip和网段）</span></span><br><span class="line">ip route add 172.16.230.0/24 via 172.20.1.52</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机2上添加路由规则（添加主机1的ip和网段）</span></span><br><span class="line">ip route add 172.16.220.0/24 via 172.20.1.51</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">开启路由转发</span></span><br><span class="line">iptables -P FORWARD ACCEPT</span><br></pre></td></tr></table></figure>
-
-<ol>
-<li>启动容器并测试</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">主机1上启动ubuntu容器(加上创建的桥接网络)</span></span><br><span class="line">docker run -it --name node1 --net=test ubuntu:latest /bin/bash</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">主机2上启动ubuntu容器(加上创建的桥接网络)</span></span><br><span class="line">docker run -it --name node2 --net=test ubuntu:latest /bin/bash</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装测试工具</span></span><br><span class="line">apt-get update</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ping工具</span></span><br><span class="line">apt-get install inetutils-ping -y</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ip查看工具</span></span><br><span class="line">apt-get install net-tools -y</span><br></pre></td></tr></table></figure>
-
-<h5 id="路由持久化（防止主机重启路由丢失）-1"><a href="#路由持久化（防止主机重启路由丢失）-1" class="headerlink" title="路由持久化（防止主机重启路由丢失）"></a>路由持久化（防止主机重启路由丢失）</h5><p>使用<strong>nmtui图形化界面添加</strong></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">下载nmtui</span></span><br><span class="line">yum install net-tools -y</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">显示nmtui图形化界面</span></span><br><span class="line">nmtui</span><br></pre></td></tr></table></figure>
-
-<p>在主机一网卡中配置主机二的docker网络的ip段和ip，在主机二网卡中配置主机一的docker网络的ip段和ip</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一中添加</span></span><br><span class="line">172.16.230.0/24  172.20.1.52</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二中添加</span></span><br><span class="line">172.16.220.0/24  172.20.1.51</span><br></pre></td></tr></table></figure>
-
-<p>配置完成会在&#x2F;etc&#x2F;sysconfig&#x2F;network-scripts文件夹下看到</p>
-<p><img src="https://yeesoftware.feishu.cn/space/api/box/stream/download/asynccode/?code=YmI3YjUxODk0OGNiMjU1ZjI4YjQ3ZTAzNDdjYjlmNzNfMFY0S2dQck8xUW5vb3BCeWZkMFNPTXFiS2dqMmE2NjJfVG9rZW46Vjk5aGIzZTU3b0RtUmJ4R21pY2NSVlRlbk9kXzE2OTQ3OTQyNjg6MTY5NDc5Nzg2OF9WNA" alt="img"></p>
-<p><img src="https://yeesoftware.feishu.cn/space/api/box/stream/download/asynccode/?code=ZjI3NDk3Y2M4NWQ4YzMxODhmZTljM2U3MDM0MzQxZGJfQk01NlNPSnVCUENZU0xDamphbVdlR2k0ZG5XTzkwQ0xfVG9rZW46UGN0aWJlMU9Qb2tYSlZ4dGhIZGNhYmpwbnRiXzE2OTQ3OTQyNjg6MTY5NDc5Nzg2OF9WNA" alt="img"></p>
-<p>启动对应主机的新创建的网卡（网络重启或系统重启后会失效）</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一</span></span><br><span class="line">nmcli c up br-aed92de88760</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二</span></span><br><span class="line">nmcli c up br-0ab3914edle2</span><br></pre></td></tr></table></figure>
-
-<p>要使新网卡保持启动则需将对应新创建的网卡文件中的<code>ONBOOT=no</code>改为<code>ONBOOT=yes</code></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一</span></span><br><span class="line">vi ifcfg-br-aed92de88760</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">ONBOOT=no改为ONBOOT=<span class="built_in">yes</span></span></span><br><span class="line">ONBOOT=yes</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二</span></span><br><span class="line">vi ifcfg-br-0ab3914edle2</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">ONBOOT=no改为ONBOOT=<span class="built_in">yes</span></span></span><br><span class="line">ONBOOT=yes</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重启网络服务</span></span><br><span class="line">systemctl restart network</span><br></pre></td></tr></table></figure>
-
-<p><img src="https://yeesoftware.feishu.cn/space/api/box/stream/download/asynccode/?code=M2Y4OGJlNjgxOWU5YmE0NzJhMzcwMGVkMzQ3ZDQ5OWJfQjNRVXprRkx1bjQ2eVN4c2t0UWptd2lXY3Q4OURPREhfVG9rZW46QmNvUWI3Z1Ntb2s2VGV4MkI0RmMxZU55bmpjXzE2OTQ3OTQyNjg6MTY5NDc5Nzg2OF9WNA" alt="img"></p>
-<h5 id="开启IP转发-1"><a href="#开启IP转发-1" class="headerlink" title="开启IP转发"></a>开启IP转发</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">永久开启</span></span><br><span class="line">vi /etc/sysctl.conf</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">修改</span></span><br><span class="line">net.ipv4.ip_forward=1</span><br></pre></td></tr></table></figure>
-
-<p>此时容器不受网络重启影响，可实现跨主机通讯。</p>
-<p>但系统重启后，所创建的docker网络和容器均失效。</p>
-<p>需要重新创建docker网络和容器，此后docker网络和容器均不受系统重启和网络重启的影响，成功实现docker容器的跨主机通讯。</p>
-<p><img src="https://yeesoftware.feishu.cn/space/api/box/stream/download/asynccode/?code=YWQyMmQ3ZDY4YjU5M2NmZDE5MTg2MjRhZWExNzM2NGNfdjRueUt2THN1MDAzOElqcllsdWlCVnBIREVwMnRIbElfVG9rZW46SDkzTWJ3YmFXb1lETnd4M0pOZ2N2ejZWbjNiXzE2OTQ3OTQyNjg6MTY5NDc5Nzg2OF9WNA" alt="img"></p>
-]]></content>
-      <categories>
-        <category>docker</category>
-      </categories>
-      <tags>
-        <tag>docker</tag>
-        <tag>容器通信</tag>
       </tags>
   </entry>
   <entry>
