@@ -6,12 +6,13 @@
 
 #article-container .flink .flink-list>.flink-list-item::before {
   content: none;
+  text-align: center; /* 文本居中 */ 
 }
 /* 去掉原来自带的before */
 
 #article-container .flink .flink-list>.flink-list-item:hover {
   background-color: #49B1F5;
-  box-shadow: 0 0 20px rgba(0, 0, 0, .3);
+  box-shadow: 0 0 10px rgba(0, 0, 0, .3);
   transition: 0.5s;
 }
 /* 鼠标经过改变背景 */
@@ -22,8 +23,8 @@
 /* 鼠标经过改变文字颜色 */
 
 #article-container .flink .flink-list>.flink-list-item:hover .flink-item-icon {
-  width: 60px;
-  margin-left: -70px;
+  width: 30px;
+  margin-left: -50px;
   -webkit-transform: rotate(-180deg);
   -moz-transform: rotate(-180deg);
   -o-transform: rotate(-180deg);
@@ -48,18 +49,21 @@
 /* 鼠标经过头像滚动 */
 
 #article-container .flink .flink-list > .flink-list-item a .flink-item-icon {
-  margin: 26px 21px;
-  width: 66px;
-  height: 66px;
-  border-radius: 33px;
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+  margin: 20px 0px 0px 0px;
 }
 #article-container .flink .flink-list > .flink-list-item a {
   display: block;
   height: 100%;
+  border-style: dashed;
+  border-width: 1px;
+  border-color: grey;
 }
 #article-container .flink .flink-item-name {
   text-align: start;
-  padding: 40px 12px 0;
+  padding: 20px 5px 5px 5px;
   height: auto;
 }
 #article-container .flink .flink-item-desc {
@@ -100,9 +104,9 @@
 #article-container .flink .flink-list > .flink-list-item {
   border: 1px solid var(--icat-secondbg) !important;
   background: var(--icat-card-bg);
-  height: 120px;
+  height: 80px;
   margin: 8px 8px;
-  width: calc(100% / 4 - 16px);
+  width: calc(100% / 5 - 16px);
 }
 @media screen and (max-width: 900px){
   #article-container .flink .flink-list > .flink-list-item {
