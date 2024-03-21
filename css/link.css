@@ -57,9 +57,6 @@
 #article-container .flink .flink-list > .flink-list-item a {
   display: block;
   height: 100%;
-  border-style: dashed;
-  border-width: 1px;
-  border-color: grey;
 }
 #article-container .flink .flink-item-name {
   text-align: start;
@@ -102,7 +99,7 @@
   padding: 10px 0 0;
 }
 #article-container .flink .flink-list > .flink-list-item {
-  border: 1px solid var(--icat-secondbg) !important;
+  border: 1px solid #eee;
   background: var(--icat-card-bg);
   height: 80px;
   margin: 8px 8px;
