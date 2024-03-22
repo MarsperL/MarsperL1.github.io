@@ -1,0 +1,78 @@
+/* 分类页面样式 */
+#page .category-lists .category-list .category-list-item {
+    position: relative;
+    display: inline-block;
+    padding: 0%;
+    width: 24%;
+    font-weight: 600;
+    margin: 0 0 1% 1%;
+    border-radius: var(--border-radius);
+    -webkit-box-shadow: rgb(50 50 50 / 30%) 50px 50px 50px 50px inset;
+    box-shadow: rgb(50 50 50 / 30%) 50px 50px 50px 50px inset;
+    border-radius: 8px;
+}
+
+@media (max-width: 640px) {
+    #page .category-lists .category-list .category-list-item {
+        width: 95%;
+        border-radius: 8px;
+        margin-top: 3px;
+    }
+}
+
+#page .category-lists .category-list .category-list-item::before {
+    display: none;
+}
+
+#page .category-lists .category-list .category-list-item .category-list-link {
+    color: #fff;
+    font-size: 1.5rem;
+    margin-left: 0.4rem;
+}
+
+#page .category-lists .category-list .category-list-item .category-list-link::after {
+    content: "";
+    position: relative;
+    width: 0;
+    bottom: 0;
+    display: block;
+    height: 3px;
+    border-radius: 3px;
+    background: #fff;
+}
+
+#page .category-lists .category-list .category-list-item .category-list-link:hover::after {
+    width: 60%;
+    left: 1%;
+    -webkit-transition: all 0.6s;
+    -moz-transition: all 0.6s;
+    -o-transition: all 0.6s;
+    -ms-transition: all 0.6s;
+    transition: all 0.6s;
+}
+
+#page .category-lists .category-list .category-list-item .category-list-count {
+    color: #fff;
+    font-size: 1.3rem;
+	margin-left: 70%;
+}
+
+#page .category-lists .category-list .category-list-item .category-list-count::before {
+    content: "\f02d";
+    padding-right: 15px;
+    font-family: "Font Awesome 6 Free";
+}
+
+/* #page .category-list-count::before, */
+#page .category-list-count::after {
+    display: none;
+}
+
+
+/* 新增样式用于图标显示 */
+#page .category-lists .category-list .category-list-item .category-list-icon {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    padding: 5px; /* 调整图标与内容之间的水平距离 */
+}
