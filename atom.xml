@@ -66,10 +66,12 @@
     
     
     
-    <category term="ceph共享存储" scheme="https://marsperl.github.io/categories/ceph%E5%85%B1%E4%BA%AB%E5%AD%98%E5%82%A8/"/>
-    
     <category term="k8s" scheme="https://marsperl.github.io/categories/k8s/"/>
     
+    <category term="ceph共享存储" scheme="https://marsperl.github.io/categories/ceph%E5%85%B1%E4%BA%AB%E5%AD%98%E5%82%A8/"/>
+    
+    
+    <category term="k8s" scheme="https://marsperl.github.io/tags/k8s/"/>
     
     <category term="docker" scheme="https://marsperl.github.io/tags/docker/"/>
     
@@ -78,8 +80,6 @@
     <category term="共享存储" scheme="https://marsperl.github.io/tags/%E5%85%B1%E4%BA%AB%E5%AD%98%E5%82%A8/"/>
     
     <category term="ceph集群" scheme="https://marsperl.github.io/tags/ceph%E9%9B%86%E7%BE%A4/"/>
-    
-    <category term="k8s" scheme="https://marsperl.github.io/tags/k8s/"/>
     
     <category term="容器云" scheme="https://marsperl.github.io/tags/%E5%AE%B9%E5%99%A8%E4%BA%91/"/>
     
@@ -105,11 +105,11 @@
     <category term="k8s" scheme="https://marsperl.github.io/categories/k8s/"/>
     
     
-    <category term="docker" scheme="https://marsperl.github.io/tags/docker/"/>
-    
     <category term="k8s" scheme="https://marsperl.github.io/tags/k8s/"/>
     
     <category term="Kubeadm" scheme="https://marsperl.github.io/tags/Kubeadm/"/>
+    
+    <category term="docker" scheme="https://marsperl.github.io/tags/docker/"/>
     
     <category term="k8s集群" scheme="https://marsperl.github.io/tags/k8s%E9%9B%86%E7%BE%A4/"/>
     
@@ -194,11 +194,11 @@
     <category term="k8s" scheme="https://marsperl.github.io/categories/k8s/"/>
     
     
-    <category term="docker" scheme="https://marsperl.github.io/tags/docker/"/>
-    
     <category term="k8s" scheme="https://marsperl.github.io/tags/k8s/"/>
     
     <category term="Kubeadm" scheme="https://marsperl.github.io/tags/Kubeadm/"/>
+    
+    <category term="docker" scheme="https://marsperl.github.io/tags/docker/"/>
     
     <category term="k8s集群" scheme="https://marsperl.github.io/tags/k8s%E9%9B%86%E7%BE%A4/"/>
     
@@ -221,10 +221,12 @@
     
     
     
-    <category term="ceph共享存储" scheme="https://marsperl.github.io/categories/ceph%E5%85%B1%E4%BA%AB%E5%AD%98%E5%82%A8/"/>
-    
     <category term="k8s" scheme="https://marsperl.github.io/categories/k8s/"/>
     
+    <category term="ceph共享存储" scheme="https://marsperl.github.io/categories/ceph%E5%85%B1%E4%BA%AB%E5%AD%98%E5%82%A8/"/>
+    
+    
+    <category term="k8s" scheme="https://marsperl.github.io/tags/k8s/"/>
     
     <category term="docker" scheme="https://marsperl.github.io/tags/docker/"/>
     
@@ -233,8 +235,6 @@
     <category term="共享存储" scheme="https://marsperl.github.io/tags/%E5%85%B1%E4%BA%AB%E5%AD%98%E5%82%A8/"/>
     
     <category term="ceph集群" scheme="https://marsperl.github.io/tags/ceph%E9%9B%86%E7%BE%A4/"/>
-    
-    <category term="k8s" scheme="https://marsperl.github.io/tags/k8s/"/>
     
     <category term="容器云" scheme="https://marsperl.github.io/tags/%E5%AE%B9%E5%99%A8%E4%BA%91/"/>
     
