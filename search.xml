@@ -31,7 +31,8 @@
 <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker swarm join-token --rotate manager</span><br></pre></td></tr></table></figure>
 
 <p>在manager节点上输入<code>docker node ls</code> 可查看所有节点。</p>
-<p><img src="https://yeesoftware.feishu.cn/space/api/box/stream/download/asynccode/?code=ZDg4MDcwMjQzMjkyOWZmMjc1YzdmNWMzMGYzM2U0N2RfcGVTQjBRSmgzeUxOMHRKUFlteWJBS0VHcTMwVEhabUxfVG9rZW46RmE3OGJlVmNtb3VFY1h4UmdNSmNRT3FvbnFmXzE2OTQ3OTI5NzM6MTY5NDc5NjU3M19WNA" alt="img"></p>
+<img src="/yyg/71468332/image-20240323221029238-1711203035847-1.png" class="" title="image-20240323221029238">
+
 <h3 id="创建用于swarm服务的自定义的overlay网络"><a href="#创建用于swarm服务的自定义的overlay网络" class="headerlink" title="创建用于swarm服务的自定义的overlay网络"></a>创建用于swarm服务的自定义的overlay网络</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">方式一</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">--attachable选项表示该网络是可附加的，即其他容器可以连接到该网络</span>  </span><br><span class="line">docker network create -d overlay --attachable my-overlay</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">方式二</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">--subnet:子网 --gateway:网关</span></span><br><span class="line">docker network create --driver overlay --subnet 10.0.9.0/24 --gateway 10.0.9.99 my-overlay</span><br><span class="line">  </span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">查看docker网络</span></span><br><span class="line"> docker network ls</span><br></pre></td></tr></table></figure>
 
 <h3 id="测试跨主机容器通信"><a href="#测试跨主机容器通信" class="headerlink" title="测试跨主机容器通信"></a>测试跨主机容器通信</h3><ol>
@@ -44,7 +45,7 @@
 </ol>
 <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">apt-get update</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ping工具</span></span><br><span class="line">apt-get install inetutils-ping -y</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ip查看工具</span></span><br><span class="line">apt-get install net-tools -y</span><br></pre></td></tr></table></figure>
 
-<p><img src="https://yeesoftware.feishu.cn/space/api/box/stream/download/asynccode/?code=OWFjMjlmYmQ3OWVmZWU0OWYyYTNlMjY0ZTk4NTEzYmZfdlU1SUduZ2VSdW50U1ZtMThQaGJSTjNsQnU2M1VETldfVG9rZW46RDVnUmJNOTk4b2dPYUt4UnVhbWNCUVNYbjRjXzE2OTQ3OTI5NzM6MTY5NDc5NjU3M19WNA" alt="img"></p>
+<img src="/yyg/71468332/image-20240323221151231-1711203113839-3.png" class="" title="image-20240323221151231">
 ]]></content>
       <categories>
         <category>docker</category>
@@ -82,14 +83,16 @@
 <p>三台机器都要执行的命令:（使用xshell执行命令更方便）</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 关闭防火墙</span><br><span class="line">systemctl stop firewalld</span><br><span class="line">systemctl disable firewalld</span><br><span class="line"></span><br><span class="line"># selinux永久关闭</span><br><span class="line">sed -i &#x27;s/enforcing/disabled/&#x27; /etc/selinux/config</span><br><span class="line"></span><br><span class="line"># swap永久关闭</span><br><span class="line">sed -ri &#x27;s/.*swap.*/#&amp;/&#x27; /etc/fstab</span><br><span class="line"></span><br><span class="line"># 添加hosts</span><br><span class="line">cat &gt;&gt; /etc/hosts &lt;&lt; EOF</span><br><span class="line">192.168.66.100 master</span><br><span class="line">192.168.66.101 node1</span><br><span class="line">192.168.66.102 node2</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line"># 将桥接的IPv4流量传递到iptables的链</span><br><span class="line">cat &gt; /etc/sysctl.d/k8s.conf &lt;&lt; EOF</span><br><span class="line">net.bridge.bridge-nf-call-ip6tables = 1</span><br><span class="line">net.bridge.bridge-nf-call-iptables = 1</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line"># 生效</span><br><span class="line">sysctl --system  </span><br><span class="line"></span><br><span class="line"># 时间同步</span><br><span class="line">yum install ntpdate -y</span><br><span class="line">ntpdate time.windows.com</span><br></pre></td></tr></table></figure>
 
-<p><img src="/yyg/12690776/Users\123\AppData\Roaming\Typora\typora-user-images\image-20230516173905682.png" alt="image-20230516173905682"></p>
+<img src="/yyg/12690776/image-20230516173905682.png" class="" title="image-20230516173905682">
+
 <h3 id="安装Docker（三台机器都需要安装）"><a href="#安装Docker（三台机器都需要安装）" class="headerlink" title="安装Docker（三台机器都需要安装）"></a>安装Docker（三台机器都需要安装）</h3><p>配置Docker的阿里yum源</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cat &gt;/etc/yum.repos.d/docker.repo&lt;&lt;EOF</span><br><span class="line">[docker-ce-edge]</span><br><span class="line">name=Docker CE Edge - \$basearch</span><br><span class="line">baseurl=https://mirrors.aliyun.com/docker-ce/linux/centos/7/\$basearch/edge</span><br><span class="line">enabled=1</span><br><span class="line">gpgcheck=1</span><br><span class="line">gpgkey=https://mirrors.aliyun.com/docker-ce/linux/centos/gpg</span><br><span class="line">EOF</span><br></pre></td></tr></table></figure>
 
 <p>以yum方式安装docker</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># yum安装</span><br><span class="line">yum -y install docker-ce</span><br><span class="line"></span><br><span class="line"># 查看docker版本</span><br><span class="line">docker --version  </span><br><span class="line"></span><br><span class="line"># 启动docker</span><br><span class="line">systemctl enable docker</span><br><span class="line">systemctl start docker</span><br></pre></td></tr></table></figure>
 
-<p><img src="/yyg/12690776/Users\123\AppData\Roaming\Typora\typora-user-images\image-20230516180634916.png" alt="image-20230516180634916"></p>
+<img src="/yyg/12690776/image-20230516180634916.png" class="" title="image-20230516180634916">
+
 <p>配置docker的镜像源</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cat &gt;&gt; /etc/docker/daemon.json &lt;&lt; EOF</span><br><span class="line">&#123;</span><br><span class="line">  &quot;registry-mirrors&quot;: [&quot;https://b9pmyelo.mirror.aliyuncs.com&quot;]</span><br><span class="line">&#125;</span><br><span class="line">EOF</span><br></pre></td></tr></table></figure>
 
@@ -105,50 +108,59 @@
 <h3 id="部署master节点"><a href="#部署master节点" class="headerlink" title="部署master节点"></a>部署master节点</h3><p>在master节点执行(此处的192.168.66.100为小编master机器的ip，需更换)</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">kubeadm init --apiserver-advertise-address=192.168.66.100 --image-repository registry.aliyuncs.com/google_containers --kubernetes-version v1.18.0 --service-cidr=10.96.0.0/12  --pod-network-cidr=10.244.0.0/16</span><br></pre></td></tr></table></figure>
 
-<p><img src="/yyg/12690776/Users\123\AppData\Roaming\Typora\typora-user-images\image-20230516181339201.png" alt="image-20230516181339201"></p>
+<img src="/yyg/12690776/image-20230516181339201.png" class="" title="image-20230516181339201">
+
 <p>等待其出现成功提示</p>
-<p><img src="/yyg/12690776/Users\123\AppData\Roaming\Typora\typora-user-images\image-20230516181608215.png" alt="image-20230516181608215"></p>
+<img src="/yyg/12690776/image-20230516181608215.png" class="" title="image-20230516181608215">
+
 <p>然后按提示在master节点上输入提示命令</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mkdir -p $HOME/.kube</span><br><span class="line">sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config</span><br><span class="line">sudo chown $(id -u):$(id -g) $HOME/.kube/config</span><br></pre></td></tr></table></figure>
 
-<p><img src="/yyg/12690776/Users\123\AppData\Roaming\Typora\typora-user-images\image-20230516181720076.png" alt="image-20230516181720076"></p>
+<img src="/yyg/12690776/image-20230516181720076.png" class="" title="image-20230516181720076">
+
 <p>按照master生成的代码向集群添加新节点(node1和node2上的操作)</p>
 <p>在node1和node2上执行在master上产生的kubeadm join命令：（根据实际而定，下面的是小编机器上的，仅供参考）</p>
-<p><img src="/yyg/12690776/Users\123\AppData\Roaming\Typora\typora-user-images\image-20230516182024786.png" alt="image-20230516182024786"></p>
+<img src="/yyg/12690776/image-20230516182024786.png" class="" title="image-20230516182024786">
+
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">kubeadm join 192.168.66.100:6443 --token 7fqt6v.729wvdcjmgivns7y \</span><br><span class="line">    --discovery-token-ca-cert-hash sha256:ef79029853fa3c5454cbfc5273a636c843db0ab96e4592467b8a1490b6b6d3c6 </span><br></pre></td></tr></table></figure>
 
 <p>我们就可以去Master节点 执行下面命令查看情况</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">kubectl get node</span><br></pre></td></tr></table></figure>
 
-<p><img src="/yyg/12690776/Users\123\AppData\Roaming\Typora\typora-user-images\image-20230516183426649.png" alt="image-20230516183426649"></p>
+<img src="/yyg/12690776/image-20230516183426649.png" class="" title="image-20230516183426649">
+
 <h3 id="部署CNI网络插件"><a href="#部署CNI网络插件" class="headerlink" title="部署CNI网络插件"></a>部署CNI网络插件</h3><p>上面的状态还是NotReady，下面我们需要网络插件，来进行联网访问</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 添加</span><br><span class="line">kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml</span><br></pre></td></tr></table></figure>
 
-<p><img src="/yyg/12690776/Users\123\AppData\Roaming\Typora\typora-user-images\image-20230516183609956.png" alt="image-20230516183609956"></p>
+<img src="/yyg/12690776/image-20230516183609956.png" class="" title="image-20230516183609956">
+
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 查看状态 </span><br><span class="line">kubectl get pods -n kube-system</span><br></pre></td></tr></table></figure>
 
-<p><img src="/yyg/12690776/Users\123\AppData\Roaming\Typora\typora-user-images\image-20230516183655302.png" alt="image-20230516183655302"></p>
+<img src="/yyg/12690776/image-20230516183655302.png" class="" title="image-20230516183655302">
+
 <p>此时还有未处于running状态的pod，再等些时间，再查看状态，全部变为running状态时，执行下面命令查看:</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">kubectl get node</span><br></pre></td></tr></table></figure>
 
-<p><img src="/yyg/12690776/Users\123\AppData\Roaming\Typora\typora-user-images\image-20230516184424536.png" alt="image-20230516184424536"></p>
+<img src="/yyg/12690776/image-20230516184424536.png" class="" title="image-20230516184424536">
+
 <p>运行完成后，此时可以发现，已经变成了Ready状态。若还存在NotReady状态的节点，再等些时间，然后执行<code>kubectl get pods -n kube-system</code>命令，若状态为running，再执行<code>kubectl get node</code>查看即可</p>
 <h3 id="测试kubernetes集群"><a href="#测试kubernetes集群" class="headerlink" title="测试kubernetes集群"></a>测试kubernetes集群</h3><p>在Kubernetes集群中创建一个pod，验证是否正常运行：</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 下载nginx </span><br><span class="line">kubectl create deployment nginx --image=nginx</span><br><span class="line"># 查看状态</span><br><span class="line">kubectl get pod</span><br></pre></td></tr></table></figure>
 
 <p>出现Running状态时，表示已经成功运行了</p>
-<p><img src="/yyg/12690776/Users\123\AppData\Roaming\Typora\typora-user-images\image-20230516185059052.png" alt="image-20230516185059052"></p>
+<img src="/yyg/12690776/image-20230516185059052.png" class="" title="image-20230516185059052">
+
 <p>下面我们就需要将端口暴露出去，让其它外界能够访问</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 暴露端口</span><br><span class="line">kubectl expose deployment nginx --port=80 --type=NodePort</span><br><span class="line"># 查看一下对外的端口</span><br><span class="line">kubectl get pod,svc</span><br></pre></td></tr></table></figure>
 
 <p>能够看到，我们已经成功暴露了 80端口 到 30374上</p>
-<p><img src="/yyg/12690776/Users\123\AppData\Roaming\Typora\typora-user-images\image-20230516185150167.png" alt="image-20230516185150167"></p>
+<img src="/yyg/12690776/image-20230516185150167.png" class="" title="image-20230516185150167">
+
 <p>在浏览器上，访问如下地址(任一一个节点的ip加上面显示的端口)</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">http://192.168.66.102:30374/</span><br></pre></td></tr></table></figure>
 
 <p>发现我们的nginx已经成功启动了</p>
-<p><img src="https://gitee.com/moxi159753/LearningNotes/raw/master/K8S/3_%E4%BD%BF%E7%94%A8kubeadm%E6%96%B9%E5%BC%8F%E6%90%AD%E5%BB%BAK8S%E9%9B%86%E7%BE%A4/images/image-20201113204056851.png" alt="image-20201113204056851"></p>
-]]></content>
+<img src="/yyg/12690776/image-20201113204056851.png" class="" title="image-20201113204056851">]]></content>
       <categories>
         <category>k8s</category>
       </categories>
@@ -157,33 +169,6 @@
         <tag>k8s</tag>
         <tag>Kubeadm</tag>
         <tag>k8s集群</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>docker 安装 redis</title>
-    <url>/yyg/6fffbcc4/</url>
-    <content><![CDATA[<h1 id="docker-安装-redis"><a href="#docker-安装-redis" class="headerlink" title="docker 安装 redis"></a>docker 安装 redis</h1><p>首先输入命令<code>docker pull redis</code> ，将最新版redis安装到本地</p>
-<p>输入以下命令,后台启动redis(注：<strong>该命令是一条命令</strong>)</p>
-<p>其中<code>--name</code>后面的是redis容器的名称，可自行更改</p>
-<blockquote>
-<p>docker run -p 6379:6379 –name mars1 –privileged&#x3D;true</p>
-<p> -v &#x2F;app&#x2F;redis&#x2F;redis.conf:&#x2F;etc&#x2F;redis&#x2F;redis.conf </p>
-<p>-v &#x2F;app&#x2F;redis&#x2F;data:&#x2F;data </p>
-<p>-d redis:latest redis-server &#x2F;etc&#x2F;redis&#x2F;redis.conf</p>
-</blockquote>
-<p>此命令也可解决在删除redis容器后，而出现的数据丢失的问题。若要找回数据，则只需重新运行命令即可。</p>
-<p><img src="/yyg/6fffbcc4/Users\123\AppData\Roaming\Typora\typora-user-images\image-20230411164804210.png" alt="image-20230411164804210"></p>
-<p>运行<code>docker ps</code>命令，可查看到redis正在运行</p>
-<p><img src="/yyg/6fffbcc4/Users\123\AppData\Roaming\Typora\typora-user-images\image-20230411163752381.png" alt="image-20230411163752381"></p>
-<p>然后执行<code>docker exec -it mars1 /bin/bash</code>命令，redis成功运行</p>
-<p><img src="/yyg/6fffbcc4/Users\123\AppData\Roaming\Typora\typora-user-images\image-20230411180817939.png" alt="image-20230411180817939"></p>
-]]></content>
-      <categories>
-        <category>docker</category>
-      </categories>
-      <tags>
-        <tag>docker</tag>
-        <tag>redis</tag>
       </tags>
   </entry>
   <entry>
@@ -362,8 +347,8 @@
 <p>{</p>
 <p>​    “dashboard”: “<a href="https://future-ceph-node0:8443/">https://future-ceph-node0:8443/</a>“</p>
 <p>}</p>
+<img src="/yyg/3fc2a251/image-20240323222001957-1711203607034-1.png" class="" title="image-20240323222001957">
 </blockquote>
-<p><img src="https://yeesoftware.feishu.cn/space/api/box/stream/download/asynccode/?code=OTlhNDkxYTgwNzBlZjc1YTYxNWVjY2ZhMjgxY2YzMWFfamRLUnRaSnBxOFEzS1VGblFRV3hDWG9kckNDczl0TGNfVG9rZW46THczOWJtQW8wb3ZiUXV4RnJROWM4T0JwbmJkXzE3MDA2NjUwMjQ6MTcwMDY2ODYyNF9WNA" alt="img"></p>
 <h5 id="node节点"><a href="#node节点" class="headerlink" title="node节点"></a>node节点</h5><h6 id="扩展Monitor"><a href="#扩展Monitor" class="headerlink" title="扩展Monitor"></a>扩展Monitor</h6><ol>
 <li>修改master节点上的配置</li>
 </ol>
@@ -486,14 +471,41 @@
 <p><code>docker run -it --privileged=true -v /宿主机目录:/容器内目录:rw 镜像名</code>#宿主机与容器之间映射添加容器卷,容器内文件可读可写</p>
 <p><code>docker run -it --privileged=true -v /宿主机目录:/容器内目录:ro 镜像名</code>#宿主机与容器之间映射添加容器卷,容器内文件只可读</p>
 <p><code>docker run -it --privileged=true -volumes-from 父类 -name 容器2名称 镜像名</code> #容器2继承容器1的卷规则</p>
-<p><img src="/yyg/7b36b89c/github-blog/source/_posts/docker%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/image-20240323210932292.png" alt="image-20240323210932292"></p>
-]]></content>
+<img src="/yyg/7b36b89c/image-20240323215245387.png" class="" title="image-20240323215245387">]]></content>
       <categories>
         <category>docker</category>
       </categories>
       <tags>
         <tag>docker</tag>
         <tag>docker基础</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>docker 安装 redis</title>
+    <url>/yyg/6fffbcc4/</url>
+    <content><![CDATA[<h1 id="docker-安装-redis"><a href="#docker-安装-redis" class="headerlink" title="docker 安装 redis"></a>docker 安装 redis</h1><p>首先输入命令<code>docker pull redis</code> ，将最新版redis安装到本地</p>
+<p>输入以下命令,后台启动redis(注：<strong>该命令是一条命令</strong>)</p>
+<p>其中<code>--name</code>后面的是redis容器的名称，可自行更改</p>
+<blockquote>
+<p>docker run -p 6379:6379 –name mars1 –privileged&#x3D;true</p>
+<p> -v &#x2F;app&#x2F;redis&#x2F;redis.conf:&#x2F;etc&#x2F;redis&#x2F;redis.conf </p>
+<p>-v &#x2F;app&#x2F;redis&#x2F;data:&#x2F;data </p>
+<p>-d redis:latest redis-server &#x2F;etc&#x2F;redis&#x2F;redis.conf</p>
+</blockquote>
+<p>此命令也可解决在删除redis容器后，而出现的数据丢失的问题。若要找回数据，则只需重新运行命令即可。</p>
+<img src="/yyg/6fffbcc4/image-20230411164804210.png" class="" title="image-20230411164804210">
+
+<p>运行<code>docker ps</code>命令，可查看到redis正在运行</p>
+<img src="/yyg/6fffbcc4/image-20230411163752381.png" class="" title="image-20230411163752381">
+
+<p>然后执行<code>docker exec -it mars1 /bin/bash</code>命令，redis成功运行</p>
+<img src="/yyg/6fffbcc4/image-20230411180817939-1711202816360-2.png" class="" title="image-20230411180817939">]]></content>
+      <categories>
+        <category>docker</category>
+      </categories>
+      <tags>
+        <tag>docker</tag>
+        <tag>redis</tag>
       </tags>
   </entry>
   <entry>
@@ -514,9 +526,11 @@
 <p>-e MYSQL_ROOT_PASSWORD&#x3D;123456 –name mysql-1 mysql</p>
 </blockquote>
 <p>此命令也可解决在删除mysql容器后，而出现的数据库数据丢失的问题。若要找回数据，则只需重新运行命令即可。</p>
-<p><img src="/yyg/25ae9841/Users\123\AppData\Roaming\Typora\typora-user-images\image-20230410201124021.png" alt="image-20230410201124021"></p>
+<img src="/yyg/25ae9841/image-20230410201124021.png" class="" title="image-20230410201124021">
+
 <p>运行<code>docker ps</code>命令，可查看到mysql正在运行</p>
-<p><img src="/yyg/25ae9841/Users\123\AppData\Roaming\Typora\typora-user-images\image-20230410201052873.png" alt="image-20230410201052873"></p>
+<img src="/yyg/25ae9841/image-20230410201052873.png" class="" title="image-20230410201052873">
+
 <h2 id="解决mysql插入中文乱码的情况"><a href="#解决mysql插入中文乱码的情况" class="headerlink" title="解决mysql插入中文乱码的情况"></a>解决mysql插入中文乱码的情况</h2><p>然后输入命令<code>cd /jiamian/mysql/conf</code>。进入该目录后，输入命令<code>vim my.cnf</code>，新建my.cnf文件，</p>
 <p>并输入以下代码</p>
 <blockquote>
@@ -524,19 +538,10 @@
 </blockquote>
 <p>保存退出后，输入 <code>docker restart mysql-1</code>，重启mysql。</p>
 <p>再输入<code>docker exec -it mysql-1 /bin/bash</code>进入mysql环境，此时汉字可正常显示</p>
-<p><img src="/yyg/25ae9841/Users\123\AppData\Roaming\Typora\typora-user-images\image-20230410202120798.png" alt="image-20230410202120798"></p>
-<h1 id="mysql主从复制"><a href="#mysql主从复制" class="headerlink" title="mysql主从复制"></a>mysql主从复制</h1><p>新建主服务器容器实例3307，具体命令如下：(<strong>注：下面的是一条命令</strong>)</p>
-<p><code>MYSQL_ROOT_PASSWORD</code>后填的是mysql的密码，可自行替换</p>
-<p><code>--name</code>后填的mysql-master是运行的mysql容器的名称，也可自行替换</p>
-<blockquote>
-<p>docker run -d -p 3307:3306 –name mysql-master </p>
-<p>-v &#x2F;mydata&#x2F;mysql-master&#x2F;log:&#x2F;var&#x2F;log&#x2F;mysql </p>
-<p>-v &#x2F;mydata&#x2F;mysql-master&#x2F;data:&#x2F;var&#x2F;lib&#x2F;mysql </p>
-<p>-v &#x2F;mydata&#x2F;mysql-master&#x2F;conf:&#x2F;etc&#x2F;mysql&#x2F;conf.d </p>
-<p>-e MYSQL_ROOT_PASSWORD&#x3D;root mysql:latest</p>
-</blockquote>
-<p><img src="/yyg/25ae9841/Users\123\AppData\Roaming\Typora\typora-user-images\image-20230424155951733.png" alt="image-20230424155951733"></p>
-<p>进入&#x2F;mydata&#x2F;mysql–master&#x2F;conf目录下新建my.cnf</p>
+<img src="/yyg/25ae9841/image-20230410202120798.png" class="" title="image-20230410202120798">
+
+
+
 ]]></content>
       <categories>
         <category>docker</category>
@@ -544,91 +549,6 @@
       <tags>
         <tag>docker</tag>
         <tag>mysql</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>k8s集群对接ceph集群部署指南</title>
-    <url>/yyg/57e2a956/</url>
-    <content><![CDATA[<h1 id="k8s集群对接ceph集群部署指南"><a href="#k8s集群对接ceph集群部署指南" class="headerlink" title="k8s集群对接ceph集群部署指南"></a>k8s集群对接ceph集群部署指南</h1><h2 id="任务目标"><a href="#任务目标" class="headerlink" title="任务目标"></a>任务目标</h2><ol>
-<li>完成k8s集群对接ceph集群</li>
-</ol>
-<h2 id="任务平台"><a href="#任务平台" class="headerlink" title="任务平台"></a>任务平台</h2><ol>
-<li>物理设备–</li>
-<li>操作系统：openEuler 22.03 LTS SP2</li>
-</ol>
-<h2 id="部署指南"><a href="#部署指南" class="headerlink" title="部署指南"></a>部署指南</h2><p>集群拓扑图</p>
-<p>暂时无法在飞书文档外展示此内容</p>
-<p>采用动态挂载ceph RBD存储</p>
-<h3 id="任务一：安装ceph客户端（ceph-common）"><a href="#任务一：安装ceph客户端（ceph-common）" class="headerlink" title="任务一：安装ceph客户端（ceph-common）"></a>任务一：安装ceph客户端（ceph-common）</h3><p>在k8s集群的每个节点安装ceph-common</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum install ceph-common -y</span><br></pre></td></tr></table></figure>
-
-<h3 id="任务二：同步cpeh集群配置文件"><a href="#任务二：同步cpeh集群配置文件" class="headerlink" title="任务二：同步cpeh集群配置文件"></a>任务二：同步cpeh集群配置文件</h3><p>将 ceph 集群的 &#x2F;etc&#x2F;ceph&#x2F;{ceph.conf,ceph.client.admin.keyring} 文件同步到 k8s 所有节点上</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">配置ssh免密</span></span><br><span class="line">ssh-keygen -t rsa</span><br><span class="line">ssh-copy-id 10.10.3.121</span><br><span class="line">ssh-copy-id 10.10.3.122</span><br><span class="line">ssh-copy-id 10.10.3.123</span><br><span class="line">ssh-copy-id 10.10.3.124</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">拷贝文件</span></span><br><span class="line">scp -r /etc/ceph/&#123;ceph.conf,ceph.client.admin.keyring&#125; 10.10.3.121:/etc/ceph</span><br><span class="line">scp -r /etc/ceph/&#123;ceph.conf,ceph.client.admin.keyring&#125; 10.10.3.122:/etc/ceph</span><br><span class="line">scp -r /etc/ceph/&#123;ceph.conf,ceph.client.admin.keyring&#125; 10.10.3.123:/etc/ceph</span><br><span class="line">scp -r /etc/ceph/&#123;ceph.conf,ceph.client.admin.keyring&#125; 10.10.3.124:/etc/ceph</span><br></pre></td></tr></table></figure>
-
-<h3 id="任务三：部署ceph-csi（使用rbd）"><a href="#任务三：部署ceph-csi（使用rbd）" class="headerlink" title="任务三：部署ceph-csi（使用rbd）"></a>任务三：部署ceph-csi（使用rbd）</h3><ol>
-<li>下载ceph-csi组件</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">下载文件</span></span><br><span class="line">wget https://github.com/ceph/ceph-csi/archive/refs/tags/v3.9.0.tar.gz</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">解压</span></span><br><span class="line">mv v3.9.0.tar.gz ceph-csi-v3.9.0.tar.gz</span><br><span class="line">tar -xzf ceph-csi-v3.9.0.tar.gz</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">进入目录</span></span><br><span class="line">cd  ceph-csi-3.9.0/deploy/rbd/kubernetes</span><br><span class="line">mkdir /data/cephfs/csi</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">拷进csi中，共6六个文件</span></span><br><span class="line">cp * /data/cephfs</span><br></pre></td></tr></table></figure>
-
-<ol>
-<li>拉取csi组件所需镜像</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看所需镜像</span></span><br><span class="line">grep image csi-rbdplugin-provisioner.yaml</span><br><span class="line">grep image csi-rbdplugin.yaml</span><br></pre></td></tr></table></figure>
-
-<p>在所有k8s节点上拉取所需的镜像</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">./pull-images.sh registry.k8s.io/sig-storage/csi-provisioner:v3.5.0</span><br><span class="line">./pull-images.sh registry.k8s.io/sig-storage/csi-resizer:v1.8.0</span><br><span class="line">./pull-images.sh registry.k8s.io/sig-storage/csi-snapshotter:v6.2.2</span><br><span class="line">docker pull quay.io/cephcsi/cephcsi:v3.9.0</span><br><span class="line">./pull-images.sh registry.k8s.io/sig-storage/csi-attacher:v4.3.0</span><br><span class="line">./pull-images.sh registry.k8s.io/sig-storage/csi-node-driver-registrar:v2.8.0</span><br></pre></td></tr></table></figure>
-
-<ol>
-<li>创建命名空间<code>cephfs</code></li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: Namespace</span><br><span class="line">metadata:</span><br><span class="line">  labels:</span><br><span class="line">    kubernetes.io/metadata.name: cephfs</span><br><span class="line">  name: cephfs</span><br><span class="line">  &#x27; &gt; ceph-namespace.yaml</span><br><span class="line">  </span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">执行</span></span><br><span class="line">  kubectl apply -f ceph-namespace.yaml </span><br></pre></td></tr></table></figure>
-
-<ol>
-<li>创建连接 ceph 集群的秘钥文件csi-rbd-secret.yaml</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: Secret</span><br><span class="line">metadata:</span><br><span class="line">  name: csi-rbd-secret</span><br><span class="line">  namespace: cephfs</span><br><span class="line">stringData:</span><br><span class="line">  adminID: admin  #管理员名称</span><br><span class="line">  adminKey: AQCNNDZlPKI5KxAA/3gXnOmhHgyLU2qPzTaZ3A==   #ceph集群密钥</span><br><span class="line">  userID: admin   #用户名称 </span><br><span class="line">  userKey: AQCNNDZlPKI5KxAA/3gXnOmhHgyLU2qPzTaZ3A==  #ceph集群密钥</span><br><span class="line">  &#x27; &gt; csi-rbd-secret.yaml</span><br><span class="line">  </span><br><span class="line"><span class="meta prompt_">   #</span><span class="language-bash">执行</span></span><br><span class="line">    kubectl apply -f csi-rbd-secret.yaml</span><br></pre></td></tr></table></figure>
-
-<ol>
-<li>创建ceph-config-map.yaml</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: ConfigMap</span><br><span class="line">data:</span><br><span class="line">  ceph.conf: |</span><br><span class="line">     [global]</span><br><span class="line">     fsid = 79fd2206-39ca-4ec4-9cd2-96e065c6361e     # 生成的FSID</span><br><span class="line">     mon initial members =future-ceph-node0,future-ceph-node1,future-ceph-node2,future-ceph-node3            # 主机名</span><br><span class="line">     mon host = 10.10.3.117,10.10.3.118,10.10.3.119,10.10.3.120                       # 对应的IP</span><br><span class="line">     public network = 10.10.3.0/24</span><br><span class="line">     auth cluster required = cephx</span><br><span class="line">     auth service required = cephx</span><br><span class="line">     auth client required = cephx</span><br><span class="line">     osd journal size = 1024</span><br><span class="line">     osd pool default size = 3</span><br><span class="line">     osd pool default min size = 2</span><br><span class="line">     osd pool default pg num = 333</span><br><span class="line">     osd pool default pgp num = 333</span><br><span class="line">     osd crush chooseleaf type = 1</span><br><span class="line">     [mon]</span><br><span class="line">     mon allow pool delete = true</span><br><span class="line"></span><br><span class="line">     [mds.future-ceph-node0]</span><br><span class="line">     host = future-ceph-node0</span><br><span class="line">  keyring: |</span><br><span class="line">metadata:</span><br><span class="line">  name: ceph-config</span><br><span class="line">  namespace: cephfs</span><br><span class="line">&#x27; &gt; ceph-config-map.yaml</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">执行</span></span><br><span class="line"> kubectl apply -f ceph-config-map.yaml  </span><br></pre></td></tr></table></figure>
-
-<ol>
-<li>修改csi-config-map.yaml，配置连接 ceph 集群的信息</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: ConfigMap</span><br><span class="line">metadata:</span><br><span class="line">  name: ceph-csi-config</span><br><span class="line">  namespace: cephfs</span><br><span class="line">  labels:</span><br><span class="line">    addonmanager.kubernetes.io/mode: Reconcile</span><br><span class="line">data:</span><br><span class="line">  config.json: |-</span><br><span class="line">    [&#123;&quot;clusterID&quot;:&quot;79fd2206-39ca-4ec4-9cd2-96e065c6361e&quot;,&quot;monitors&quot;:[&quot;10.10.3.117:6789&quot;,&quot;10.10.3.118:6789&quot;,&quot;10.10.3.119:6789&quot;,&quot;10.10.3.120:6789&quot;]&#125;]</span><br><span class="line">&#x27; &gt; csi-config-map.yaml</span><br></pre></td></tr></table></figure>
-
-<ol>
-<li><p>修改csi组件配置文件</p>
-<ol>
-<li><p>拷贝进<code>/data/cephfs/csi</code>目录中的所有yaml文件中的命名空间由<code>default</code>改为<code>cephfs</code></p>
-</li>
-<li><pre><code class="Shell">cd /data/cephfs/csi
-sed -i &quot;s/namespace: default/namespace: cephfs/g&quot; $(grep -rl &quot;namespace: default&quot; ./)
-sed -i &#39;/^kind: ServiceAccount/a\  namespace: cephfs&#39; $(grep -rl &quot;^kind: ServiceAccount&quot; ./)
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">   3. 将`csi-rbdplugin-provisioner.yaml` 和 `csi-rbdplugin.yaml` 中的 kms 部分配置注释掉</span><br><span class="line"></span><br><span class="line">   4. &gt;    \# - name: KMS_CONFIGMAP_NAME</span><br><span class="line">      &gt;</span><br><span class="line">      &gt; ​            \#   value: encryptionConfig</span><br><span class="line">      &gt;</span><br><span class="line">      &gt; </span><br><span class="line">      &gt;</span><br><span class="line">      &gt; \#- name: ceph-csi-encryption-kms-config</span><br><span class="line">      &gt;</span><br><span class="line">      &gt; ​        \#  configMap:</span><br><span class="line">      &gt;</span><br><span class="line">      &gt; ​        \#    name: ceph-csi-encryption-kms-config</span><br><span class="line">      &gt;</span><br><span class="line">      &gt; </span><br><span class="line"></span><br><span class="line">```Shell</span><br><span class="line"> #执行，安装csi组件</span><br><span class="line"> kubectl apply -f csi-config-map.yaml</span><br><span class="line"> kubectl apply -f csi-nodeplugin-rbac.yaml</span><br><span class="line"> kubectl apply -f csidriver.yaml</span><br><span class="line"> kubectl apply -f csi-provisioner-rbac.yaml</span><br><span class="line"> kubectl apply -f csi-rbdplugin-provisioner.yaml</span><br><span class="line"> kubectl apply -f csi-rbdplugin.yaml</span><br></pre></td></tr></table></figure>
-</code></pre>
-</li>
-</ol>
-</li>
-</ol>
-<h3 id="任务四：创建storageclass"><a href="#任务四：创建storageclass" class="headerlink" title="任务四：创建storageclass"></a>任务四：创建storageclass</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: storage.k8s.io/v1</span><br><span class="line">kind: StorageClass</span><br><span class="line">metadata:</span><br><span class="line">  annotations:</span><br><span class="line">    k8s.kuboard.cn/storageType: cephfs_provisioner</span><br><span class="line">  name: csi-rbd-sc</span><br><span class="line">provisioner: rbd.csi.ceph.com</span><br><span class="line">parameters:</span><br><span class="line"><span class="meta prompt_"> # </span><span class="language-bash">fsName: cephfs <span class="comment">#ceph集群cephfs文件系统名称</span></span></span><br><span class="line">  clusterID: 79fd2206-39ca-4ec4-9cd2-96e065c6361e #ceph集群的fsid </span><br><span class="line">  pool: rbd-k8s #ceph中创建的存储池</span><br><span class="line">  imageFeatures: layering</span><br><span class="line">  csi.storage.k8s.io/provisioner-secret-name: csi-rbd-secret</span><br><span class="line">  csi.storage.k8s.io/provisioner-secret-namespace: cephfs</span><br><span class="line">  csi.storage.k8s.io/controller-expand-secret-name: csi-rbd-secret</span><br><span class="line">  csi.storage.k8s.io/controller-expand-secret-namespace: cephfs</span><br><span class="line">  csi.storage.k8s.io/node-stage-secret-name: csi-rbd-secret</span><br><span class="line">  csi.storage.k8s.io/node-stage-secret-namespace: cephfs</span><br><span class="line">  csi.storage.k8s.io/fstype: xfs</span><br><span class="line">reclaimPolicy: Delete</span><br><span class="line">volumeBindingMode: Immediate</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">allowVolumeExpansion: <span class="literal">true</span></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">mountOptions:</span></span><br><span class="line"><span class="meta prompt_"> # </span><span class="language-bash">- discard</span></span><br><span class="line"> &#x27; &gt; storageclass.yaml</span><br><span class="line"><span class="meta prompt_"> </span></span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">执行</span></span><br><span class="line">  kubectl apply -f storageclass.yaml</span><br></pre></td></tr></table></figure>
-
-<h3 id="任务五：创建PVC"><a href="#任务五：创建PVC" class="headerlink" title="任务五：创建PVC"></a>任务五：创建PVC</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: PersistentVolumeClaim</span><br><span class="line">metadata:</span><br><span class="line">  name: rbd-pvc #PVC的名称</span><br><span class="line">  namespace: cephfs</span><br><span class="line">spec:</span><br><span class="line">  accessModes:</span><br><span class="line">    - ReadWriteOnce</span><br><span class="line">  resources:</span><br><span class="line">    requests:</span><br><span class="line">      storage: 1Gi  #设置容量</span><br><span class="line">  storageClassName: csi-rbd-sc</span><br><span class="line">  &#x27; &gt; pvc.yaml</span><br><span class="line"><span class="meta prompt_">  </span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">执行</span></span><br><span class="line"> kubectl apply -f pvc.yaml</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看PVC是否创建成功</span></span><br><span class="line">kubectl get pvc -n cephfs</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看PV是否创建成功</span></span><br><span class="line">kubectl get pv -n cephfs</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看ceph集群中的cephfs_data存储池中是否创建了image</span></span><br><span class="line"> rbd ls -p cephfs_data</span><br></pre></td></tr></table></figure>
-
-<h3 id="任务六：创建pod，进行测试验证"><a href="#任务六：创建pod，进行测试验证" class="headerlink" title="任务六：创建pod，进行测试验证"></a>任务六：创建pod，进行测试验证</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: Pod</span><br><span class="line">metadata:</span><br><span class="line">  name: csi-rbd-demo-pod</span><br><span class="line">  namespace: cephfs</span><br><span class="line">spec:</span><br><span class="line">  containers:</span><br><span class="line">    - name: web-server</span><br><span class="line">      image: nginx:latest</span><br><span class="line">      volumeMounts:</span><br><span class="line">        - name: mypvc</span><br><span class="line">          mountPath: /var/lib/www/html</span><br><span class="line">  volumes:</span><br><span class="line">    - name: mypvc</span><br><span class="line">      persistentVolumeClaim:</span><br><span class="line">        claimName: rbd-pvc  #对应的PVC名称</span><br><span class="line">        readOnly: false</span><br><span class="line">&#x27; &gt; pod.yaml</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">执行</span></span><br><span class="line"> kubectl apply -f pod.yaml</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">进入容器查看挂载信息</span></span><br><span class="line"> kubectl exec -it csi-rbd-demo-pod bash</span><br><span class="line"> lsblk -l|grep rbd</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>k8s</category>
-        <category>ceph共享存储</category>
-      </categories>
-      <tags>
-        <tag>docker</tag>
-        <tag>k8s</tag>
-        <tag>ceph</tag>
-        <tag>共享存储</tag>
-        <tag>ceph集群</tag>
-        <tag>容器云</tag>
-        <tag>k8s对接ceph</tag>
       </tags>
   </entry>
   <entry>
@@ -645,7 +565,8 @@ sed -i &#39;/^kind: ServiceAccount/a\  namespace: cephfs&#39; $(grep -rl &quot;^
 <li>硬件配置</li>
 </ol>
 <p>下图列出了部署 Harbor 的最低硬件配置和推荐的硬件配置。</p>
-<p><img src="https://yeesoftware.feishu.cn/space/api/box/stream/download/asynccode/?code=YTU4ZGE2Mjc4NTlhY2I3YzYwYzg0N2U4MGMyZmU4M2NfY0lqM0dtQlFhRzg3S3c3c0VYSmZqOVltaHlZRmh1ejdfVG9rZW46QWEyQ2JiZWxRbzBOWkh4b25JNWNmaFdIbjBiXzE3MTA4NTYzMzk6MTcxMDg1OTkzOV9WNA" alt="img"></p>
+<img src="/yyg/c3b2f9c5/image-20240323215852040.png" class="" title="image-20240323215852040">
+
 <ol>
 <li>网络端口</li>
 </ol>
@@ -750,7 +671,8 @@ cp hub-docker.tiliatech.net.key /data/cert/
 <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">./install.sh  --with-trivy</span><br></pre></td></tr></table></figure>
 
 <p>浏览器输入ip加端口访问(添加hosts后，域名访问)</p>
-<p><img src="https://yeesoftware.feishu.cn/space/api/box/stream/download/asynccode/?code=NzI2MTVmMzVkNDNlOTgyMDYyYWVkNmE3MTA2OGMyZjJfR3NyUkRGc1pUY1ExbmtqVk9qZDJzRUpQcVFRVk9IY2dfVG9rZW46UkhUUGIwczRlb1RBREl4V0lhYmM4VnNYblpjXzE3MTA4NTYzMzk6MTcxMDg1OTkzOV9WNA" alt="img"></p>
+<img src="/yyg/c3b2f9c5/image-20240323220017893.png" class="" title="image-20240323220017893">
+
 <h3 id="任务四：设置docker-login-登录凭证加密（要拉取镜像的主机）"><a href="#任务四：设置docker-login-登录凭证加密（要拉取镜像的主机）" class="headerlink" title="任务四：设置docker login 登录凭证加密（要拉取镜像的主机）"></a>任务四：设置docker login 登录凭证加密（要拉取镜像的主机）</h3><ol>
 <li>安装pass</li>
 </ol>
@@ -893,6 +815,170 @@ cp hub-docker.tiliatech.net.key /data/cert/
       </tags>
   </entry>
   <entry>
+    <title>k8s集群对接ceph集群部署指南</title>
+    <url>/yyg/57e2a956/</url>
+    <content><![CDATA[<h1 id="k8s集群对接ceph集群部署指南"><a href="#k8s集群对接ceph集群部署指南" class="headerlink" title="k8s集群对接ceph集群部署指南"></a>k8s集群对接ceph集群部署指南</h1><h2 id="任务目标"><a href="#任务目标" class="headerlink" title="任务目标"></a>任务目标</h2><ol>
+<li>完成k8s集群对接ceph集群</li>
+</ol>
+<h2 id="任务平台"><a href="#任务平台" class="headerlink" title="任务平台"></a>任务平台</h2><ol>
+<li>物理设备–</li>
+<li>操作系统：openEuler 22.03 LTS SP2</li>
+</ol>
+<h2 id="部署指南"><a href="#部署指南" class="headerlink" title="部署指南"></a>部署指南</h2><p>集群拓扑图</p>
+<p>暂时无法在飞书文档外展示此内容</p>
+<p>采用动态挂载ceph RBD存储</p>
+<h3 id="任务一：安装ceph客户端（ceph-common）"><a href="#任务一：安装ceph客户端（ceph-common）" class="headerlink" title="任务一：安装ceph客户端（ceph-common）"></a>任务一：安装ceph客户端（ceph-common）</h3><p>在k8s集群的每个节点安装ceph-common</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum install ceph-common -y</span><br></pre></td></tr></table></figure>
+
+<h3 id="任务二：同步cpeh集群配置文件"><a href="#任务二：同步cpeh集群配置文件" class="headerlink" title="任务二：同步cpeh集群配置文件"></a>任务二：同步cpeh集群配置文件</h3><p>将 ceph 集群的 &#x2F;etc&#x2F;ceph&#x2F;{ceph.conf,ceph.client.admin.keyring} 文件同步到 k8s 所有节点上</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">配置ssh免密</span></span><br><span class="line">ssh-keygen -t rsa</span><br><span class="line">ssh-copy-id 10.10.3.121</span><br><span class="line">ssh-copy-id 10.10.3.122</span><br><span class="line">ssh-copy-id 10.10.3.123</span><br><span class="line">ssh-copy-id 10.10.3.124</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">拷贝文件</span></span><br><span class="line">scp -r /etc/ceph/&#123;ceph.conf,ceph.client.admin.keyring&#125; 10.10.3.121:/etc/ceph</span><br><span class="line">scp -r /etc/ceph/&#123;ceph.conf,ceph.client.admin.keyring&#125; 10.10.3.122:/etc/ceph</span><br><span class="line">scp -r /etc/ceph/&#123;ceph.conf,ceph.client.admin.keyring&#125; 10.10.3.123:/etc/ceph</span><br><span class="line">scp -r /etc/ceph/&#123;ceph.conf,ceph.client.admin.keyring&#125; 10.10.3.124:/etc/ceph</span><br></pre></td></tr></table></figure>
+
+<h3 id="任务三：部署ceph-csi（使用rbd）"><a href="#任务三：部署ceph-csi（使用rbd）" class="headerlink" title="任务三：部署ceph-csi（使用rbd）"></a>任务三：部署ceph-csi（使用rbd）</h3><ol>
+<li>下载ceph-csi组件</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">下载文件</span></span><br><span class="line">wget https://github.com/ceph/ceph-csi/archive/refs/tags/v3.9.0.tar.gz</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">解压</span></span><br><span class="line">mv v3.9.0.tar.gz ceph-csi-v3.9.0.tar.gz</span><br><span class="line">tar -xzf ceph-csi-v3.9.0.tar.gz</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">进入目录</span></span><br><span class="line">cd  ceph-csi-3.9.0/deploy/rbd/kubernetes</span><br><span class="line">mkdir /data/cephfs/csi</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">拷进csi中，共6六个文件</span></span><br><span class="line">cp * /data/cephfs</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>拉取csi组件所需镜像</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看所需镜像</span></span><br><span class="line">grep image csi-rbdplugin-provisioner.yaml</span><br><span class="line">grep image csi-rbdplugin.yaml</span><br></pre></td></tr></table></figure>
+
+<p>在所有k8s节点上拉取所需的镜像</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">./pull-images.sh registry.k8s.io/sig-storage/csi-provisioner:v3.5.0</span><br><span class="line">./pull-images.sh registry.k8s.io/sig-storage/csi-resizer:v1.8.0</span><br><span class="line">./pull-images.sh registry.k8s.io/sig-storage/csi-snapshotter:v6.2.2</span><br><span class="line">docker pull quay.io/cephcsi/cephcsi:v3.9.0</span><br><span class="line">./pull-images.sh registry.k8s.io/sig-storage/csi-attacher:v4.3.0</span><br><span class="line">./pull-images.sh registry.k8s.io/sig-storage/csi-node-driver-registrar:v2.8.0</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>创建命名空间<code>cephfs</code></li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: Namespace</span><br><span class="line">metadata:</span><br><span class="line">  labels:</span><br><span class="line">    kubernetes.io/metadata.name: cephfs</span><br><span class="line">  name: cephfs</span><br><span class="line">  &#x27; &gt; ceph-namespace.yaml</span><br><span class="line">  </span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">执行</span></span><br><span class="line">  kubectl apply -f ceph-namespace.yaml </span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>创建连接 ceph 集群的秘钥文件csi-rbd-secret.yaml</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: Secret</span><br><span class="line">metadata:</span><br><span class="line">  name: csi-rbd-secret</span><br><span class="line">  namespace: cephfs</span><br><span class="line">stringData:</span><br><span class="line">  adminID: admin  #管理员名称</span><br><span class="line">  adminKey: AQCNNDZlPKI5KxAA/3gXnOmhHgyLU2qPzTaZ3A==   #ceph集群密钥</span><br><span class="line">  userID: admin   #用户名称 </span><br><span class="line">  userKey: AQCNNDZlPKI5KxAA/3gXnOmhHgyLU2qPzTaZ3A==  #ceph集群密钥</span><br><span class="line">  &#x27; &gt; csi-rbd-secret.yaml</span><br><span class="line">  </span><br><span class="line"><span class="meta prompt_">   #</span><span class="language-bash">执行</span></span><br><span class="line">    kubectl apply -f csi-rbd-secret.yaml</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>创建ceph-config-map.yaml</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: ConfigMap</span><br><span class="line">data:</span><br><span class="line">  ceph.conf: |</span><br><span class="line">     [global]</span><br><span class="line">     fsid = 79fd2206-39ca-4ec4-9cd2-96e065c6361e     # 生成的FSID</span><br><span class="line">     mon initial members =future-ceph-node0,future-ceph-node1,future-ceph-node2,future-ceph-node3            # 主机名</span><br><span class="line">     mon host = 10.10.3.117,10.10.3.118,10.10.3.119,10.10.3.120                       # 对应的IP</span><br><span class="line">     public network = 10.10.3.0/24</span><br><span class="line">     auth cluster required = cephx</span><br><span class="line">     auth service required = cephx</span><br><span class="line">     auth client required = cephx</span><br><span class="line">     osd journal size = 1024</span><br><span class="line">     osd pool default size = 3</span><br><span class="line">     osd pool default min size = 2</span><br><span class="line">     osd pool default pg num = 333</span><br><span class="line">     osd pool default pgp num = 333</span><br><span class="line">     osd crush chooseleaf type = 1</span><br><span class="line">     [mon]</span><br><span class="line">     mon allow pool delete = true</span><br><span class="line"></span><br><span class="line">     [mds.future-ceph-node0]</span><br><span class="line">     host = future-ceph-node0</span><br><span class="line">  keyring: |</span><br><span class="line">metadata:</span><br><span class="line">  name: ceph-config</span><br><span class="line">  namespace: cephfs</span><br><span class="line">&#x27; &gt; ceph-config-map.yaml</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">执行</span></span><br><span class="line"> kubectl apply -f ceph-config-map.yaml  </span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>修改csi-config-map.yaml，配置连接 ceph 集群的信息</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: ConfigMap</span><br><span class="line">metadata:</span><br><span class="line">  name: ceph-csi-config</span><br><span class="line">  namespace: cephfs</span><br><span class="line">  labels:</span><br><span class="line">    addonmanager.kubernetes.io/mode: Reconcile</span><br><span class="line">data:</span><br><span class="line">  config.json: |-</span><br><span class="line">    [&#123;&quot;clusterID&quot;:&quot;79fd2206-39ca-4ec4-9cd2-96e065c6361e&quot;,&quot;monitors&quot;:[&quot;10.10.3.117:6789&quot;,&quot;10.10.3.118:6789&quot;,&quot;10.10.3.119:6789&quot;,&quot;10.10.3.120:6789&quot;]&#125;]</span><br><span class="line">&#x27; &gt; csi-config-map.yaml</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li><p>修改csi组件配置文件</p>
+<ol>
+<li><p>拷贝进<code>/data/cephfs/csi</code>目录中的所有yaml文件中的命名空间由<code>default</code>改为<code>cephfs</code></p>
+</li>
+<li><pre><code class="Shell">cd /data/cephfs/csi
+sed -i &quot;s/namespace: default/namespace: cephfs/g&quot; $(grep -rl &quot;namespace: default&quot; ./)
+sed -i &#39;/^kind: ServiceAccount/a\  namespace: cephfs&#39; $(grep -rl &quot;^kind: ServiceAccount&quot; ./)
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">   3. 将`csi-rbdplugin-provisioner.yaml` 和 `csi-rbdplugin.yaml` 中的 kms 部分配置注释掉</span><br><span class="line"></span><br><span class="line">   4. &gt;    \# - name: KMS_CONFIGMAP_NAME</span><br><span class="line">      &gt;</span><br><span class="line">      &gt; ​            \#   value: encryptionConfig</span><br><span class="line">      &gt;</span><br><span class="line">      &gt; </span><br><span class="line">      &gt;</span><br><span class="line">      &gt; \#- name: ceph-csi-encryption-kms-config</span><br><span class="line">      &gt;</span><br><span class="line">      &gt; ​        \#  configMap:</span><br><span class="line">      &gt;</span><br><span class="line">      &gt; ​        \#    name: ceph-csi-encryption-kms-config</span><br><span class="line">      &gt;</span><br><span class="line">      &gt; </span><br><span class="line"></span><br><span class="line">```Shell</span><br><span class="line"> #执行，安装csi组件</span><br><span class="line"> kubectl apply -f csi-config-map.yaml</span><br><span class="line"> kubectl apply -f csi-nodeplugin-rbac.yaml</span><br><span class="line"> kubectl apply -f csidriver.yaml</span><br><span class="line"> kubectl apply -f csi-provisioner-rbac.yaml</span><br><span class="line"> kubectl apply -f csi-rbdplugin-provisioner.yaml</span><br><span class="line"> kubectl apply -f csi-rbdplugin.yaml</span><br></pre></td></tr></table></figure>
+</code></pre>
+</li>
+</ol>
+</li>
+</ol>
+<h3 id="任务四：创建storageclass"><a href="#任务四：创建storageclass" class="headerlink" title="任务四：创建storageclass"></a>任务四：创建storageclass</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: storage.k8s.io/v1</span><br><span class="line">kind: StorageClass</span><br><span class="line">metadata:</span><br><span class="line">  annotations:</span><br><span class="line">    k8s.kuboard.cn/storageType: cephfs_provisioner</span><br><span class="line">  name: csi-rbd-sc</span><br><span class="line">provisioner: rbd.csi.ceph.com</span><br><span class="line">parameters:</span><br><span class="line"><span class="meta prompt_"> # </span><span class="language-bash">fsName: cephfs <span class="comment">#ceph集群cephfs文件系统名称</span></span></span><br><span class="line">  clusterID: 79fd2206-39ca-4ec4-9cd2-96e065c6361e #ceph集群的fsid </span><br><span class="line">  pool: rbd-k8s #ceph中创建的存储池</span><br><span class="line">  imageFeatures: layering</span><br><span class="line">  csi.storage.k8s.io/provisioner-secret-name: csi-rbd-secret</span><br><span class="line">  csi.storage.k8s.io/provisioner-secret-namespace: cephfs</span><br><span class="line">  csi.storage.k8s.io/controller-expand-secret-name: csi-rbd-secret</span><br><span class="line">  csi.storage.k8s.io/controller-expand-secret-namespace: cephfs</span><br><span class="line">  csi.storage.k8s.io/node-stage-secret-name: csi-rbd-secret</span><br><span class="line">  csi.storage.k8s.io/node-stage-secret-namespace: cephfs</span><br><span class="line">  csi.storage.k8s.io/fstype: xfs</span><br><span class="line">reclaimPolicy: Delete</span><br><span class="line">volumeBindingMode: Immediate</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">allowVolumeExpansion: <span class="literal">true</span></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">mountOptions:</span></span><br><span class="line"><span class="meta prompt_"> # </span><span class="language-bash">- discard</span></span><br><span class="line"> &#x27; &gt; storageclass.yaml</span><br><span class="line"><span class="meta prompt_"> </span></span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">执行</span></span><br><span class="line">  kubectl apply -f storageclass.yaml</span><br></pre></td></tr></table></figure>
+
+<h3 id="任务五：创建PVC"><a href="#任务五：创建PVC" class="headerlink" title="任务五：创建PVC"></a>任务五：创建PVC</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: PersistentVolumeClaim</span><br><span class="line">metadata:</span><br><span class="line">  name: rbd-pvc #PVC的名称</span><br><span class="line">  namespace: cephfs</span><br><span class="line">spec:</span><br><span class="line">  accessModes:</span><br><span class="line">    - ReadWriteOnce</span><br><span class="line">  resources:</span><br><span class="line">    requests:</span><br><span class="line">      storage: 1Gi  #设置容量</span><br><span class="line">  storageClassName: csi-rbd-sc</span><br><span class="line">  &#x27; &gt; pvc.yaml</span><br><span class="line"><span class="meta prompt_">  </span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">执行</span></span><br><span class="line"> kubectl apply -f pvc.yaml</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看PVC是否创建成功</span></span><br><span class="line">kubectl get pvc -n cephfs</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看PV是否创建成功</span></span><br><span class="line">kubectl get pv -n cephfs</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看ceph集群中的cephfs_data存储池中是否创建了image</span></span><br><span class="line"> rbd ls -p cephfs_data</span><br></pre></td></tr></table></figure>
+
+<h3 id="任务六：创建pod，进行测试验证"><a href="#任务六：创建pod，进行测试验证" class="headerlink" title="任务六：创建pod，进行测试验证"></a>任务六：创建pod，进行测试验证</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: Pod</span><br><span class="line">metadata:</span><br><span class="line">  name: csi-rbd-demo-pod</span><br><span class="line">  namespace: cephfs</span><br><span class="line">spec:</span><br><span class="line">  containers:</span><br><span class="line">    - name: web-server</span><br><span class="line">      image: nginx:latest</span><br><span class="line">      volumeMounts:</span><br><span class="line">        - name: mypvc</span><br><span class="line">          mountPath: /var/lib/www/html</span><br><span class="line">  volumes:</span><br><span class="line">    - name: mypvc</span><br><span class="line">      persistentVolumeClaim:</span><br><span class="line">        claimName: rbd-pvc  #对应的PVC名称</span><br><span class="line">        readOnly: false</span><br><span class="line">&#x27; &gt; pod.yaml</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">执行</span></span><br><span class="line"> kubectl apply -f pod.yaml</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">进入容器查看挂载信息</span></span><br><span class="line"> kubectl exec -it csi-rbd-demo-pod bash</span><br><span class="line"> lsblk -l|grep rbd</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>k8s</category>
+        <category>ceph共享存储</category>
+      </categories>
+      <tags>
+        <tag>docker</tag>
+        <tag>k8s</tag>
+        <tag>ceph</tag>
+        <tag>共享存储</tag>
+        <tag>ceph集群</tag>
+        <tag>容器云</tag>
+        <tag>k8s对接ceph</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>实现Docker 容器跨主机通讯</title>
+    <url>/yyg/60ed202a/</url>
+    <content><![CDATA[<h2 id="实现Docker-容器跨主机通讯"><a href="#实现Docker-容器跨主机通讯" class="headerlink" title="实现Docker 容器跨主机通讯"></a>实现Docker 容器跨主机通讯</h2><p>[TOC]</p>
+<h3 id="方案一：docker-swarm集群"><a href="#方案一：docker-swarm集群" class="headerlink" title="方案一：docker swarm集群"></a>方案一：docker swarm集群</h3><p><a href="https://blog.csdn.net/AMCUL/article/details/132913280">https://blog.csdn.net/AMCUL/article/details/132913280</a></p>
+<h3 id="方案二：直接路由法"><a href="#方案二：直接路由法" class="headerlink" title="方案二：直接路由法"></a>方案二：直接路由法</h3><p>在部署指南中提到的方法的实现分固定网段、路由持久化、IP转发三部分组成。</p>
+<h4 id="方法1："><a href="#方法1：" class="headerlink" title="方法1："></a>方法1：</h4><h5 id="修改并固定docker0的默认网段"><a href="#修改并固定docker0的默认网段" class="headerlink" title="修改并固定docker0的默认网段"></a>修改并固定docker0的默认网段</h5><ol>
+<li>修改docker0网段ip，在主机的&#x2F;etc&#x2F;docker&#x2F;daemon.json文件中，加入如下内容：</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">打开daemon.json文件</span></span><br><span class="line">vi /etc/docker/daemon.json</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一中添加的内容</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">172.16.200.1 为主机一的docker网段ip</span></span><br><span class="line">&#123;</span><br><span class="line"> &quot;bip&quot;: &quot;172.16.200.1/24&quot;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二中添加的内容</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">172.16.210.1 为主机二的docker网段ip</span></span><br><span class="line">&#123;</span><br><span class="line"> &quot;bip&quot;: &quot;172.16.210.1/24&quot;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重启docker服务</span></span><br><span class="line">systemctl restart docker </span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>添加路由规则，主机间互相添加</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机1上添加路由规则（添加主机2的ip和网段）</span></span><br><span class="line">ip route add 172.16.210.0/24 via 172.20.1.52</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机2上添加路由规则（添加主机1的ip和网段）</span></span><br><span class="line">ip route add 172.16.200.0/24 via 172.20.1.51</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">方式一：</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">开启路由转发</span></span><br><span class="line">iptables -P FORWARD ACCEPT</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">方式二：</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">配置iptables规则（本机的网段）</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一</span></span><br><span class="line">iptables -t nat -F POSTROUTING</span><br><span class="line">iptables -t nat -A POSTROUTING -s 172.16.200.0/24 ! -d 172.16.0.0/16 -j MASQUERADE</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二</span></span><br><span class="line">iptables -t nat -F POSTROUTING</span><br><span class="line">iptables -t nat -A POSTROUTING -s 172.16.210.0/24 ! -d 172.16.0.0/16 -j MASQUERADE</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>启动容器并测试</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">主机1上启动ubuntu容器</span></span><br><span class="line">docker run -it --name node1 ubuntu:latest /bin/bash</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">主机2上启动ubuntu容器</span></span><br><span class="line">docker run -it --name node2 ubuntu:latest /bin/bash</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装测试工具</span></span><br><span class="line">apt-get update</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ping工具</span></span><br><span class="line">apt-get install inetutils-ping -y</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ip查看工具</span></span><br><span class="line">apt-get install net-tools -y</span><br></pre></td></tr></table></figure>
+
+<h5 id="路由持久化（防止主机重启路由丢失）"><a href="#路由持久化（防止主机重启路由丢失）" class="headerlink" title="路由持久化（防止主机重启路由丢失）"></a>路由持久化（防止主机重启路由丢失）</h5><h6 id="法一：（推荐）"><a href="#法一：（推荐）" class="headerlink" title="法一：（推荐）"></a>法一：（推荐）</h6><p>在<code>/etc/sysconfig/network-scripts/</code>目录下创建名为<code>route-enp0s3</code>(enp0s3为主机网卡的名字，以实际为准)的文件 </p>
+<p>推荐此方法，注意创建时<code>route-</code>后跟的是本机主机的网卡名</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">vi /etc/sysconfig/network-scripts/route-enp0s3</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">在此文件添加如下格式的内容</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一中添加</span></span><br><span class="line">172.16.230.0/24 via 172.20.1.52</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二中添加</span></span><br><span class="line">172.16.220.0/24 via 172.20.1.51</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重启网络验证</span></span><br><span class="line">service network restart</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看路由表中是否有刚才添加的路由</span></span><br><span class="line">ip route show | column -t</span><br></pre></td></tr></table></figure>
+
+<h6 id="法二："><a href="#法二：" class="headerlink" title="法二："></a>法二：</h6><p>在<code>/etc/sysconfig/static-routes</code> 文件里添加如下内容 (没有static-routes需手动建立)</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一中添加</span></span><br><span class="line">any net 172.16.230.0/24 via 172.20.1.52</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二中添加</span></span><br><span class="line">any net 172.16.220.0/24 via 172.20.1.51</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重启网络服务</span></span><br><span class="line">systemctl restart network</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看路由表中是否有刚才添加的路由</span></span><br><span class="line">ip route show | column -t</span><br></pre></td></tr></table></figure>
+
+<h5 id="开启IP转发"><a href="#开启IP转发" class="headerlink" title="开启IP转发"></a>开启IP转发</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">永久开启</span></span><br><span class="line">vi /etc/sysctl.conf</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">修改</span></span><br><span class="line">net.ipv4.ip_forward=1</span><br></pre></td></tr></table></figure>
+
+<h4 id="方法2：（适用于使用固定ip的容器）"><a href="#方法2：（适用于使用固定ip的容器）" class="headerlink" title="方法2：（适用于使用固定ip的容器）"></a>方法2：（适用于使用固定ip的容器）</h4><h5 id="创建docker网络"><a href="#创建docker网络" class="headerlink" title="创建docker网络"></a>创建docker网络</h5><ol>
+<li>docker桥接类型网络创建</li>
+</ol>
+<p>分别对两台服务器中的docker创建名字为test的网络，指定子网范围为 172.16.220.0&#x2F;24 、172.16.230.0&#x2F;24</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一</span></span><br><span class="line">docker network create test --driver bridge --ipam-driver default --subnet 172.16.220.0/24</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二</span></span><br><span class="line">docker network create test --driver bridge --ipam-driver default --subnet 172.16.230.0/24</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看网络</span></span><br><span class="line">docker network ls</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>设置静态路由</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机1上添加路由规则（添加主机2的ip和网段）</span></span><br><span class="line">ip route add 172.16.230.0/24 via 172.20.1.52</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机2上添加路由规则（添加主机1的ip和网段）</span></span><br><span class="line">ip route add 172.16.220.0/24 via 172.20.1.51</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">开启路由转发</span></span><br><span class="line">iptables -P FORWARD ACCEPT</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>启动容器并测试</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">主机1上启动ubuntu容器(加上创建的桥接网络)</span></span><br><span class="line">docker run -it --name node1 --net=test ubuntu:latest /bin/bash</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">主机2上启动ubuntu容器(加上创建的桥接网络)</span></span><br><span class="line">docker run -it --name node2 --net=test ubuntu:latest /bin/bash</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装测试工具</span></span><br><span class="line">apt-get update</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ping工具</span></span><br><span class="line">apt-get install inetutils-ping -y</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ip查看工具</span></span><br><span class="line">apt-get install net-tools -y</span><br></pre></td></tr></table></figure>
+
+<h5 id="路由持久化（防止主机重启路由丢失）-1"><a href="#路由持久化（防止主机重启路由丢失）-1" class="headerlink" title="路由持久化（防止主机重启路由丢失）"></a>路由持久化（防止主机重启路由丢失）</h5><p>使用<strong>nmtui图形化界面添加</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">下载nmtui</span></span><br><span class="line">yum install net-tools -y</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">显示nmtui图形化界面</span></span><br><span class="line">nmtui</span><br></pre></td></tr></table></figure>
+
+<p>在主机一网卡中配置主机二的docker网络的ip段和ip，在主机二网卡中配置主机一的docker网络的ip段和ip</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一中添加</span></span><br><span class="line">172.16.230.0/24  172.20.1.52</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二中添加</span></span><br><span class="line">172.16.220.0/24  172.20.1.51</span><br></pre></td></tr></table></figure>
+
+<p>配置完成会在&#x2F;etc&#x2F;sysconfig&#x2F;network-scripts文件夹下看到</p>
+<img src="/yyg/60ed202a/image-20240323221412716-1711203257505-1.png" class="" title="image-20240323221412716">
+
+<img src="/yyg/60ed202a/image-20240323221442754-1711203286475-3.png" class="" title="image-20240323221442754">
+
+<p>启动对应主机的新创建的网卡（网络重启或系统重启后会失效）</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一</span></span><br><span class="line">nmcli c up br-aed92de88760</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二</span></span><br><span class="line">nmcli c up br-0ab3914edle2</span><br></pre></td></tr></table></figure>
+
+<p>要使新网卡保持启动则需将对应新创建的网卡文件中的<code>ONBOOT=no</code>改为<code>ONBOOT=yes</code></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一</span></span><br><span class="line">vi ifcfg-br-aed92de88760</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">ONBOOT=no改为ONBOOT=<span class="built_in">yes</span></span></span><br><span class="line">ONBOOT=yes</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二</span></span><br><span class="line">vi ifcfg-br-0ab3914edle2</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">ONBOOT=no改为ONBOOT=<span class="built_in">yes</span></span></span><br><span class="line">ONBOOT=yes</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重启网络服务</span></span><br><span class="line">systemctl restart network</span><br></pre></td></tr></table></figure>
+
+<img src="/yyg/60ed202a/image-20240323221537519-1711203339288-5.png" class="" title="image-20240323221537519">
+
+<h5 id="开启IP转发-1"><a href="#开启IP转发-1" class="headerlink" title="开启IP转发"></a>开启IP转发</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">永久开启</span></span><br><span class="line">vi /etc/sysctl.conf</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">修改</span></span><br><span class="line">net.ipv4.ip_forward=1</span><br></pre></td></tr></table></figure>
+
+<p>此时容器不受网络重启影响，可实现跨主机通讯。</p>
+<p>但系统重启后，所创建的docker网络和容器均失效。</p>
+<p>需要重新创建docker网络和容器，此后docker网络和容器均不受系统重启和网络重启的影响，成功实现docker容器的跨主机通讯。</p>
+<img src="/yyg/60ed202a/image-20240323221547069-1711203348713-7.png" class="" title="image-20240323221547069">]]></content>
+      <categories>
+        <category>docker</category>
+      </categories>
+      <tags>
+        <tag>docker</tag>
+        <tag>容器通信</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>高可用k8s集群部署指南</title>
     <url>/yyg/612a796b/</url>
     <content><![CDATA[<h1 id="高可用k8s集群部署指南"><a href="#高可用k8s集群部署指南" class="headerlink" title="高可用k8s集群部署指南"></a>高可用k8s集群部署指南</h1><h2 id="任务目标"><a href="#任务目标" class="headerlink" title="任务目标"></a>任务目标</h2><ol>
@@ -903,7 +989,8 @@ cp hub-docker.tiliatech.net.key /data/cert/
 <li>操作系统：openEuler 22.03 LTS SP2</li>
 </ol>
 <h2 id="部署指南"><a href="#部署指南" class="headerlink" title="部署指南"></a>部署指南</h2><p>集群拓扑图</p>
-<p>暂时无法在飞书文档外展示此内容</p>
+<img src="/yyg/612a796b/image-20240323222414360.png" class="" title="image-20240323222414360">
+
 <h3 id="任务一：配置准备"><a href="#任务一：配置准备" class="headerlink" title="任务一：配置准备"></a>任务一：配置准备</h3><ol>
 <li>重命名hostname</li>
 </ol>
@@ -1161,7 +1248,8 @@ vrrp_instance VI_1 &#123;
 <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">kubectl get pods --all-namespaces | grep metrics</span><br></pre></td></tr></table></figure>
 
 <p>等待一些时间，查看查看各类监控图像已成功显示。</p>
-<p><img src="https://yeesoftware.feishu.cn/space/api/box/stream/download/asynccode/?code=M2ZjZjdmYTRlNTA4NDZmYzQ0ZDYwMTc1YTVjZGM5NWFfQjhvdHdCaDk0SEJlbE1NNGhHd0x5NFUyNHdJNXRvclhfVG9rZW46Q1F1SmIwOXNEb2JwVWN4SlpTVWNvUWl2bkViXzE3MDA2NjUxNzE6MTcwMDY2ODc3MV9WNA" alt="img"></p>
+<img src="/yyg/612a796b/image-20240323222536472-1711203940377-3.png" class="" title="image-20240323222536472">
+
 <h3 id="任务十：kubectl命令自动补全"><a href="#任务十：kubectl命令自动补全" class="headerlink" title="任务十：kubectl命令自动补全"></a>任务十：kubectl命令自动补全</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum -y install bash-completion</span><br><span class="line">source /usr/share/bash-completion/bash_completion</span><br><span class="line">echo &#x27;source &lt;(kubectl completion bash)&#x27; &gt;&gt;  ~/.bashrc</span><br><span class="line">bash</span><br></pre></td></tr></table></figure>
 
 <h3 id="任务十一：ingress-nginx控制器安装"><a href="#任务十一：ingress-nginx控制器安装" class="headerlink" title="任务十一：ingress-nginx控制器安装"></a>任务十一：ingress-nginx控制器安装</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">下载yaml文件</span></span><br><span class="line">wget https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.0.0/deploy/static/provider/baremetal/deploy.yaml</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">修改yaml文件中拉取镜像的地址</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash"><span class="comment">####################修改内容######################</span></span></span><br><span class="line">willdockerhub/ingress-nginx-controller:v1.0.0</span><br><span class="line">hzde0128/kube-webhook-certgen:v1.0</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash"><span class="comment">####################修改内容######################</span></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">修改Deployment修改成DaemonSet</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">修改网络模式为host network</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash"><span class="comment">####################修改内容######################</span></span></span><br><span class="line">template:</span><br><span class="line">  spec:</span><br><span class="line">    hostNetwork: true</span><br><span class="line">    dnsPolicy: ClusterFirstWithHostNet</span><br><span class="line">    tolerations:  #使用亲和性配置可在所有节点部署</span><br><span class="line">      - key: node-role.kubernetes.io/control-plane</span><br><span class="line">        operator: Exists</span><br><span class="line">        effect: NoSchedule</span><br><span class="line">     nodeSelector:</span><br><span class="line">          kubernetes.io/os: linux</span><br><span class="line">          custem/ingress-controller-ready: &#x27;true&#x27;</span><br><span class="line">      containers:</span><br><span class="line">        - name: controller</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash"><span class="comment">####################修改内容######################</span></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">为工作节点设置标签（必需）</span></span><br><span class="line">kubectl label nodes future-k8s-node0 custem/ingress-controller-ready=true</span><br><span class="line">kubectl label nodes future-k8s-node1 custem/ingress-controller-ready=true</span><br><span class="line">kubectl label nodes future-k8s-node2 custem/ingress-controller-ready=true</span><br><span class="line">kubectl label nodes future-k8s-node3 custem/ingress-controller-ready=true</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装</span></span><br><span class="line">kubectl apply -f deploy.yaml</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看状态</span></span><br><span class="line">kubectl get pods -n ingress-nginx</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash"><span class="comment">###############状态##################</span></span></span><br><span class="line">NAME                                       READY   STATUS      RESTARTS   AGE</span><br><span class="line">ingress-nginx-admission-create-2lz4v       0/1     Completed   0          5m46s</span><br><span class="line">ingress-nginx-admission-patch-c6896        0/1     Completed   0          5m46s</span><br><span class="line">ingress-nginx-controller-7575fb546-q29qn   1/1     Running     0          5m46s</span><br></pre></td></tr></table></figure>
@@ -1179,83 +1267,6 @@ vrrp_instance VI_1 &#123;
       </tags>
   </entry>
   <entry>
-    <title>实现Docker 容器跨主机通讯</title>
-    <url>/yyg/60ed202a/</url>
-    <content><![CDATA[<h2 id="实现Docker-容器跨主机通讯"><a href="#实现Docker-容器跨主机通讯" class="headerlink" title="实现Docker 容器跨主机通讯"></a>实现Docker 容器跨主机通讯</h2><p>[TOC]</p>
-<h3 id="方案一：docker-swarm集群"><a href="#方案一：docker-swarm集群" class="headerlink" title="方案一：docker swarm集群"></a>方案一：docker swarm集群</h3><p><a href="https://blog.csdn.net/AMCUL/article/details/132913280">https://blog.csdn.net/AMCUL/article/details/132913280</a></p>
-<h3 id="方案二：直接路由法"><a href="#方案二：直接路由法" class="headerlink" title="方案二：直接路由法"></a>方案二：直接路由法</h3><p>在部署指南中提到的方法的实现分固定网段、路由持久化、IP转发三部分组成。</p>
-<h4 id="方法1："><a href="#方法1：" class="headerlink" title="方法1："></a>方法1：</h4><h5 id="修改并固定docker0的默认网段"><a href="#修改并固定docker0的默认网段" class="headerlink" title="修改并固定docker0的默认网段"></a>修改并固定docker0的默认网段</h5><ol>
-<li>修改docker0网段ip，在主机的&#x2F;etc&#x2F;docker&#x2F;daemon.json文件中，加入如下内容：</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">打开daemon.json文件</span></span><br><span class="line">vi /etc/docker/daemon.json</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一中添加的内容</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">172.16.200.1 为主机一的docker网段ip</span></span><br><span class="line">&#123;</span><br><span class="line"> &quot;bip&quot;: &quot;172.16.200.1/24&quot;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二中添加的内容</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">172.16.210.1 为主机二的docker网段ip</span></span><br><span class="line">&#123;</span><br><span class="line"> &quot;bip&quot;: &quot;172.16.210.1/24&quot;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重启docker服务</span></span><br><span class="line">systemctl restart docker </span><br></pre></td></tr></table></figure>
-
-<ol>
-<li>添加路由规则，主机间互相添加</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机1上添加路由规则（添加主机2的ip和网段）</span></span><br><span class="line">ip route add 172.16.210.0/24 via 172.20.1.52</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机2上添加路由规则（添加主机1的ip和网段）</span></span><br><span class="line">ip route add 172.16.200.0/24 via 172.20.1.51</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">方式一：</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">开启路由转发</span></span><br><span class="line">iptables -P FORWARD ACCEPT</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">方式二：</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">配置iptables规则（本机的网段）</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一</span></span><br><span class="line">iptables -t nat -F POSTROUTING</span><br><span class="line">iptables -t nat -A POSTROUTING -s 172.16.200.0/24 ! -d 172.16.0.0/16 -j MASQUERADE</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二</span></span><br><span class="line">iptables -t nat -F POSTROUTING</span><br><span class="line">iptables -t nat -A POSTROUTING -s 172.16.210.0/24 ! -d 172.16.0.0/16 -j MASQUERADE</span><br></pre></td></tr></table></figure>
-
-<ol>
-<li>启动容器并测试</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">主机1上启动ubuntu容器</span></span><br><span class="line">docker run -it --name node1 ubuntu:latest /bin/bash</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">主机2上启动ubuntu容器</span></span><br><span class="line">docker run -it --name node2 ubuntu:latest /bin/bash</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装测试工具</span></span><br><span class="line">apt-get update</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ping工具</span></span><br><span class="line">apt-get install inetutils-ping -y</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ip查看工具</span></span><br><span class="line">apt-get install net-tools -y</span><br></pre></td></tr></table></figure>
-
-<h5 id="路由持久化（防止主机重启路由丢失）"><a href="#路由持久化（防止主机重启路由丢失）" class="headerlink" title="路由持久化（防止主机重启路由丢失）"></a>路由持久化（防止主机重启路由丢失）</h5><h6 id="法一：（推荐）"><a href="#法一：（推荐）" class="headerlink" title="法一：（推荐）"></a>法一：（推荐）</h6><p>在<code>/etc/sysconfig/network-scripts/</code>目录下创建名为<code>route-enp0s3</code>(enp0s3为主机网卡的名字，以实际为准)的文件 </p>
-<p>推荐此方法，注意创建时<code>route-</code>后跟的是本机主机的网卡名</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">vi /etc/sysconfig/network-scripts/route-enp0s3</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">在此文件添加如下格式的内容</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一中添加</span></span><br><span class="line">172.16.230.0/24 via 172.20.1.52</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二中添加</span></span><br><span class="line">172.16.220.0/24 via 172.20.1.51</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重启网络验证</span></span><br><span class="line">service network restart</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看路由表中是否有刚才添加的路由</span></span><br><span class="line">ip route show | column -t</span><br></pre></td></tr></table></figure>
-
-<h6 id="法二："><a href="#法二：" class="headerlink" title="法二："></a>法二：</h6><p>在<code>/etc/sysconfig/static-routes</code> 文件里添加如下内容 (没有static-routes需手动建立)</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一中添加</span></span><br><span class="line">any net 172.16.230.0/24 via 172.20.1.52</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二中添加</span></span><br><span class="line">any net 172.16.220.0/24 via 172.20.1.51</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重启网络服务</span></span><br><span class="line">systemctl restart network</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看路由表中是否有刚才添加的路由</span></span><br><span class="line">ip route show | column -t</span><br></pre></td></tr></table></figure>
-
-<h5 id="开启IP转发"><a href="#开启IP转发" class="headerlink" title="开启IP转发"></a>开启IP转发</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">永久开启</span></span><br><span class="line">vi /etc/sysctl.conf</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">修改</span></span><br><span class="line">net.ipv4.ip_forward=1</span><br></pre></td></tr></table></figure>
-
-<h4 id="方法2：（适用于使用固定ip的容器）"><a href="#方法2：（适用于使用固定ip的容器）" class="headerlink" title="方法2：（适用于使用固定ip的容器）"></a>方法2：（适用于使用固定ip的容器）</h4><h5 id="创建docker网络"><a href="#创建docker网络" class="headerlink" title="创建docker网络"></a>创建docker网络</h5><ol>
-<li>docker桥接类型网络创建</li>
-</ol>
-<p>分别对两台服务器中的docker创建名字为test的网络，指定子网范围为 172.16.220.0&#x2F;24 、172.16.230.0&#x2F;24</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一</span></span><br><span class="line">docker network create test --driver bridge --ipam-driver default --subnet 172.16.220.0/24</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二</span></span><br><span class="line">docker network create test --driver bridge --ipam-driver default --subnet 172.16.230.0/24</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看网络</span></span><br><span class="line">docker network ls</span><br></pre></td></tr></table></figure>
-
-<ol>
-<li>设置静态路由</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机1上添加路由规则（添加主机2的ip和网段）</span></span><br><span class="line">ip route add 172.16.230.0/24 via 172.20.1.52</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机2上添加路由规则（添加主机1的ip和网段）</span></span><br><span class="line">ip route add 172.16.220.0/24 via 172.20.1.51</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">开启路由转发</span></span><br><span class="line">iptables -P FORWARD ACCEPT</span><br></pre></td></tr></table></figure>
-
-<ol>
-<li>启动容器并测试</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">主机1上启动ubuntu容器(加上创建的桥接网络)</span></span><br><span class="line">docker run -it --name node1 --net=test ubuntu:latest /bin/bash</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">主机2上启动ubuntu容器(加上创建的桥接网络)</span></span><br><span class="line">docker run -it --name node2 --net=test ubuntu:latest /bin/bash</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装测试工具</span></span><br><span class="line">apt-get update</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ping工具</span></span><br><span class="line">apt-get install inetutils-ping -y</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ip查看工具</span></span><br><span class="line">apt-get install net-tools -y</span><br></pre></td></tr></table></figure>
-
-<h5 id="路由持久化（防止主机重启路由丢失）-1"><a href="#路由持久化（防止主机重启路由丢失）-1" class="headerlink" title="路由持久化（防止主机重启路由丢失）"></a>路由持久化（防止主机重启路由丢失）</h5><p>使用<strong>nmtui图形化界面添加</strong></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">下载nmtui</span></span><br><span class="line">yum install net-tools -y</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">显示nmtui图形化界面</span></span><br><span class="line">nmtui</span><br></pre></td></tr></table></figure>
-
-<p>在主机一网卡中配置主机二的docker网络的ip段和ip，在主机二网卡中配置主机一的docker网络的ip段和ip</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一中添加</span></span><br><span class="line">172.16.230.0/24  172.20.1.52</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二中添加</span></span><br><span class="line">172.16.220.0/24  172.20.1.51</span><br></pre></td></tr></table></figure>
-
-<p>配置完成会在&#x2F;etc&#x2F;sysconfig&#x2F;network-scripts文件夹下看到</p>
-<p><img src="https://yeesoftware.feishu.cn/space/api/box/stream/download/asynccode/?code=YmI3YjUxODk0OGNiMjU1ZjI4YjQ3ZTAzNDdjYjlmNzNfMFY0S2dQck8xUW5vb3BCeWZkMFNPTXFiS2dqMmE2NjJfVG9rZW46Vjk5aGIzZTU3b0RtUmJ4R21pY2NSVlRlbk9kXzE2OTQ3OTQyNjg6MTY5NDc5Nzg2OF9WNA" alt="img"></p>
-<p><img src="https://yeesoftware.feishu.cn/space/api/box/stream/download/asynccode/?code=ZjI3NDk3Y2M4NWQ4YzMxODhmZTljM2U3MDM0MzQxZGJfQk01NlNPSnVCUENZU0xDamphbVdlR2k0ZG5XTzkwQ0xfVG9rZW46UGN0aWJlMU9Qb2tYSlZ4dGhIZGNhYmpwbnRiXzE2OTQ3OTQyNjg6MTY5NDc5Nzg2OF9WNA" alt="img"></p>
-<p>启动对应主机的新创建的网卡（网络重启或系统重启后会失效）</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一</span></span><br><span class="line">nmcli c up br-aed92de88760</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二</span></span><br><span class="line">nmcli c up br-0ab3914edle2</span><br></pre></td></tr></table></figure>
-
-<p>要使新网卡保持启动则需将对应新创建的网卡文件中的<code>ONBOOT=no</code>改为<code>ONBOOT=yes</code></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一</span></span><br><span class="line">vi ifcfg-br-aed92de88760</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">ONBOOT=no改为ONBOOT=<span class="built_in">yes</span></span></span><br><span class="line">ONBOOT=yes</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二</span></span><br><span class="line">vi ifcfg-br-0ab3914edle2</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">ONBOOT=no改为ONBOOT=<span class="built_in">yes</span></span></span><br><span class="line">ONBOOT=yes</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重启网络服务</span></span><br><span class="line">systemctl restart network</span><br></pre></td></tr></table></figure>
-
-<p><img src="https://yeesoftware.feishu.cn/space/api/box/stream/download/asynccode/?code=M2Y4OGJlNjgxOWU5YmE0NzJhMzcwMGVkMzQ3ZDQ5OWJfQjNRVXprRkx1bjQ2eVN4c2t0UWptd2lXY3Q4OURPREhfVG9rZW46QmNvUWI3Z1Ntb2s2VGV4MkI0RmMxZU55bmpjXzE2OTQ3OTQyNjg6MTY5NDc5Nzg2OF9WNA" alt="img"></p>
-<h5 id="开启IP转发-1"><a href="#开启IP转发-1" class="headerlink" title="开启IP转发"></a>开启IP转发</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">永久开启</span></span><br><span class="line">vi /etc/sysctl.conf</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">修改</span></span><br><span class="line">net.ipv4.ip_forward=1</span><br></pre></td></tr></table></figure>
-
-<p>此时容器不受网络重启影响，可实现跨主机通讯。</p>
-<p>但系统重启后，所创建的docker网络和容器均失效。</p>
-<p>需要重新创建docker网络和容器，此后docker网络和容器均不受系统重启和网络重启的影响，成功实现docker容器的跨主机通讯。</p>
-<p><img src="https://yeesoftware.feishu.cn/space/api/box/stream/download/asynccode/?code=YWQyMmQ3ZDY4YjU5M2NmZDE5MTg2MjRhZWExNzM2NGNfdjRueUt2THN1MDAzOElqcllsdWlCVnBIREVwMnRIbElfVG9rZW46SDkzTWJ3YmFXb1lETnd4M0pOZ2N2ejZWbjNiXzE2OTQ3OTQyNjg6MTY5NDc5Nzg2OF9WNA" alt="img"></p>
-]]></content>
-      <categories>
-        <category>docker</category>
-      </categories>
-      <tags>
-        <tag>docker</tag>
-        <tag>容器通信</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>高可用容器云建设（k8s集群+ceph集群）</title>
     <url>/yyg/57e2a956/</url>
     <content><![CDATA[<h1 id="高可用容器云建设（K8s集群-ceph集群）"><a href="#高可用容器云建设（K8s集群-ceph集群）" class="headerlink" title="高可用容器云建设（K8s集群+ceph集群）"></a>高可用容器云建设（K8s集群+ceph集群）</h1><h1 id="任务目标"><a href="#任务目标" class="headerlink" title="任务目标"></a>任务目标</h1><ol>
@@ -1266,7 +1277,8 @@ vrrp_instance VI_1 &#123;
 <li>操作系统：openEuler 22.03 LTS SP2</li>
 </ol>
 <h1 id="部署指南"><a href="#部署指南" class="headerlink" title="部署指南"></a>部署指南</h1><p>集群拓扑图</p>
-<p>暂时无法在飞书文档外展示此内容</p>
+<img src="/yyg/57e2a956/image-20240323222825713-1711204108611-3.png" class="" title="image-20240323222825713">
+
 <h2 id="一：部署ceph集群"><a href="#一：部署ceph集群" class="headerlink" title="一：部署ceph集群"></a>一：部署ceph集群</h2><h3 id="任务一：配置准备"><a href="#任务一：配置准备" class="headerlink" title="任务一：配置准备"></a>任务一：配置准备</h3><ol>
 <li>重命名hostname</li>
 </ol>
@@ -1443,7 +1455,8 @@ vrrp_instance VI_1 &#123;
 <p>​    “dashboard”: “<a href="https://k8s-ceph-node0:8443/">https://k8s-ceph-node0:8443/</a>“</p>
 <p>}</p>
 </blockquote>
-<p><img src="https://yeesoftware.feishu.cn/space/api/box/stream/download/asynccode/?code=N2UxMWZkZDJmODAyYjBlZGRjNGQyZWNhMmU4M2UxZDJfR1V5YjN0a0t1NVNqejlvdGZhZUVnMzdRaE1QN2REMzRfVG9rZW46RFFwemJoT3hBb0gwSzR4MTlnNWN6MmRIbnFCXzE3MDA2NjU0MjU6MTcwMDY2OTAyNV9WNA" alt="img"></p>
+<img src="/yyg/57e2a956/image-20240323222910679-1711204151978-5.png" class="" title="image-20240323222910679">
+
 <ol>
 <li><h4 id="node节点"><a href="#node节点" class="headerlink" title="node节点"></a>node节点</h4></li>
 <li><h5 id="扩展Monitor"><a href="#扩展Monitor" class="headerlink" title="扩展Monitor"></a>扩展Monitor</h5></li>
@@ -1750,7 +1763,8 @@ cat  /etc/keepalived/keepalived.conf
 <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">kubectl get pods --all-namespaces | grep metrics</span><br></pre></td></tr></table></figure>
 
 <p>等待一些时间，查看查看各类监控图像已成功显示。</p>
-<p><img src="https://yeesoftware.feishu.cn/space/api/box/stream/download/asynccode/?code=ZGQ0YzEwMmVhOWQ3N2I1MjUxMmVjZDNjNjdhOWFlNTdfdlZSUVIzdk1oNnBlMjNna1pncWRVVmpsbk5mTENNdFJfVG9rZW46QTBKNWJ6Zms5b2t0M2F4WUtiYWNYYUlJbnRoXzE3MDA2NjU0MjU6MTcwMDY2OTAyNV9WNA" alt="img"></p>
+<img src="/yyg/57e2a956/image-20240323222707075-1711204031457-1.png" class="" title="image-20240323222707075">
+
 <h3 id="任务十：kubectl命令自动补全"><a href="#任务十：kubectl命令自动补全" class="headerlink" title="任务十：kubectl命令自动补全"></a>任务十：kubectl命令自动补全</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum -y install bash-completion</span><br><span class="line">source /usr/share/bash-completion/bash_completion</span><br><span class="line">echo &#x27;source &lt;(kubectl completion bash)&#x27; &gt;&gt;  ~/.bashrc</span><br><span class="line">bash</span><br></pre></td></tr></table></figure>
 
 <h3 id="任务十一：ingress-nginx控制器安装"><a href="#任务十一：ingress-nginx控制器安装" class="headerlink" title="任务十一：ingress-nginx控制器安装"></a>任务十一：ingress-nginx控制器安装</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">下载yaml文件</span></span><br><span class="line">wget https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.0.0/deploy/static/provider/baremetal/deploy.yaml</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">修改yaml文件中拉取镜像的地址</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash"><span class="comment">####################修改内容######################</span></span></span><br><span class="line">willdockerhub/ingress-nginx-controller:v1.0.0</span><br><span class="line">hzde0128/kube-webhook-certgen:v1.0</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash"><span class="comment">####################修改内容######################</span></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">修改Deployment修改成DaemonSet</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">修改网络模式为host network</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash"><span class="comment">####################修改内容######################</span></span></span><br><span class="line">template:</span><br><span class="line">  spec:</span><br><span class="line">    hostNetwork: true</span><br><span class="line">    dnsPolicy: ClusterFirstWithHostNet</span><br><span class="line">    tolerations:  #使用亲和性配置可在所有节点部署</span><br><span class="line">      - key: node-role.kubernetes.io/control-plane</span><br><span class="line">        operator: Exists</span><br><span class="line">        effect: NoSchedule</span><br><span class="line">     nodeSelector:</span><br><span class="line">          kubernetes.io/os: linux</span><br><span class="line">          custem/ingress-controller-ready: &#x27;true&#x27;</span><br><span class="line">      containers:</span><br><span class="line">        - name: controller</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash"><span class="comment">####################修改内容######################</span></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">为工作节点设置标签（必需）</span></span><br><span class="line">kubectl label nodes future-k8s-master0 custem/ingress-controller-ready=true</span><br><span class="line">kubectl label nodes future-k8s-master1 custem/ingress-controller-ready=true</span><br><span class="line">kubectl label nodes future-k8s-master2 custem/ingress-controller-ready=true</span><br><span class="line">kubectl label nodes future-k8s-node3 custem/ingress-controller-ready=true</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装</span></span><br><span class="line">kubectl apply -f deploy.yaml</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看状态</span></span><br><span class="line">kubectl get pods -n ingress-nginx</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash"><span class="comment">###############状态##################</span></span></span><br><span class="line">NAME                                       READY   STATUS      RESTARTS   AGE</span><br><span class="line">ingress-nginx-admission-create-2lz4v       0/1     Completed   0          5m46s</span><br><span class="line">ingress-nginx-admission-patch-c6896        0/1     Completed   0          5m46s</span><br><span class="line">ingress-nginx-controller-7575fb546-q29qn   1/1     Running     0          5m46s</span><br></pre></td></tr></table></figure>
