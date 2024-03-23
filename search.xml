@@ -840,6 +840,91 @@ cp hub-docker.tiliatech.net.key /data/cert/
       </tags>
   </entry>
   <entry>
+    <title>k8s集群对接ceph集群部署指南</title>
+    <url>/yyg/57e2a956/</url>
+    <content><![CDATA[<h1 id="k8s集群对接ceph集群部署指南"><a href="#k8s集群对接ceph集群部署指南" class="headerlink" title="k8s集群对接ceph集群部署指南"></a>k8s集群对接ceph集群部署指南</h1><h2 id="任务目标"><a href="#任务目标" class="headerlink" title="任务目标"></a>任务目标</h2><ol>
+<li>完成k8s集群对接ceph集群</li>
+</ol>
+<h2 id="任务平台"><a href="#任务平台" class="headerlink" title="任务平台"></a>任务平台</h2><ol>
+<li>物理设备–</li>
+<li>操作系统：openEuler 22.03 LTS SP2</li>
+</ol>
+<h2 id="部署指南"><a href="#部署指南" class="headerlink" title="部署指南"></a>部署指南</h2><p>集群拓扑图</p>
+<p>暂时无法在飞书文档外展示此内容</p>
+<p>采用动态挂载ceph RBD存储</p>
+<h3 id="任务一：安装ceph客户端（ceph-common）"><a href="#任务一：安装ceph客户端（ceph-common）" class="headerlink" title="任务一：安装ceph客户端（ceph-common）"></a>任务一：安装ceph客户端（ceph-common）</h3><p>在k8s集群的每个节点安装ceph-common</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum install ceph-common -y</span><br></pre></td></tr></table></figure>
+
+<h3 id="任务二：同步cpeh集群配置文件"><a href="#任务二：同步cpeh集群配置文件" class="headerlink" title="任务二：同步cpeh集群配置文件"></a>任务二：同步cpeh集群配置文件</h3><p>将 ceph 集群的 &#x2F;etc&#x2F;ceph&#x2F;{ceph.conf,ceph.client.admin.keyring} 文件同步到 k8s 所有节点上</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">配置ssh免密</span></span><br><span class="line">ssh-keygen -t rsa</span><br><span class="line">ssh-copy-id 10.10.3.121</span><br><span class="line">ssh-copy-id 10.10.3.122</span><br><span class="line">ssh-copy-id 10.10.3.123</span><br><span class="line">ssh-copy-id 10.10.3.124</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">拷贝文件</span></span><br><span class="line">scp -r /etc/ceph/&#123;ceph.conf,ceph.client.admin.keyring&#125; 10.10.3.121:/etc/ceph</span><br><span class="line">scp -r /etc/ceph/&#123;ceph.conf,ceph.client.admin.keyring&#125; 10.10.3.122:/etc/ceph</span><br><span class="line">scp -r /etc/ceph/&#123;ceph.conf,ceph.client.admin.keyring&#125; 10.10.3.123:/etc/ceph</span><br><span class="line">scp -r /etc/ceph/&#123;ceph.conf,ceph.client.admin.keyring&#125; 10.10.3.124:/etc/ceph</span><br></pre></td></tr></table></figure>
+
+<h3 id="任务三：部署ceph-csi（使用rbd）"><a href="#任务三：部署ceph-csi（使用rbd）" class="headerlink" title="任务三：部署ceph-csi（使用rbd）"></a>任务三：部署ceph-csi（使用rbd）</h3><ol>
+<li>下载ceph-csi组件</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">下载文件</span></span><br><span class="line">wget https://github.com/ceph/ceph-csi/archive/refs/tags/v3.9.0.tar.gz</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">解压</span></span><br><span class="line">mv v3.9.0.tar.gz ceph-csi-v3.9.0.tar.gz</span><br><span class="line">tar -xzf ceph-csi-v3.9.0.tar.gz</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">进入目录</span></span><br><span class="line">cd  ceph-csi-3.9.0/deploy/rbd/kubernetes</span><br><span class="line">mkdir /data/cephfs/csi</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">拷进csi中，共6六个文件</span></span><br><span class="line">cp * /data/cephfs</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>拉取csi组件所需镜像</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看所需镜像</span></span><br><span class="line">grep image csi-rbdplugin-provisioner.yaml</span><br><span class="line">grep image csi-rbdplugin.yaml</span><br></pre></td></tr></table></figure>
+
+<p>在所有k8s节点上拉取所需的镜像</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">./pull-images.sh registry.k8s.io/sig-storage/csi-provisioner:v3.5.0</span><br><span class="line">./pull-images.sh registry.k8s.io/sig-storage/csi-resizer:v1.8.0</span><br><span class="line">./pull-images.sh registry.k8s.io/sig-storage/csi-snapshotter:v6.2.2</span><br><span class="line">docker pull quay.io/cephcsi/cephcsi:v3.9.0</span><br><span class="line">./pull-images.sh registry.k8s.io/sig-storage/csi-attacher:v4.3.0</span><br><span class="line">./pull-images.sh registry.k8s.io/sig-storage/csi-node-driver-registrar:v2.8.0</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>创建命名空间<code>cephfs</code></li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: Namespace</span><br><span class="line">metadata:</span><br><span class="line">  labels:</span><br><span class="line">    kubernetes.io/metadata.name: cephfs</span><br><span class="line">  name: cephfs</span><br><span class="line">  &#x27; &gt; ceph-namespace.yaml</span><br><span class="line">  </span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">执行</span></span><br><span class="line">  kubectl apply -f ceph-namespace.yaml </span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>创建连接 ceph 集群的秘钥文件csi-rbd-secret.yaml</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: Secret</span><br><span class="line">metadata:</span><br><span class="line">  name: csi-rbd-secret</span><br><span class="line">  namespace: cephfs</span><br><span class="line">stringData:</span><br><span class="line">  adminID: admin  #管理员名称</span><br><span class="line">  adminKey: AQCNNDZlPKI5KxAA/3gXnOmhHgyLU2qPzTaZ3A==   #ceph集群密钥</span><br><span class="line">  userID: admin   #用户名称 </span><br><span class="line">  userKey: AQCNNDZlPKI5KxAA/3gXnOmhHgyLU2qPzTaZ3A==  #ceph集群密钥</span><br><span class="line">  &#x27; &gt; csi-rbd-secret.yaml</span><br><span class="line">  </span><br><span class="line"><span class="meta prompt_">   #</span><span class="language-bash">执行</span></span><br><span class="line">    kubectl apply -f csi-rbd-secret.yaml</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>创建ceph-config-map.yaml</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: ConfigMap</span><br><span class="line">data:</span><br><span class="line">  ceph.conf: |</span><br><span class="line">     [global]</span><br><span class="line">     fsid = 79fd2206-39ca-4ec4-9cd2-96e065c6361e     # 生成的FSID</span><br><span class="line">     mon initial members =future-ceph-node0,future-ceph-node1,future-ceph-node2,future-ceph-node3            # 主机名</span><br><span class="line">     mon host = 10.10.3.117,10.10.3.118,10.10.3.119,10.10.3.120                       # 对应的IP</span><br><span class="line">     public network = 10.10.3.0/24</span><br><span class="line">     auth cluster required = cephx</span><br><span class="line">     auth service required = cephx</span><br><span class="line">     auth client required = cephx</span><br><span class="line">     osd journal size = 1024</span><br><span class="line">     osd pool default size = 3</span><br><span class="line">     osd pool default min size = 2</span><br><span class="line">     osd pool default pg num = 333</span><br><span class="line">     osd pool default pgp num = 333</span><br><span class="line">     osd crush chooseleaf type = 1</span><br><span class="line">     [mon]</span><br><span class="line">     mon allow pool delete = true</span><br><span class="line"></span><br><span class="line">     [mds.future-ceph-node0]</span><br><span class="line">     host = future-ceph-node0</span><br><span class="line">  keyring: |</span><br><span class="line">metadata:</span><br><span class="line">  name: ceph-config</span><br><span class="line">  namespace: cephfs</span><br><span class="line">&#x27; &gt; ceph-config-map.yaml</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">执行</span></span><br><span class="line"> kubectl apply -f ceph-config-map.yaml  </span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>修改csi-config-map.yaml，配置连接 ceph 集群的信息</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: ConfigMap</span><br><span class="line">metadata:</span><br><span class="line">  name: ceph-csi-config</span><br><span class="line">  namespace: cephfs</span><br><span class="line">  labels:</span><br><span class="line">    addonmanager.kubernetes.io/mode: Reconcile</span><br><span class="line">data:</span><br><span class="line">  config.json: |-</span><br><span class="line">    [&#123;&quot;clusterID&quot;:&quot;79fd2206-39ca-4ec4-9cd2-96e065c6361e&quot;,&quot;monitors&quot;:[&quot;10.10.3.117:6789&quot;,&quot;10.10.3.118:6789&quot;,&quot;10.10.3.119:6789&quot;,&quot;10.10.3.120:6789&quot;]&#125;]</span><br><span class="line">&#x27; &gt; csi-config-map.yaml</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li><p>修改csi组件配置文件</p>
+<ol>
+<li><p>拷贝进<code>/data/cephfs/csi</code>目录中的所有yaml文件中的命名空间由<code>default</code>改为<code>cephfs</code></p>
+</li>
+<li><pre><code class="Shell">cd /data/cephfs/csi
+sed -i &quot;s/namespace: default/namespace: cephfs/g&quot; $(grep -rl &quot;namespace: default&quot; ./)
+sed -i &#39;/^kind: ServiceAccount/a\  namespace: cephfs&#39; $(grep -rl &quot;^kind: ServiceAccount&quot; ./)
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">   3. 将`csi-rbdplugin-provisioner.yaml` 和 `csi-rbdplugin.yaml` 中的 kms 部分配置注释掉</span><br><span class="line"></span><br><span class="line">   4. &gt;    \# - name: KMS_CONFIGMAP_NAME</span><br><span class="line">      &gt;</span><br><span class="line">      &gt; ​            \#   value: encryptionConfig</span><br><span class="line">      &gt;</span><br><span class="line">      &gt; </span><br><span class="line">      &gt;</span><br><span class="line">      &gt; \#- name: ceph-csi-encryption-kms-config</span><br><span class="line">      &gt;</span><br><span class="line">      &gt; ​        \#  configMap:</span><br><span class="line">      &gt;</span><br><span class="line">      &gt; ​        \#    name: ceph-csi-encryption-kms-config</span><br><span class="line">      &gt;</span><br><span class="line">      &gt; </span><br><span class="line"></span><br><span class="line">```Shell</span><br><span class="line"> #执行，安装csi组件</span><br><span class="line"> kubectl apply -f csi-config-map.yaml</span><br><span class="line"> kubectl apply -f csi-nodeplugin-rbac.yaml</span><br><span class="line"> kubectl apply -f csidriver.yaml</span><br><span class="line"> kubectl apply -f csi-provisioner-rbac.yaml</span><br><span class="line"> kubectl apply -f csi-rbdplugin-provisioner.yaml</span><br><span class="line"> kubectl apply -f csi-rbdplugin.yaml</span><br></pre></td></tr></table></figure>
+</code></pre>
+</li>
+</ol>
+</li>
+</ol>
+<h3 id="任务四：创建storageclass"><a href="#任务四：创建storageclass" class="headerlink" title="任务四：创建storageclass"></a>任务四：创建storageclass</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: storage.k8s.io/v1</span><br><span class="line">kind: StorageClass</span><br><span class="line">metadata:</span><br><span class="line">  annotations:</span><br><span class="line">    k8s.kuboard.cn/storageType: cephfs_provisioner</span><br><span class="line">  name: csi-rbd-sc</span><br><span class="line">provisioner: rbd.csi.ceph.com</span><br><span class="line">parameters:</span><br><span class="line"><span class="meta prompt_"> # </span><span class="language-bash">fsName: cephfs <span class="comment">#ceph集群cephfs文件系统名称</span></span></span><br><span class="line">  clusterID: 79fd2206-39ca-4ec4-9cd2-96e065c6361e #ceph集群的fsid </span><br><span class="line">  pool: rbd-k8s #ceph中创建的存储池</span><br><span class="line">  imageFeatures: layering</span><br><span class="line">  csi.storage.k8s.io/provisioner-secret-name: csi-rbd-secret</span><br><span class="line">  csi.storage.k8s.io/provisioner-secret-namespace: cephfs</span><br><span class="line">  csi.storage.k8s.io/controller-expand-secret-name: csi-rbd-secret</span><br><span class="line">  csi.storage.k8s.io/controller-expand-secret-namespace: cephfs</span><br><span class="line">  csi.storage.k8s.io/node-stage-secret-name: csi-rbd-secret</span><br><span class="line">  csi.storage.k8s.io/node-stage-secret-namespace: cephfs</span><br><span class="line">  csi.storage.k8s.io/fstype: xfs</span><br><span class="line">reclaimPolicy: Delete</span><br><span class="line">volumeBindingMode: Immediate</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">allowVolumeExpansion: <span class="literal">true</span></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">mountOptions:</span></span><br><span class="line"><span class="meta prompt_"> # </span><span class="language-bash">- discard</span></span><br><span class="line"> &#x27; &gt; storageclass.yaml</span><br><span class="line"><span class="meta prompt_"> </span></span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">执行</span></span><br><span class="line">  kubectl apply -f storageclass.yaml</span><br></pre></td></tr></table></figure>
+
+<h3 id="任务五：创建PVC"><a href="#任务五：创建PVC" class="headerlink" title="任务五：创建PVC"></a>任务五：创建PVC</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: PersistentVolumeClaim</span><br><span class="line">metadata:</span><br><span class="line">  name: rbd-pvc #PVC的名称</span><br><span class="line">  namespace: cephfs</span><br><span class="line">spec:</span><br><span class="line">  accessModes:</span><br><span class="line">    - ReadWriteOnce</span><br><span class="line">  resources:</span><br><span class="line">    requests:</span><br><span class="line">      storage: 1Gi  #设置容量</span><br><span class="line">  storageClassName: csi-rbd-sc</span><br><span class="line">  &#x27; &gt; pvc.yaml</span><br><span class="line"><span class="meta prompt_">  </span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">执行</span></span><br><span class="line"> kubectl apply -f pvc.yaml</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看PVC是否创建成功</span></span><br><span class="line">kubectl get pvc -n cephfs</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看PV是否创建成功</span></span><br><span class="line">kubectl get pv -n cephfs</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看ceph集群中的cephfs_data存储池中是否创建了image</span></span><br><span class="line"> rbd ls -p cephfs_data</span><br></pre></td></tr></table></figure>
+
+<h3 id="任务六：创建pod，进行测试验证"><a href="#任务六：创建pod，进行测试验证" class="headerlink" title="任务六：创建pod，进行测试验证"></a>任务六：创建pod，进行测试验证</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: Pod</span><br><span class="line">metadata:</span><br><span class="line">  name: csi-rbd-demo-pod</span><br><span class="line">  namespace: cephfs</span><br><span class="line">spec:</span><br><span class="line">  containers:</span><br><span class="line">    - name: web-server</span><br><span class="line">      image: nginx:latest</span><br><span class="line">      volumeMounts:</span><br><span class="line">        - name: mypvc</span><br><span class="line">          mountPath: /var/lib/www/html</span><br><span class="line">  volumes:</span><br><span class="line">    - name: mypvc</span><br><span class="line">      persistentVolumeClaim:</span><br><span class="line">        claimName: rbd-pvc  #对应的PVC名称</span><br><span class="line">        readOnly: false</span><br><span class="line">&#x27; &gt; pod.yaml</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">执行</span></span><br><span class="line"> kubectl apply -f pod.yaml</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">进入容器查看挂载信息</span></span><br><span class="line"> kubectl exec -it csi-rbd-demo-pod bash</span><br><span class="line"> lsblk -l|grep rbd</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>k8s</category>
+        <category>ceph共享存储</category>
+      </categories>
+      <tags>
+        <tag>docker</tag>
+        <tag>k8s</tag>
+        <tag>ceph</tag>
+        <tag>共享存储</tag>
+        <tag>ceph集群</tag>
+        <tag>容器云</tag>
+        <tag>k8s对接ceph</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>shell脚本</title>
     <url>/yyg/d0a69eae/</url>
     <content><![CDATA[<div class="hbe hbe-container" id="hexo-blog-encrypt" data-wpm="抱歉, 这个密码看着不太对, 请再试试." data-whm="抱歉, 这个文章不能被校验, 不过您还是能看看解密后的内容.">
@@ -971,91 +1056,6 @@ cp hub-docker.tiliatech.net.key /data/cert/
         <tag>共享存储</tag>
         <tag>ceph集群</tag>
         <tag>cephadm</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>k8s集群对接ceph集群部署指南</title>
-    <url>/yyg/57e2a956/</url>
-    <content><![CDATA[<h1 id="k8s集群对接ceph集群部署指南"><a href="#k8s集群对接ceph集群部署指南" class="headerlink" title="k8s集群对接ceph集群部署指南"></a>k8s集群对接ceph集群部署指南</h1><h2 id="任务目标"><a href="#任务目标" class="headerlink" title="任务目标"></a>任务目标</h2><ol>
-<li>完成k8s集群对接ceph集群</li>
-</ol>
-<h2 id="任务平台"><a href="#任务平台" class="headerlink" title="任务平台"></a>任务平台</h2><ol>
-<li>物理设备–</li>
-<li>操作系统：openEuler 22.03 LTS SP2</li>
-</ol>
-<h2 id="部署指南"><a href="#部署指南" class="headerlink" title="部署指南"></a>部署指南</h2><p>集群拓扑图</p>
-<p>暂时无法在飞书文档外展示此内容</p>
-<p>采用动态挂载ceph RBD存储</p>
-<h3 id="任务一：安装ceph客户端（ceph-common）"><a href="#任务一：安装ceph客户端（ceph-common）" class="headerlink" title="任务一：安装ceph客户端（ceph-common）"></a>任务一：安装ceph客户端（ceph-common）</h3><p>在k8s集群的每个节点安装ceph-common</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum install ceph-common -y</span><br></pre></td></tr></table></figure>
-
-<h3 id="任务二：同步cpeh集群配置文件"><a href="#任务二：同步cpeh集群配置文件" class="headerlink" title="任务二：同步cpeh集群配置文件"></a>任务二：同步cpeh集群配置文件</h3><p>将 ceph 集群的 &#x2F;etc&#x2F;ceph&#x2F;{ceph.conf,ceph.client.admin.keyring} 文件同步到 k8s 所有节点上</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">配置ssh免密</span></span><br><span class="line">ssh-keygen -t rsa</span><br><span class="line">ssh-copy-id 10.10.3.121</span><br><span class="line">ssh-copy-id 10.10.3.122</span><br><span class="line">ssh-copy-id 10.10.3.123</span><br><span class="line">ssh-copy-id 10.10.3.124</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">拷贝文件</span></span><br><span class="line">scp -r /etc/ceph/&#123;ceph.conf,ceph.client.admin.keyring&#125; 10.10.3.121:/etc/ceph</span><br><span class="line">scp -r /etc/ceph/&#123;ceph.conf,ceph.client.admin.keyring&#125; 10.10.3.122:/etc/ceph</span><br><span class="line">scp -r /etc/ceph/&#123;ceph.conf,ceph.client.admin.keyring&#125; 10.10.3.123:/etc/ceph</span><br><span class="line">scp -r /etc/ceph/&#123;ceph.conf,ceph.client.admin.keyring&#125; 10.10.3.124:/etc/ceph</span><br></pre></td></tr></table></figure>
-
-<h3 id="任务三：部署ceph-csi（使用rbd）"><a href="#任务三：部署ceph-csi（使用rbd）" class="headerlink" title="任务三：部署ceph-csi（使用rbd）"></a>任务三：部署ceph-csi（使用rbd）</h3><ol>
-<li>下载ceph-csi组件</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">下载文件</span></span><br><span class="line">wget https://github.com/ceph/ceph-csi/archive/refs/tags/v3.9.0.tar.gz</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">解压</span></span><br><span class="line">mv v3.9.0.tar.gz ceph-csi-v3.9.0.tar.gz</span><br><span class="line">tar -xzf ceph-csi-v3.9.0.tar.gz</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">进入目录</span></span><br><span class="line">cd  ceph-csi-3.9.0/deploy/rbd/kubernetes</span><br><span class="line">mkdir /data/cephfs/csi</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">拷进csi中，共6六个文件</span></span><br><span class="line">cp * /data/cephfs</span><br></pre></td></tr></table></figure>
-
-<ol>
-<li>拉取csi组件所需镜像</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看所需镜像</span></span><br><span class="line">grep image csi-rbdplugin-provisioner.yaml</span><br><span class="line">grep image csi-rbdplugin.yaml</span><br></pre></td></tr></table></figure>
-
-<p>在所有k8s节点上拉取所需的镜像</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">./pull-images.sh registry.k8s.io/sig-storage/csi-provisioner:v3.5.0</span><br><span class="line">./pull-images.sh registry.k8s.io/sig-storage/csi-resizer:v1.8.0</span><br><span class="line">./pull-images.sh registry.k8s.io/sig-storage/csi-snapshotter:v6.2.2</span><br><span class="line">docker pull quay.io/cephcsi/cephcsi:v3.9.0</span><br><span class="line">./pull-images.sh registry.k8s.io/sig-storage/csi-attacher:v4.3.0</span><br><span class="line">./pull-images.sh registry.k8s.io/sig-storage/csi-node-driver-registrar:v2.8.0</span><br></pre></td></tr></table></figure>
-
-<ol>
-<li>创建命名空间<code>cephfs</code></li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: Namespace</span><br><span class="line">metadata:</span><br><span class="line">  labels:</span><br><span class="line">    kubernetes.io/metadata.name: cephfs</span><br><span class="line">  name: cephfs</span><br><span class="line">  &#x27; &gt; ceph-namespace.yaml</span><br><span class="line">  </span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">执行</span></span><br><span class="line">  kubectl apply -f ceph-namespace.yaml </span><br></pre></td></tr></table></figure>
-
-<ol>
-<li>创建连接 ceph 集群的秘钥文件csi-rbd-secret.yaml</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: Secret</span><br><span class="line">metadata:</span><br><span class="line">  name: csi-rbd-secret</span><br><span class="line">  namespace: cephfs</span><br><span class="line">stringData:</span><br><span class="line">  adminID: admin  #管理员名称</span><br><span class="line">  adminKey: AQCNNDZlPKI5KxAA/3gXnOmhHgyLU2qPzTaZ3A==   #ceph集群密钥</span><br><span class="line">  userID: admin   #用户名称 </span><br><span class="line">  userKey: AQCNNDZlPKI5KxAA/3gXnOmhHgyLU2qPzTaZ3A==  #ceph集群密钥</span><br><span class="line">  &#x27; &gt; csi-rbd-secret.yaml</span><br><span class="line">  </span><br><span class="line"><span class="meta prompt_">   #</span><span class="language-bash">执行</span></span><br><span class="line">    kubectl apply -f csi-rbd-secret.yaml</span><br></pre></td></tr></table></figure>
-
-<ol>
-<li>创建ceph-config-map.yaml</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: ConfigMap</span><br><span class="line">data:</span><br><span class="line">  ceph.conf: |</span><br><span class="line">     [global]</span><br><span class="line">     fsid = 79fd2206-39ca-4ec4-9cd2-96e065c6361e     # 生成的FSID</span><br><span class="line">     mon initial members =future-ceph-node0,future-ceph-node1,future-ceph-node2,future-ceph-node3            # 主机名</span><br><span class="line">     mon host = 10.10.3.117,10.10.3.118,10.10.3.119,10.10.3.120                       # 对应的IP</span><br><span class="line">     public network = 10.10.3.0/24</span><br><span class="line">     auth cluster required = cephx</span><br><span class="line">     auth service required = cephx</span><br><span class="line">     auth client required = cephx</span><br><span class="line">     osd journal size = 1024</span><br><span class="line">     osd pool default size = 3</span><br><span class="line">     osd pool default min size = 2</span><br><span class="line">     osd pool default pg num = 333</span><br><span class="line">     osd pool default pgp num = 333</span><br><span class="line">     osd crush chooseleaf type = 1</span><br><span class="line">     [mon]</span><br><span class="line">     mon allow pool delete = true</span><br><span class="line"></span><br><span class="line">     [mds.future-ceph-node0]</span><br><span class="line">     host = future-ceph-node0</span><br><span class="line">  keyring: |</span><br><span class="line">metadata:</span><br><span class="line">  name: ceph-config</span><br><span class="line">  namespace: cephfs</span><br><span class="line">&#x27; &gt; ceph-config-map.yaml</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">执行</span></span><br><span class="line"> kubectl apply -f ceph-config-map.yaml  </span><br></pre></td></tr></table></figure>
-
-<ol>
-<li>修改csi-config-map.yaml，配置连接 ceph 集群的信息</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: ConfigMap</span><br><span class="line">metadata:</span><br><span class="line">  name: ceph-csi-config</span><br><span class="line">  namespace: cephfs</span><br><span class="line">  labels:</span><br><span class="line">    addonmanager.kubernetes.io/mode: Reconcile</span><br><span class="line">data:</span><br><span class="line">  config.json: |-</span><br><span class="line">    [&#123;&quot;clusterID&quot;:&quot;79fd2206-39ca-4ec4-9cd2-96e065c6361e&quot;,&quot;monitors&quot;:[&quot;10.10.3.117:6789&quot;,&quot;10.10.3.118:6789&quot;,&quot;10.10.3.119:6789&quot;,&quot;10.10.3.120:6789&quot;]&#125;]</span><br><span class="line">&#x27; &gt; csi-config-map.yaml</span><br></pre></td></tr></table></figure>
-
-<ol>
-<li><p>修改csi组件配置文件</p>
-<ol>
-<li><p>拷贝进<code>/data/cephfs/csi</code>目录中的所有yaml文件中的命名空间由<code>default</code>改为<code>cephfs</code></p>
-</li>
-<li><pre><code class="Shell">cd /data/cephfs/csi
-sed -i &quot;s/namespace: default/namespace: cephfs/g&quot; $(grep -rl &quot;namespace: default&quot; ./)
-sed -i &#39;/^kind: ServiceAccount/a\  namespace: cephfs&#39; $(grep -rl &quot;^kind: ServiceAccount&quot; ./)
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">   3. 将`csi-rbdplugin-provisioner.yaml` 和 `csi-rbdplugin.yaml` 中的 kms 部分配置注释掉</span><br><span class="line"></span><br><span class="line">   4. &gt;    \# - name: KMS_CONFIGMAP_NAME</span><br><span class="line">      &gt;</span><br><span class="line">      &gt; ​            \#   value: encryptionConfig</span><br><span class="line">      &gt;</span><br><span class="line">      &gt; </span><br><span class="line">      &gt;</span><br><span class="line">      &gt; \#- name: ceph-csi-encryption-kms-config</span><br><span class="line">      &gt;</span><br><span class="line">      &gt; ​        \#  configMap:</span><br><span class="line">      &gt;</span><br><span class="line">      &gt; ​        \#    name: ceph-csi-encryption-kms-config</span><br><span class="line">      &gt;</span><br><span class="line">      &gt; </span><br><span class="line"></span><br><span class="line">```Shell</span><br><span class="line"> #执行，安装csi组件</span><br><span class="line"> kubectl apply -f csi-config-map.yaml</span><br><span class="line"> kubectl apply -f csi-nodeplugin-rbac.yaml</span><br><span class="line"> kubectl apply -f csidriver.yaml</span><br><span class="line"> kubectl apply -f csi-provisioner-rbac.yaml</span><br><span class="line"> kubectl apply -f csi-rbdplugin-provisioner.yaml</span><br><span class="line"> kubectl apply -f csi-rbdplugin.yaml</span><br></pre></td></tr></table></figure>
-</code></pre>
-</li>
-</ol>
-</li>
-</ol>
-<h3 id="任务四：创建storageclass"><a href="#任务四：创建storageclass" class="headerlink" title="任务四：创建storageclass"></a>任务四：创建storageclass</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: storage.k8s.io/v1</span><br><span class="line">kind: StorageClass</span><br><span class="line">metadata:</span><br><span class="line">  annotations:</span><br><span class="line">    k8s.kuboard.cn/storageType: cephfs_provisioner</span><br><span class="line">  name: csi-rbd-sc</span><br><span class="line">provisioner: rbd.csi.ceph.com</span><br><span class="line">parameters:</span><br><span class="line"><span class="meta prompt_"> # </span><span class="language-bash">fsName: cephfs <span class="comment">#ceph集群cephfs文件系统名称</span></span></span><br><span class="line">  clusterID: 79fd2206-39ca-4ec4-9cd2-96e065c6361e #ceph集群的fsid </span><br><span class="line">  pool: rbd-k8s #ceph中创建的存储池</span><br><span class="line">  imageFeatures: layering</span><br><span class="line">  csi.storage.k8s.io/provisioner-secret-name: csi-rbd-secret</span><br><span class="line">  csi.storage.k8s.io/provisioner-secret-namespace: cephfs</span><br><span class="line">  csi.storage.k8s.io/controller-expand-secret-name: csi-rbd-secret</span><br><span class="line">  csi.storage.k8s.io/controller-expand-secret-namespace: cephfs</span><br><span class="line">  csi.storage.k8s.io/node-stage-secret-name: csi-rbd-secret</span><br><span class="line">  csi.storage.k8s.io/node-stage-secret-namespace: cephfs</span><br><span class="line">  csi.storage.k8s.io/fstype: xfs</span><br><span class="line">reclaimPolicy: Delete</span><br><span class="line">volumeBindingMode: Immediate</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">allowVolumeExpansion: <span class="literal">true</span></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">mountOptions:</span></span><br><span class="line"><span class="meta prompt_"> # </span><span class="language-bash">- discard</span></span><br><span class="line"> &#x27; &gt; storageclass.yaml</span><br><span class="line"><span class="meta prompt_"> </span></span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">执行</span></span><br><span class="line">  kubectl apply -f storageclass.yaml</span><br></pre></td></tr></table></figure>
-
-<h3 id="任务五：创建PVC"><a href="#任务五：创建PVC" class="headerlink" title="任务五：创建PVC"></a>任务五：创建PVC</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: PersistentVolumeClaim</span><br><span class="line">metadata:</span><br><span class="line">  name: rbd-pvc #PVC的名称</span><br><span class="line">  namespace: cephfs</span><br><span class="line">spec:</span><br><span class="line">  accessModes:</span><br><span class="line">    - ReadWriteOnce</span><br><span class="line">  resources:</span><br><span class="line">    requests:</span><br><span class="line">      storage: 1Gi  #设置容量</span><br><span class="line">  storageClassName: csi-rbd-sc</span><br><span class="line">  &#x27; &gt; pvc.yaml</span><br><span class="line"><span class="meta prompt_">  </span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">执行</span></span><br><span class="line"> kubectl apply -f pvc.yaml</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看PVC是否创建成功</span></span><br><span class="line">kubectl get pvc -n cephfs</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看PV是否创建成功</span></span><br><span class="line">kubectl get pv -n cephfs</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看ceph集群中的cephfs_data存储池中是否创建了image</span></span><br><span class="line"> rbd ls -p cephfs_data</span><br></pre></td></tr></table></figure>
-
-<h3 id="任务六：创建pod，进行测试验证"><a href="#任务六：创建pod，进行测试验证" class="headerlink" title="任务六：创建pod，进行测试验证"></a>任务六：创建pod，进行测试验证</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: Pod</span><br><span class="line">metadata:</span><br><span class="line">  name: csi-rbd-demo-pod</span><br><span class="line">  namespace: cephfs</span><br><span class="line">spec:</span><br><span class="line">  containers:</span><br><span class="line">    - name: web-server</span><br><span class="line">      image: nginx:latest</span><br><span class="line">      volumeMounts:</span><br><span class="line">        - name: mypvc</span><br><span class="line">          mountPath: /var/lib/www/html</span><br><span class="line">  volumes:</span><br><span class="line">    - name: mypvc</span><br><span class="line">      persistentVolumeClaim:</span><br><span class="line">        claimName: rbd-pvc  #对应的PVC名称</span><br><span class="line">        readOnly: false</span><br><span class="line">&#x27; &gt; pod.yaml</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">执行</span></span><br><span class="line"> kubectl apply -f pod.yaml</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">进入容器查看挂载信息</span></span><br><span class="line"> kubectl exec -it csi-rbd-demo-pod bash</span><br><span class="line"> lsblk -l|grep rbd</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>k8s</category>
-        <category>ceph共享存储</category>
-      </categories>
-      <tags>
-        <tag>docker</tag>
-        <tag>k8s</tag>
-        <tag>ceph</tag>
-        <tag>共享存储</tag>
-        <tag>ceph集群</tag>
-        <tag>容器云</tag>
-        <tag>k8s对接ceph</tag>
       </tags>
   </entry>
   <entry>
