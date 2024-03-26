@@ -193,3 +193,29 @@
 }
 
 
+/*全局半透明背景*/
+#recent-posts>.recent-post-item,.layout_page>div:first-child:not(.recent-posts),.layout_post>#page,.layout_post>#post,.read-mode .layout_post>#post {
+    background: rgba(255, 255, 255, 0.8);
+}
+[data-theme="dark"] #recent-posts>.recent-post-item,.layout_page>div:first-child:not(.recent-posts),.layout_post>#page,.layout_post>#post,.read-mode .layout_post>#post {
+    background: rgba(18, 18, 18, 0.8);
+}
+
+#aside-content .card-widget {
+    background: rgba(255, 255, 255, 0.8);
+}
+[data-theme="dark"] #aside-content .card-widget {
+    background: rgba(18, 18, 18, 0.8);
+}
+div#archive {
+    background: rgba(255, 255, 255, 0.8);
+}
+[data-theme="dark"] div#archive {
+    background: rgba(18, 18, 18, 0.8);
+}
+div#page {
+    background: rgba(255, 255, 255, 0.8);
+}
+[data-theme="dark"] div#page {
+    background: rgba(18, 18, 18, 0.8);
+}
