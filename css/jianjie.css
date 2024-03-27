@@ -219,3 +219,24 @@ div#page {
 [data-theme="dark"] div#page {
     background: rgba(18, 18, 18, 0.8);
 }
+
+div#post {
+    background: rgba(255, 255, 255, 0.8);
+}
+[data-theme="dark"] div#post {
+    background: rgba(18, 18, 18, 0.8);
+}
+
+div#tag {
+    background: rgba(255, 255, 255, 0.8);
+}
+[data-theme="dark"] div#tag {
+    background: rgba(18, 18, 18, 0.8);
+}
+
+div#category {
+    background: rgba(255, 255, 255, 0.8);
+}
+[data-theme="dark"] div#category {
+    background: rgba(18, 18, 18, 0.8);
+}
