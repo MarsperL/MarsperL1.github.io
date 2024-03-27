@@ -876,4 +876,3 @@ document.addEventListener('DOMContentLoaded', function () {
   refreshFn()
   unRefreshFn()
 })
-   NaoKuo.setWelcome_info();
