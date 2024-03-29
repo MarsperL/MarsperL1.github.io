@@ -22,3 +22,32 @@ categoryItems.forEach((item, index) => {
     // 调用随机颜色渐变背景函数
     randomBgImg();
 });
+
+function postAddToc() {
+  const postContent = document.querySelector('#post > #article-container.post-content');
+  const cardToc = document.getElementById('card-toc');
+
+  if (postContent && cardToc) {
+    const tocItems = cardToc.querySelectorAll('.toc-link');
+    const targetElements = {};
+
+    tocItems.forEach(tocLink => {
+      const href = decodeURIComponent(tocLink.getAttribute('href').slice(1));
+      const targetElement = document.getElementById(href);
+      const tocNumber = tocLink.querySelector('.toc-number').textContent;
+
+      if (targetElement) {
+        targetElements[href] = { element: targetElement, tocNumber };
+      }
+    });
+
+    // 设置 dataset.toc 属性
+    Object.entries(targetElements).forEach(([href, { element, tocNumber }]) => {
+      element.dataset.toc = tocNumber;
+    });
+  }
+}
+
+postAddToc();
+
+
