@@ -101,6 +101,145 @@
   margin-left: 0;
 }
 
-input#textnumer {
-	border: blue;
+/***************************** 页数跳转按钮 *****************************/
+.page .layout > .recent-posts .pagination > a:hover {
+    background: #00c4b6;
 }
+/* 翻页按钮悬停颜色 */
+.layout > .recent-posts .pagination > a {
+  border: var(--style-border);
+}
+/* 调整添加原生边框 */
+#pagination .pagination {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.page .layout .recent-posts #pagination .pagination .prev {
+  left: 0;
+}
+.page .layout .recent-posts #pagination .pagination .next {
+  right: 0;
+}
+.page .layout .recent-posts #pagination .pagination .prev,
+.page .layout .recent-posts #pagination .pagination .next {
+  position: absolute;
+  margin: 0 0;
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  width: 5.25em;
+  overflow: hidden;
+}
+.page .layout .recent-posts #pagination .pagination .prev:hover .pagination_tips_prev {
+  margin-right: 2.5px;
+  opacity: 1;
+}
+.page .layout .recent-posts #pagination .pagination .prev .pagination_tips_prev {
+  margin-right: -28px;
+  transition: margin-right .3s;
+  opacity: 0;
+}
+.page .layout .recent-posts #pagination .pagination .next:hover .pagination_tips_next {
+  margin-left: 2.5px;
+  opacity: 1;
+}
+.page .layout .recent-posts #pagination .pagination .next .pagination_tips_next {
+  margin-left: -28px;
+  transition: margin-left .3s;
+  opacity: 0;
+}
+@media screen and (max-width: 768px) {
+  .page .layout .recent-posts #pagination .pagination .prev,
+  .page .layout .recent-posts #pagination .pagination .next {
+    position: sticky;
+    margin: 0 6px;
+    display: inline-block;
+    width: 2.5em;
+  }
+  .page .layout .recent-posts #pagination .pagination .prev .pagination_tips_prev,
+  .page .layout .recent-posts #pagination .pagination .next .pagination_tips_next {
+    display: none;
+  }
+}
+/* 上下页按钮魔改 */
+.pagination input {
+  width: 2.5em;
+  height: 2.5em;
+  border-radius: 8px;
+  border: var(--style-border-always);
+  transition: all 0.3s;
+  outline-style: none;
+  padding-left: 12px;
+  background: #00c4b6;
+  color: var(--icat-fontcolor);
+}
+
+.pagination .toPageGroup:hover input,.pagination .toPageGroup input:focus {
+  border: 1px solid #00c4b6;
+  outline-style: none;
+  width: 100px;
+}
+
+.toPageGroup {
+  display: inline-flex !important;
+  position: relative;
+  margin: 0 6px !important;
+}
+
+a#toPageButton {
+  display: flex;
+  position: absolute;
+  width: 2.5em;
+  height: 2.5em;
+  border-radius: 8px;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.3s;
+  background: var(--card-bg);
+  border: var(--style-border-always);
+  cursor: text !important;
+  pointer-events: none;
+}
+
+.toPageGroup:hover a#toPageButton, .toPageGroup:focus-within a#toPageButton {
+  margin-top: 4px;
+  width: 27px;
+  height: 27px;
+  margin-left: 70px;
+  background: var(--icat-card-bg);
+  border: 1px solid var(--icat-none);
+  border-radius: 4px;
+  opacity: 0.2;
+  transition: all 0.3s !important;
+}
+
+.toPageGroup:focus-within a#toPageButton.haveValue {
+  opacity: 1;
+  cursor: pointer;
+}
+
+a#toPageButton.haveValue {
+  opacity: 1!important;
+  cursor: pointer!important;
+  pointer-events: all;
+}
+
+a#toPageButton.haveValue:hover {
+  background: var(--icat-theme);
+  color: var(--icat-white);
+}
+
+@media screen and (max-width: 768px) {
+  .toPageGroup {
+    display: none !important;
+  }
+}
+i.fa-solid.fa-angles-right::before {
+    color: #5d6c80;
+}
+/* 页数跳转按钮 */
+
+/***************************** 页数跳转按钮 *****************************/
