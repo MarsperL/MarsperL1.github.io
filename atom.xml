@@ -6,7 +6,7 @@
   <link href="https://marsperl.github.io/atom.xml" rel="self"/>
   
   <link href="https://marsperl.github.io/"/>
-  <updated>2024-04-17T15:34:20.767Z</updated>
+  <updated>2024-04-18T14:23:50.478Z</updated>
   <id>https://marsperl.github.io/</id>
   
   <author>
@@ -15,6 +15,40 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>Hexo-Butterfly美化教程 | 基础环境</title>
+    <link href="https://marsperl.github.io/yyg/e102aa73/"/>
+    <id>https://marsperl.github.io/yyg/e102aa73/</id>
+    <published>2024-04-18T14:09:05.481Z</published>
+    <updated>2024-04-18T14:23:50.478Z</updated>
+    
+    <content type="html"><![CDATA[<h1 id="Hexo-Butterfly美化教程-基础环境"><a href="#Hexo-Butterfly美化教程-基础环境" class="headerlink" title="Hexo-Butterfly美化教程 | 基础环境"></a>Hexo-Butterfly美化教程 | 基础环境</h1><h2 id="基础环境："><a href="#基础环境：" class="headerlink" title="基础环境："></a>基础环境：</h2><ol><li>操作系统：Windows10/11</li><li>运行环境：node.js </li></ol><h2 id="实现过程："><a href="#实现过程：" class="headerlink" title="实现过程："></a>实现过程：</h2><h3 id="安装node-js"><a href="#安装node-js" class="headerlink" title="安装node.js"></a>安装node.js</h3><p>在node.js中文官网<code>https://www.nodejs.com.cn/download_current.html</code>，下载适用于Windows的64位安装包，安装JavaScript运行环境。下载完成后，双击安装程序，按引导进行安装，在安装过程中需勾选”Automatically install the necessary tools. ……“，如图所示。安装过程中，弹出命令指示符，回车下载依赖工具。</p><img src="/yyg/e102aa73/image-20240409183017885.png" class="" title="image-20240409183017885"><p>安装完成后，使用快捷键<code>win+r</code>,调用运行窗口，输入<code>cmd</code>，在命令指示符中输入命令，验证node和npm版本号。</p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">node -v</span><br><span class="line">npm -v</span><br></pre></td></tr></table></figure><img src="/yyg/e102aa73/image-20240409185552172-1713450198841-19.png" class="" title="image-20240409185552172"><h3 id="安装git"><a href="#安装git" class="headerlink" title="安装git"></a>安装git</h3><ol><li>从官网<code>https://git-scm.com/download/win</code>下载安装程序，按安装引导一直点击下一步即可。</li></ol><h3 id="安装hexo"><a href="#安装hexo" class="headerlink" title="安装hexo"></a>安装hexo</h3><ol><li>在命令指示符中输入命令安装hexo。</li></ol><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm install hexo-cli -g </span><br></pre></td></tr></table></figure><ol><li><p>创建博客存放目录</p><p>进入要存放博客目录的磁盘，以“F”盘为例，在如下图所示的磁盘路径框中输入“cmd”，点击回车，打开命名指示符。</p><img src="/yyg/e102aa73/1.png" class="" title="image-20240418121618897"></li></ol><p>在其中输入如下命令创建博客目录，此处的“blog”为自定义名称。等待博客目录初始化完成。</p><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hexo init blog</span><br></pre></td></tr></table></figure><p>初始化完成后，进入blog目录，在磁盘路径框中输入“cmd”，点击回车，输入以下命令下载依赖和测试博客是否部署成功。</p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#下载依赖</span><br><span class="line">npm install</span><br><span class="line"></span><br><span class="line">#本地测试</span><br><span class="line">hexo clean &amp;&amp; hexo g &amp;&amp; hexo s</span><br></pre></td></tr></table></figure><p>成功显示的命令细节如下：</p><blockquote><p>F:\blog&gt;hexo clean &amp;&amp; hexo g &amp;&amp; hexo s<br>INFO  Validating config<br>INFO  Deleted database.<br>INFO  Validating config<br>INFO  Start processing<br>INFO  Files loaded in 463 ms<br>INFO  Generated: archives/index.html<br>INFO  Generated: archives/2024/index.html<br>INFO  Generated: archives/2024/04/index.html<br>INFO  Generated: index.html<br>INFO  Generated: css/style.css<br>INFO  Generated: fancybox/jquery.fancybox.min.css<br>INFO  Generated: fancybox/jquery.fancybox.min.js<br>INFO  Generated: js/jquery-3.6.4.min.js<br>INFO  Generated: js/script.js<br>INFO  Generated: css/images/banner.jpg<br>INFO  Generated: 2024/04/18/hello-world/index.html<br>INFO  11 files generated in 660 ms<br>INFO  Validating config<br>INFO  Start processing<br>INFO  Hexo is running at <a href="http://localhost:4000/">http://localhost:4000/</a> . Press Ctrl+C to stop.</p></blockquote><p>在浏览器中访问 <code>http://localhost:4000/</code> ，查看默认博客界面。</p><img src="/yyg/e102aa73/2.png" class="" title="img">]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;h1 id=&quot;Hexo-Butterfly美化教程-基础环境&quot;&gt;&lt;a href=&quot;#Hexo-Butterfly美化教程-基础环境&quot; class=&quot;headerlink&quot; title=&quot;Hexo-Butterfly美化教程 | 基础环境&quot;&gt;&lt;/a&gt;Hexo-Butterfly美</summary>
+      
+    
+    
+    
+    <category term="Hexo" scheme="https://marsperl.github.io/categories/Hexo/"/>
+    
+    <category term="Butterfly" scheme="https://marsperl.github.io/categories/Butterfly/"/>
+    
+    <category term="博客美化教程" scheme="https://marsperl.github.io/categories/%E5%8D%9A%E5%AE%A2%E7%BE%8E%E5%8C%96%E6%95%99%E7%A8%8B/"/>
+    
+    
+    <category term="Hexo" scheme="https://marsperl.github.io/tags/Hexo/"/>
+    
+    <category term="Butterfly" scheme="https://marsperl.github.io/tags/Butterfly/"/>
+    
+    <category term="博客" scheme="https://marsperl.github.io/tags/%E5%8D%9A%E5%AE%A2/"/>
+    
+    <category term="美化教程" scheme="https://marsperl.github.io/tags/%E7%BE%8E%E5%8C%96%E6%95%99%E7%A8%8B/"/>
+    
+  </entry>
   
   <entry>
     <title>实现Nextcloud私有云盘</title>
@@ -145,11 +179,11 @@
     <category term="总结" scheme="https://marsperl.github.io/categories/%E6%80%BB%E7%BB%93/"/>
     
     
+    <category term="k8s" scheme="https://marsperl.github.io/tags/k8s/"/>
+    
     <category term="运维" scheme="https://marsperl.github.io/tags/%E8%BF%90%E7%BB%B4/"/>
     
     <category term="Linux" scheme="https://marsperl.github.io/tags/Linux/"/>
-    
-    <category term="k8s" scheme="https://marsperl.github.io/tags/k8s/"/>
     
     <category term="总结" scheme="https://marsperl.github.io/tags/%E6%80%BB%E7%BB%93/"/>
     
