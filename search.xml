@@ -212,6 +212,32 @@
       </tags>
   </entry>
   <entry>
+    <title>docker 安装 redis</title>
+    <url>/yyg/6fffbcc4/</url>
+    <content><![CDATA[<h1 id="docker-安装-redis"><a href="#docker-安装-redis" class="headerlink" title="docker 安装 redis"></a>docker 安装 redis</h1><p>首先输入命令<code>docker pull redis</code> ，将最新版redis安装到本地</p>
+<p>输入以下命令,后台启动redis(注：<strong>该命令是一条命令</strong>)</p>
+<p>其中<code>--name</code>后面的是redis容器的名称，可自行更改</p>
+<blockquote>
+<p>docker run -p 6379:6379 —name mars1 —privileged=true</p>
+<p> -v /app/redis/redis.conf:/etc/redis/redis.conf </p>
+<p>-v /app/redis/data:/data </p>
+<p>-d redis:latest redis-server /etc/redis/redis.conf</p>
+</blockquote>
+<p>此命令也可解决在删除redis容器后，而出现的数据丢失的问题。若要找回数据，则只需重新运行命令即可。</p>
+<img src="/yyg/6fffbcc4/image-20230411164804210.png" class="" title="image-20230411164804210">
+<p>运行<code>docker ps</code>命令，可查看到redis正在运行</p>
+<img src="/yyg/6fffbcc4/image-20230411163752381.png" class="" title="image-20230411163752381">
+<p>然后执行<code>docker exec -it mars1 /bin/bash</code>命令，redis成功运行</p>
+<img src="/yyg/6fffbcc4/image-20230411180817939-1711202816360-2.png" class="" title="image-20230411180817939">]]></content>
+      <categories>
+        <category>docker</category>
+      </categories>
+      <tags>
+        <tag>docker</tag>
+        <tag>redis</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>ceph集群部署指南</title>
     <url>/yyg/3fc2a251/</url>
     <content><![CDATA[<h1 id="ceph集群部署指南"><a href="#ceph集群部署指南" class="headerlink" title="ceph集群部署指南"></a>ceph集群部署指南</h1><h2 id="任务目标"><a href="#任务目标" class="headerlink" title="任务目标"></a>任务目标</h2><ol>
@@ -409,29 +435,41 @@
       </tags>
   </entry>
   <entry>
-    <title>docker 安装 redis</title>
-    <url>/yyg/6fffbcc4/</url>
-    <content><![CDATA[<h1 id="docker-安装-redis"><a href="#docker-安装-redis" class="headerlink" title="docker 安装 redis"></a>docker 安装 redis</h1><p>首先输入命令<code>docker pull redis</code> ，将最新版redis安装到本地</p>
-<p>输入以下命令,后台启动redis(注：<strong>该命令是一条命令</strong>)</p>
-<p>其中<code>--name</code>后面的是redis容器的名称，可自行更改</p>
-<blockquote>
-<p>docker run -p 6379:6379 —name mars1 —privileged=true</p>
-<p> -v /app/redis/redis.conf:/etc/redis/redis.conf </p>
-<p>-v /app/redis/data:/data </p>
-<p>-d redis:latest redis-server /etc/redis/redis.conf</p>
+    <title>docker安装mysql</title>
+    <url>/yyg/25ae9841/</url>
+    <content><![CDATA[<h1 id="docker安装mysql"><a href="#docker安装mysql" class="headerlink" title="docker安装mysql"></a>docker安装mysql</h1><blockquote>
+<p><code>docker pull mysql</code> #拉取mysql镜像(最新版)</p>
 </blockquote>
-<p>此命令也可解决在删除redis容器后，而出现的数据丢失的问题。若要找回数据，则只需重新运行命令即可。</p>
-<img src="/yyg/6fffbcc4/image-20230411164804210.png" class="" title="image-20230411164804210">
-<p>运行<code>docker ps</code>命令，可查看到redis正在运行</p>
-<img src="/yyg/6fffbcc4/image-20230411163752381.png" class="" title="image-20230411163752381">
-<p>然后执行<code>docker exec -it mars1 /bin/bash</code>命令，redis成功运行</p>
-<img src="/yyg/6fffbcc4/image-20230411180817939-1711202816360-2.png" class="" title="image-20230411180817939">]]></content>
+<p>若安装特定版本如6.0，则命令如下：</p>
+<p><code>docker pull mysql:6.0</code></p>
+<p>运行mysql，并分配3306端口，该命令如下：(<strong>注：下面的是一条命令</strong>)</p>
+<p>此命令中的<code>jiamian</code>为小编的liunx系统的用户名，用时需替换为自己的用户名</p>
+<p><code>MYSQL_ROOT_PASSWORD</code>后填的是mysql的密码，可自行替换</p>
+<p><code>--name</code>后填的mysql-1是运行的mysql容器的名称，也可自行替换</p>
+<blockquote>
+<p>docker run -d -p 3306:3306 —privileged=true -v /jiamian/mysql/log:/var/log/mysql</p>
+<p>-v /jiamian/mysql/data:/var/lib/mysql -v /jiamian/mysql/conf:/etc/mysql/conf.d </p>
+<p>-e MYSQL_ROOT_PASSWORD=123456 —name mysql-1 mysql</p>
+</blockquote>
+<p>此命令也可解决在删除mysql容器后，而出现的数据库数据丢失的问题。若要找回数据，则只需重新运行命令即可。</p>
+<img src="/yyg/25ae9841/image-20230410201124021.png" class="" title="image-20230410201124021">
+<p>运行<code>docker ps</code>命令，可查看到mysql正在运行</p>
+<img src="/yyg/25ae9841/image-20230410201052873.png" class="" title="image-20230410201052873">
+<h2 id="解决mysql插入中文乱码的情况"><a href="#解决mysql插入中文乱码的情况" class="headerlink" title="解决mysql插入中文乱码的情况"></a>解决mysql插入中文乱码的情况</h2><p>然后输入命令<code>cd /jiamian/mysql/conf</code>。进入该目录后，输入命令<code>vim my.cnf</code>，新建my.cnf文件，</p>
+<p>并输入以下代码</p>
+<blockquote>
+<p>[client]<br>default_character_set=utf8<br>[mysqld]<br>collation_server = utf8_general_ci<br>character_set_server = utf8</p>
+</blockquote>
+<p>保存退出后，输入 <code>docker restart mysql-1</code>，重启mysql。</p>
+<p>再输入<code>docker exec -it mysql-1 /bin/bash</code>进入mysql环境，此时汉字可正常显示</p>
+<img src="/yyg/25ae9841/image-20230410202120798.png" class="" title="image-20230410202120798">
+]]></content>
       <categories>
         <category>docker</category>
       </categories>
       <tags>
         <tag>docker</tag>
-        <tag>redis</tag>
+        <tag>mysql</tag>
       </tags>
   </entry>
   <entry>
@@ -498,44 +536,6 @@
       <tags>
         <tag>docker</tag>
         <tag>docker基础</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>docker安装mysql</title>
-    <url>/yyg/25ae9841/</url>
-    <content><![CDATA[<h1 id="docker安装mysql"><a href="#docker安装mysql" class="headerlink" title="docker安装mysql"></a>docker安装mysql</h1><blockquote>
-<p><code>docker pull mysql</code> #拉取mysql镜像(最新版)</p>
-</blockquote>
-<p>若安装特定版本如6.0，则命令如下：</p>
-<p><code>docker pull mysql:6.0</code></p>
-<p>运行mysql，并分配3306端口，该命令如下：(<strong>注：下面的是一条命令</strong>)</p>
-<p>此命令中的<code>jiamian</code>为小编的liunx系统的用户名，用时需替换为自己的用户名</p>
-<p><code>MYSQL_ROOT_PASSWORD</code>后填的是mysql的密码，可自行替换</p>
-<p><code>--name</code>后填的mysql-1是运行的mysql容器的名称，也可自行替换</p>
-<blockquote>
-<p>docker run -d -p 3306:3306 —privileged=true -v /jiamian/mysql/log:/var/log/mysql</p>
-<p>-v /jiamian/mysql/data:/var/lib/mysql -v /jiamian/mysql/conf:/etc/mysql/conf.d </p>
-<p>-e MYSQL_ROOT_PASSWORD=123456 —name mysql-1 mysql</p>
-</blockquote>
-<p>此命令也可解决在删除mysql容器后，而出现的数据库数据丢失的问题。若要找回数据，则只需重新运行命令即可。</p>
-<img src="/yyg/25ae9841/image-20230410201124021.png" class="" title="image-20230410201124021">
-<p>运行<code>docker ps</code>命令，可查看到mysql正在运行</p>
-<img src="/yyg/25ae9841/image-20230410201052873.png" class="" title="image-20230410201052873">
-<h2 id="解决mysql插入中文乱码的情况"><a href="#解决mysql插入中文乱码的情况" class="headerlink" title="解决mysql插入中文乱码的情况"></a>解决mysql插入中文乱码的情况</h2><p>然后输入命令<code>cd /jiamian/mysql/conf</code>。进入该目录后，输入命令<code>vim my.cnf</code>，新建my.cnf文件，</p>
-<p>并输入以下代码</p>
-<blockquote>
-<p>[client]<br>default_character_set=utf8<br>[mysqld]<br>collation_server = utf8_general_ci<br>character_set_server = utf8</p>
-</blockquote>
-<p>保存退出后，输入 <code>docker restart mysql-1</code>，重启mysql。</p>
-<p>再输入<code>docker exec -it mysql-1 /bin/bash</code>进入mysql环境，此时汉字可正常显示</p>
-<img src="/yyg/25ae9841/image-20230410202120798.png" class="" title="image-20230410202120798">
-]]></content>
-      <categories>
-        <category>docker</category>
-      </categories>
-      <tags>
-        <tag>docker</tag>
-        <tag>mysql</tag>
       </tags>
   </entry>
   <entry>
@@ -842,37 +842,6 @@
       </tags>
   </entry>
   <entry>
-    <title>安装Winlogbeat日志采集器</title>
-    <url>/yyg/f547e2a9/</url>
-    <content><![CDATA[<h1 id="安装Winlogbeat日志采集器"><a href="#安装Winlogbeat日志采集器" class="headerlink" title="安装Winlogbeat日志采集器"></a>安装Winlogbeat日志采集器</h1><ol>
-<li><p>Winlogbeat安装程序可通过其官网（<a href="https://www.elastic.co/cn/beats/winlogbeat）下载。">https://www.elastic.co/cn/beats/winlogbeat）下载。</a></p>
-</li>
-<li><p>双击启动安装程序，进入安装向导后勾选“I accept the terms in the License Agreement”，单击【Install】，如图所示。</p>
-</li>
-</ol>
-<img src="/yyg/f547e2a9/4.png" class="" title="img">
-<ol>
-<li>按安装向导安装完成后，单击【Finish】，完成安装并打开安装目录。如图所示。</li>
-</ol>
-<img src="/yyg/f547e2a9/3.png" class="" title="img">
-<img src="/yyg/f547e2a9/2.png" class="" title="img">
-<ol>
-<li>以管理员身份打开 PowerShell 提示符（右键单击 PowerShell 图标，然后选择以管理员身份运行），允许在本地主机上创建winlogbeat服务，创建成功后允许winlogbeat服务并验证。如图所示。</li>
-</ol>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PS C:\Windows\system32&gt; cd &quot;C:\Program Files\Elastic\Beats\8.13.2\winlogbeat&quot;</span><br><span class="line"># 允许在本地计算机上编写的未签名脚本自由运行</span><br><span class="line">PS C:\Program Files\Elastic\Beats\8.13.2\winlogbeat&gt; set-executionpolicy remotesigned</span><br><span class="line"></span><br><span class="line">执行策略更改</span><br><span class="line">执行策略可帮助你防止执行不信任的脚本。更改执行策略可能会产生安全风险，如 https:/go.microsoft.com/fwlink/?LinkID=135170</span><br><span class="line">中的 about_Execution_Policies 帮助主题所述。是否要更改执行策略?</span><br><span class="line">[Y] 是(Y)  [A] 全是(A)  [N] 否(N)  [L] 全否(L)  [S] 暂停(S)  [?] 帮助 (默认值为“N”): y</span><br><span class="line"># 允许脚本在系统上运行</span><br><span class="line">PS C:\Program Files\Elastic\Beats\8.13.2\winlogbeat&gt; set-executionpolicy Bypass</span><br><span class="line"></span><br><span class="line">执行策略更改</span><br><span class="line">执行策略可帮助你防止执行不信任的脚本。更改执行策略可能会产生安全风险，如 https:/go.microsoft.com/fwlink/?LinkID=135170</span><br><span class="line">中的 about_Execution_Policies 帮助主题所述。是否要更改执行策略?</span><br><span class="line">[Y] 是(Y)  [A] 全是(A)  [N] 否(N)  [L] 全否(L)  [S] 暂停(S)  [?] 帮助 (默认值为“N”): y</span><br><span class="line"># 创建winlogbeat服务</span><br><span class="line">PS C:\Program Files\Elastic\Beats\8.13.2\winlogbeat&gt; .\install-service-winlogbeat.ps1</span><br><span class="line">[SC] DeleteService 成功</span><br><span class="line"></span><br><span class="line">Status   Name               DisplayName</span><br><span class="line">------   ----               -----------</span><br><span class="line">Stopped  winlogbeat         winlogbeat</span><br><span class="line"></span><br><span class="line"># 启动winlogbeat服务</span><br><span class="line">PS C:\Program Files\Elastic\Beats\8.13.2\winlogbeat&gt; Start-Service winlogbeat</span><br></pre></td></tr></table></figure>
-<img src="/yyg/f547e2a9/1.png" class="" title="img">]]></content>
-      <categories>
-        <category>Winlogbeat</category>
-        <category>ELK</category>
-        <category>日志分析</category>
-      </categories>
-      <tags>
-        <tag>Winlogbeat</tag>
-        <tag>ELK</tag>
-        <tag>日志分析</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>shell脚本</title>
     <url>/yyg/d0a69eae/</url>
     <content><![CDATA[<div class="hbe hbe-container" id="hexo-blog-encrypt" data-wpm="抱歉, 这个密码看着不太对, 请再试试." data-whm="抱歉, 这个文章不能被校验, 不过您还是能看看解密后的内容.">
@@ -993,35 +962,34 @@
       </tags>
   </entry>
   <entry>
-    <title>实现Nextcloud私有云盘</title>
-    <url>/yyg/0/</url>
-    <content><![CDATA[<h1 id="实现Nextcloud私有云盘"><a href="#实现Nextcloud私有云盘" class="headerlink" title="实现Nextcloud私有云盘"></a>实现Nextcloud私有云盘</h1><h2 id="任务目标"><a href="#任务目标" class="headerlink" title="任务目标"></a>任务目标</h2><ol>
-<li>完成Nextcloud私有云盘的搭建</li>
+    <title>安装Winlogbeat日志采集器</title>
+    <url>/yyg/f547e2a9/</url>
+    <content><![CDATA[<h1 id="安装Winlogbeat日志采集器"><a href="#安装Winlogbeat日志采集器" class="headerlink" title="安装Winlogbeat日志采集器"></a>安装Winlogbeat日志采集器</h1><ol>
+<li><p>Winlogbeat安装程序可通过其官网（<a href="https://www.elastic.co/cn/beats/winlogbeat）下载。">https://www.elastic.co/cn/beats/winlogbeat）下载。</a></p>
+</li>
+<li><p>双击启动安装程序，进入安装向导后勾选“I accept the terms in the License Agreement”，单击【Install】，如图所示。</p>
+</li>
 </ol>
-<h2 id="部署指南"><a href="#部署指南" class="headerlink" title="部署指南"></a>部署指南</h2><h3 id="基础环境准备"><a href="#基础环境准备" class="headerlink" title="基础环境准备"></a>基础环境准备</h3><p>配置防火墙策略</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">firewall-cmd --zone=public --add-service=http --permanent</span><br><span class="line">firewall-cmd --reload</span><br></pre></td></tr></table></figure>
-<p>配置SELinux策略</p>
-<p>设置SELinux为permissive或disabled。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">修改</span></span><br><span class="line">setenforce 0</span><br><span class="line">sudo sed -i &#x27;s/^SELINUX=enforcing/SELINUX=disabled/&#x27; /etc/selinux/config</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">或</span></span><br><span class="line">setenforce 0</span><br><span class="line">sudo sed -i &#x27;s/^SELINUX=enforcing/SELINUX=permissive/&#x27; /etc/selinux/config</span><br></pre></td></tr></table></figure>
-<h3 id="安装Apache"><a href="#安装Apache" class="headerlink" title="安装Apache"></a>安装Apache</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum -y install httpd</span><br></pre></td></tr></table></figure>
-<h3 id="安装PHP"><a href="#安装PHP" class="headerlink" title="安装PHP"></a>安装PHP</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum -y install php</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装php模块依赖</span></span><br><span class="line">yum -y install php-zip php-dom php-xml php-mbstring php-pdo php-gd</span><br></pre></td></tr></table></figure>
-<h3 id="添加Nextcloud站点配置文件"><a href="#添加Nextcloud站点配置文件" class="headerlink" title="添加Nextcloud站点配置文件"></a>添加Nextcloud站点配置文件</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">mkdir /var/www/html/nextcloud/</span><br><span class="line">chmod 777 /var/www/html/nextcloud/</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">新建文件</span></span><br><span class="line">vi /etc/httpd/conf.d/nextcloud.conf</span><br><span class="line">&lt;VirtualHost *:80&gt;</span><br><span class="line">  DocumentRoot /var/www/html/nextcloud/</span><br><span class="line">  ServerName  your.server.com</span><br><span class="line"></span><br><span class="line">  &lt;Directory /var/www/html/nextcloud/&gt;</span><br><span class="line">    Require all granted</span><br><span class="line">    AllowOverride All</span><br><span class="line">    Options FollowSymLinks MultiViews</span><br><span class="line"></span><br><span class="line">    &lt;IfModule mod_dav.c&gt;</span><br><span class="line">      Dav off</span><br><span class="line">    &lt;/IfModule&gt;</span><br><span class="line"></span><br><span class="line">  &lt;/Directory&gt;</span><br><span class="line">&lt;/VirtualHost&gt;</span><br></pre></td></tr></table></figure>
-<h3 id="下载Nextcloud安装文件"><a href="#下载Nextcloud安装文件" class="headerlink" title="下载Nextcloud安装文件"></a>下载Nextcloud安装文件</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">wget -P /var/www/html/nextcloud/ https://download.nextcloud.com/server/installer/setup-nextcloud.php</span><br></pre></td></tr></table></figure>
-<h3 id="启动服务"><a href="#启动服务" class="headerlink" title="启动服务"></a>启动服务</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">systemctl start httpd</span><br><span class="line">systemctl enable httpd</span><br></pre></td></tr></table></figure>
-<h3 id="通过浏览器访问"><a href="#通过浏览器访问" class="headerlink" title="通过浏览器访问"></a>通过浏览器访问</h3><p>在浏览器中输入<code>http://172.20.1.51/setup-nextcloud.php</code>，按引导进行设置。如下图所示。</p>
-<img src="/yyg/0/2.jpg" class="" title="img">
-<p>设置用户名和密码，安装数据库如下图所示。</p>
-<img src="/yyg/0/4.png" class="" title="img">
-<p>成功进入内容界面，部署完成，如下图所示。</p>
-<img src="/yyg/0/3.png" class="" title="img">
-]]></content>
+<img src="/yyg/f547e2a9/4.png" class="" title="img">
+<ol>
+<li>按安装向导安装完成后，单击【Finish】，完成安装并打开安装目录。如图所示。</li>
+</ol>
+<img src="/yyg/f547e2a9/3.png" class="" title="img">
+<img src="/yyg/f547e2a9/2.png" class="" title="img">
+<ol>
+<li>以管理员身份打开 PowerShell 提示符（右键单击 PowerShell 图标，然后选择以管理员身份运行），允许在本地主机上创建winlogbeat服务，创建成功后允许winlogbeat服务并验证。如图所示。</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PS C:\Windows\system32&gt; cd &quot;C:\Program Files\Elastic\Beats\8.13.2\winlogbeat&quot;</span><br><span class="line"># 允许在本地计算机上编写的未签名脚本自由运行</span><br><span class="line">PS C:\Program Files\Elastic\Beats\8.13.2\winlogbeat&gt; set-executionpolicy remotesigned</span><br><span class="line"></span><br><span class="line">执行策略更改</span><br><span class="line">执行策略可帮助你防止执行不信任的脚本。更改执行策略可能会产生安全风险，如 https:/go.microsoft.com/fwlink/?LinkID=135170</span><br><span class="line">中的 about_Execution_Policies 帮助主题所述。是否要更改执行策略?</span><br><span class="line">[Y] 是(Y)  [A] 全是(A)  [N] 否(N)  [L] 全否(L)  [S] 暂停(S)  [?] 帮助 (默认值为“N”): y</span><br><span class="line"># 允许脚本在系统上运行</span><br><span class="line">PS C:\Program Files\Elastic\Beats\8.13.2\winlogbeat&gt; set-executionpolicy Bypass</span><br><span class="line"></span><br><span class="line">执行策略更改</span><br><span class="line">执行策略可帮助你防止执行不信任的脚本。更改执行策略可能会产生安全风险，如 https:/go.microsoft.com/fwlink/?LinkID=135170</span><br><span class="line">中的 about_Execution_Policies 帮助主题所述。是否要更改执行策略?</span><br><span class="line">[Y] 是(Y)  [A] 全是(A)  [N] 否(N)  [L] 全否(L)  [S] 暂停(S)  [?] 帮助 (默认值为“N”): y</span><br><span class="line"># 创建winlogbeat服务</span><br><span class="line">PS C:\Program Files\Elastic\Beats\8.13.2\winlogbeat&gt; .\install-service-winlogbeat.ps1</span><br><span class="line">[SC] DeleteService 成功</span><br><span class="line"></span><br><span class="line">Status   Name               DisplayName</span><br><span class="line">------   ----               -----------</span><br><span class="line">Stopped  winlogbeat         winlogbeat</span><br><span class="line"></span><br><span class="line"># 启动winlogbeat服务</span><br><span class="line">PS C:\Program Files\Elastic\Beats\8.13.2\winlogbeat&gt; Start-Service winlogbeat</span><br></pre></td></tr></table></figure>
+<img src="/yyg/f547e2a9/1.png" class="" title="img">]]></content>
       <categories>
-        <category>Nextcloud</category>
-        <category>私有云盘</category>
+        <category>Winlogbeat</category>
+        <category>ELK</category>
+        <category>日志分析</category>
       </categories>
       <tags>
-        <tag>私有云盘</tag>
-        <tag>Nextcloud</tag>
+        <tag>Winlogbeat</tag>
+        <tag>ELK</tag>
+        <tag>日志分析</tag>
       </tags>
   </entry>
   <entry>
@@ -1106,6 +1074,38 @@
       <tags>
         <tag>运维</tag>
         <tag>总结</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>实现Nextcloud私有云盘</title>
+    <url>/yyg/0/</url>
+    <content><![CDATA[<h1 id="实现Nextcloud私有云盘"><a href="#实现Nextcloud私有云盘" class="headerlink" title="实现Nextcloud私有云盘"></a>实现Nextcloud私有云盘</h1><h2 id="任务目标"><a href="#任务目标" class="headerlink" title="任务目标"></a>任务目标</h2><ol>
+<li>完成Nextcloud私有云盘的搭建</li>
+</ol>
+<h2 id="部署指南"><a href="#部署指南" class="headerlink" title="部署指南"></a>部署指南</h2><h3 id="基础环境准备"><a href="#基础环境准备" class="headerlink" title="基础环境准备"></a>基础环境准备</h3><p>配置防火墙策略</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">firewall-cmd --zone=public --add-service=http --permanent</span><br><span class="line">firewall-cmd --reload</span><br></pre></td></tr></table></figure>
+<p>配置SELinux策略</p>
+<p>设置SELinux为permissive或disabled。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">修改</span></span><br><span class="line">setenforce 0</span><br><span class="line">sudo sed -i &#x27;s/^SELINUX=enforcing/SELINUX=disabled/&#x27; /etc/selinux/config</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">或</span></span><br><span class="line">setenforce 0</span><br><span class="line">sudo sed -i &#x27;s/^SELINUX=enforcing/SELINUX=permissive/&#x27; /etc/selinux/config</span><br></pre></td></tr></table></figure>
+<h3 id="安装Apache"><a href="#安装Apache" class="headerlink" title="安装Apache"></a>安装Apache</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum -y install httpd</span><br></pre></td></tr></table></figure>
+<h3 id="安装PHP"><a href="#安装PHP" class="headerlink" title="安装PHP"></a>安装PHP</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum -y install php</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装php模块依赖</span></span><br><span class="line">yum -y install php-zip php-dom php-xml php-mbstring php-pdo php-gd</span><br></pre></td></tr></table></figure>
+<h3 id="添加Nextcloud站点配置文件"><a href="#添加Nextcloud站点配置文件" class="headerlink" title="添加Nextcloud站点配置文件"></a>添加Nextcloud站点配置文件</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">mkdir /var/www/html/nextcloud/</span><br><span class="line">chmod 777 /var/www/html/nextcloud/</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">新建文件</span></span><br><span class="line">vi /etc/httpd/conf.d/nextcloud.conf</span><br><span class="line">&lt;VirtualHost *:80&gt;</span><br><span class="line">  DocumentRoot /var/www/html/nextcloud/</span><br><span class="line">  ServerName  your.server.com</span><br><span class="line"></span><br><span class="line">  &lt;Directory /var/www/html/nextcloud/&gt;</span><br><span class="line">    Require all granted</span><br><span class="line">    AllowOverride All</span><br><span class="line">    Options FollowSymLinks MultiViews</span><br><span class="line"></span><br><span class="line">    &lt;IfModule mod_dav.c&gt;</span><br><span class="line">      Dav off</span><br><span class="line">    &lt;/IfModule&gt;</span><br><span class="line"></span><br><span class="line">  &lt;/Directory&gt;</span><br><span class="line">&lt;/VirtualHost&gt;</span><br></pre></td></tr></table></figure>
+<h3 id="下载Nextcloud安装文件"><a href="#下载Nextcloud安装文件" class="headerlink" title="下载Nextcloud安装文件"></a>下载Nextcloud安装文件</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">wget -P /var/www/html/nextcloud/ https://download.nextcloud.com/server/installer/setup-nextcloud.php</span><br></pre></td></tr></table></figure>
+<h3 id="启动服务"><a href="#启动服务" class="headerlink" title="启动服务"></a>启动服务</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">systemctl start httpd</span><br><span class="line">systemctl enable httpd</span><br></pre></td></tr></table></figure>
+<h3 id="通过浏览器访问"><a href="#通过浏览器访问" class="headerlink" title="通过浏览器访问"></a>通过浏览器访问</h3><p>在浏览器中输入<code>http://172.20.1.51/setup-nextcloud.php</code>，按引导进行设置。如下图所示。</p>
+<img src="/yyg/0/2.jpg" class="" title="img">
+<p>设置用户名和密码，安装数据库如下图所示。</p>
+<img src="/yyg/0/4.png" class="" title="img">
+<p>成功进入内容界面，部署完成，如下图所示。</p>
+<img src="/yyg/0/3.png" class="" title="img">
+]]></content>
+      <categories>
+        <category>Nextcloud</category>
+        <category>私有云盘</category>
+      </categories>
+      <tags>
+        <tag>私有云盘</tag>
+        <tag>Nextcloud</tag>
       </tags>
   </entry>
   <entry>
