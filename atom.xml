@@ -38,9 +38,9 @@
     <category term="Matomo" scheme="https://marsperl.github.io/categories/Matomo/"/>
     
     
-    <category term="Matomo" scheme="https://marsperl.github.io/tags/Matomo/"/>
-    
     <category term="docker" scheme="https://marsperl.github.io/tags/docker/"/>
+    
+    <category term="Matomo" scheme="https://marsperl.github.io/tags/Matomo/"/>
     
   </entry>
   
