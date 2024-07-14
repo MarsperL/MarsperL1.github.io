@@ -38,9 +38,9 @@
     <category term="Matomo" scheme="https://marsperl.github.io/categories/Matomo/"/>
     
     
-    <category term="docker" scheme="https://marsperl.github.io/tags/docker/"/>
-    
     <category term="Matomo" scheme="https://marsperl.github.io/tags/Matomo/"/>
+    
+    <category term="docker" scheme="https://marsperl.github.io/tags/docker/"/>
     
   </entry>
   
@@ -436,11 +436,11 @@
     <category term="总结" scheme="https://marsperl.github.io/categories/%E6%80%BB%E7%BB%93/"/>
     
     
-    <category term="k8s" scheme="https://marsperl.github.io/tags/k8s/"/>
-    
     <category term="运维" scheme="https://marsperl.github.io/tags/%E8%BF%90%E7%BB%B4/"/>
     
     <category term="Linux" scheme="https://marsperl.github.io/tags/Linux/"/>
+    
+    <category term="k8s" scheme="https://marsperl.github.io/tags/k8s/"/>
     
     <category term="总结" scheme="https://marsperl.github.io/tags/%E6%80%BB%E7%BB%93/"/>
     
