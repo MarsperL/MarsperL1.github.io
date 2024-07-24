@@ -1,35 +1,36 @@
 /* 分类页面样式 */
-#page .category-lists .category-list .category-list-item {
-    position: relative;
-    display: inline-block;
-    padding: 0%;
-    width: 24%;
-    font-weight: 600;
-    margin: 0 0 1% 1%;
-    border-radius: var(--border-radius);
-    -webkit-box-shadow: rgb(50 50 50 / 30%) 50px 50px 50px 50px inset;
-    box-shadow: rgb(50 50 50 / 30%) 50px 50px 50px 50px inset;
-    border-radius: 8px;
+#page .category-lists .category-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1%; /* 设置分类项之间的间距 */
 }
 
-@media (max-width: 640px) {
+#page .category-lists .category-list .category-list-item {
+    flex: 1 0 calc(20% - 1%); /* 初始宽度为每行五个，减去间距 */
+    margin-bottom: 1%; /* 底部间距 */
+    font-weight: 600;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* 添加阴影效果 */
+    padding: 10px; /* 内边距 */
+}
+
+@media (max-width: 1024px) {
     #page .category-lists .category-list .category-list-item {
-        width: 95%;
-        border-radius: 8px;
-        margin-top: 3px;
+        flex-basis: calc(33.33% - 1%); /* 在较小屏幕下，每行三个 */
     }
 }
 
-#page .category-lists .category-list .category-list-item::before {
-    display: none;
+@media (max-width: 768px) {
+    #page .category-lists .category-list .category-list-item {
+        flex-basis: calc(50% - 1%); /* 在更小屏幕下，每行两个 */
+    }
 }
 
-#page .category-lists .category-list .category-list-item .category-list-link {
-    color: #fff;
-    font-size: 1.5rem;
-    margin-left: 0.4rem;
+@media (max-width: 480px) {
+    #page .category-lists .category-list .category-list-item {
+        flex-basis: 100%; /* 在最小屏幕下，每行一个 */
+    }
 }
-
 #page .category-lists .category-list .category-list-item .category-list-link::after {
     content: "";
     position: relative;
@@ -38,36 +39,42 @@
     display: block;
     height: 3px;
     border-radius: 3px;
-    background: #fff;
+    background: #fff; /* 为category-list-link添加hover效果的下划线 */
 }
 
 #page .category-lists .category-list .category-list-item .category-list-link:hover::after {
     width: 60%;
     left: 1%;
-    -webkit-transition: all 0.6s;
-    -moz-transition: all 0.6s;
-    -o-transition: all 0.6s;
-    -ms-transition: all 0.6s;
-    transition: all 0.6s;
+    transition: all 0.6s; /* 添加下划线展开的过渡效果 */
+}
+
+#page .list-beauty li:before, .category-lists ul li:before {
+    border: #49b6f500;
+}
+#page .category-lists .category-list .category-list-item {
+    position: relative; /* 相对定位，以便子元素可以使用绝对定位 */
+    padding-top: 5px; /* 调整分类项顶部内边距，以容纳图标和数量 */
 }
 
 #page .category-lists .category-list .category-list-item .category-list-count {
+    position: absolute; /* 绝对定位 */
+    top: 0;
+    right: 0; /* 放置在右上角 */
     color: #fff;
-    font-size: 1.3rem;
-	margin-left: 70%;
+    font-size: 1rem;
+    padding: 5px 10px; /* 调整内边距 */
+    display: flex; /* 使用 Flexbox 布局 */
+    align-items: center; /* 垂直居中对齐 */
 }
 
 #page .category-lists .category-list .category-list-item .category-list-count::before {
-    content: "\f02d";
-    padding-right: 15px;
-    font-family: "Font Awesome 6 Free";
+    content: "\f02d"; /* Font Awesome 6 Free 的图标 */
+    padding-right: 10px; /* 调整图标与文章数量之间的距离 */
+    font-family: "Font Awesome 6 Free"; /* 使用 Font Awesome 6 Free 的字体 */
 }
-
-/* #page .category-list-count::before, */
-#page .category-list-count::after {
-    display: none;
+#page .category-lists .category-list .category-list-count:after {
+  content: '';
 }
-
 
 /* 新增样式用于图标显示 */
 #page .category-lists .category-list .category-list-item .category-list-icon {
@@ -100,6 +107,7 @@
   line-height: inherit;
   margin-left: 0;
 }
+
 
 /***************************** 页数跳转按钮 *****************************/
 .page .layout > .recent-posts .pagination > a:hover {
@@ -319,3 +327,77 @@ i.fa-solid.fa-angles-right::before {
   }
 }
 
+/*文字气泡*/
+.bubble-content {
+  display: inline-block;
+  color: #e9a218;
+  font-weight: 700;
+  -webkit-transition: all .2s ease-in-out;
+  -moz-transition: all .2s ease-in-out;
+  -o-transition: all .2s ease-in-out;
+  -ms-transition: all .2s ease-in-out;
+  transition: all .2s ease-in-out;
+  text-shadow: rgba(35,35,35,0.5)
+}
+
+.bubble-content:hover {
+  -webkit-transition: all .2s ease-in-out;
+  -moz-transition: all .2s ease-in-out;
+  -o-transition: all .2s ease-in-out;
+  -ms-transition: all .2s ease-in-out;
+  transition: all .2s ease-in-out;
+  color: #2c7fe7
+}
+
+.bubble-content:hover+.bubble-notation .bubble-item {
+  -webkit-transform: translate(-40px,10px) rotateX(0);
+  -moz-transform: translate(-40px,10px) rotateX(0);
+  -o-transform: translate(-40px,10px) rotateX(0);
+  -ms-transform: translate(-40px,10px) rotateX(0);
+  transform: translate(-40px,10px) rotateX(0);
+  -webkit-transition: all .5s ease-in-out;
+  -moz-transition: all .5s ease-in-out;
+  -o-transition: all .5s ease-in-out;
+  -ms-transition: all .5s ease-in-out;
+  transition: all .5s ease-in-out;
+  opacity: 1;
+  -ms-filter: none;
+  filter: none
+}
+
+.bubble-notation {
+  display: inline-block
+}
+
+.bubble-item {
+  -webkit-transition: all .5s ease-in-out;
+  -moz-transition: all .5s ease-in-out;
+  -o-transition: all .5s ease-in-out;
+  -ms-transition: all .5s ease-in-out;
+  transition: all .5s ease-in-out;
+  opacity: 0;
+  color: #fff;
+  z-index: 99;
+  display: -webkit-box;
+  display: -moz-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: box;
+  display: flex;
+  position: absolute;
+  -webkit-transform: translate(-40px,10px) rotateX(90deg);
+  -moz-transform: translate(-40px,10px) rotateX(90deg);
+  -o-transform: translate(-40px,10px) rotateX(90deg);
+  -ms-transform: translate(-40px,10px) rotateX(90deg);
+  transform: translate(-40px,10px) rotateX(90deg);
+  width: auto;
+  height: auto;
+  max-width: 400px;
+  overflow: hidden;
+  padding: 20px 10px 10px 10px;
+  clip-path: polygon(5px 10px,20px 10px,30px 0,40px 10px,calc(100% - 5px) 10px,100% 15px,100% calc(100% - 5px),calc(100% - 5px) 100%,5px 100%,0 calc(100% - 5px),0 15px,5px 10px)
+}
+
+[data-theme=dark] .bubble-content {
+  color:#f2b94b;
+}
