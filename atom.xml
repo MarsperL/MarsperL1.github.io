@@ -387,9 +387,9 @@
     
     <category term="容器化" scheme="https://marsperl.github.io/categories/%E5%AE%B9%E5%99%A8%E5%8C%96/"/>
     
-    <category term="k8s" scheme="https://marsperl.github.io/categories/%E5%AE%B9%E5%99%A8%E5%8C%96/k8s/"/>
-    
     <category term="存储系统" scheme="https://marsperl.github.io/categories/%E5%AD%98%E5%82%A8%E7%B3%BB%E7%BB%9F/"/>
+    
+    <category term="k8s" scheme="https://marsperl.github.io/categories/%E5%AE%B9%E5%99%A8%E5%8C%96/k8s/"/>
     
     <category term="ceph" scheme="https://marsperl.github.io/categories/%E5%AD%98%E5%82%A8%E7%B3%BB%E7%BB%9F/ceph/"/>
     
@@ -549,11 +549,11 @@
     <category term="梳理总结" scheme="https://marsperl.github.io/categories/%E6%A2%B3%E7%90%86%E6%80%BB%E7%BB%93/"/>
     
     
-    <category term="k8s" scheme="https://marsperl.github.io/tags/k8s/"/>
+    <category term="运维" scheme="https://marsperl.github.io/tags/%E8%BF%90%E7%BB%B4/"/>
     
     <category term="Linux" scheme="https://marsperl.github.io/tags/Linux/"/>
     
-    <category term="运维" scheme="https://marsperl.github.io/tags/%E8%BF%90%E7%BB%B4/"/>
+    <category term="k8s" scheme="https://marsperl.github.io/tags/k8s/"/>
     
     <category term="总结" scheme="https://marsperl.github.io/tags/%E6%80%BB%E7%BB%93/"/>
     
@@ -612,9 +612,9 @@
     
     <category term="容器化" scheme="https://marsperl.github.io/categories/%E5%AE%B9%E5%99%A8%E5%8C%96/"/>
     
-    <category term="k8s" scheme="https://marsperl.github.io/categories/%E5%AE%B9%E5%99%A8%E5%8C%96/k8s/"/>
-    
     <category term="存储系统" scheme="https://marsperl.github.io/categories/%E5%AD%98%E5%82%A8%E7%B3%BB%E7%BB%9F/"/>
+    
+    <category term="k8s" scheme="https://marsperl.github.io/categories/%E5%AE%B9%E5%99%A8%E5%8C%96/k8s/"/>
     
     <category term="ceph" scheme="https://marsperl.github.io/categories/%E5%AD%98%E5%82%A8%E7%B3%BB%E7%BB%9F/ceph/"/>
     
