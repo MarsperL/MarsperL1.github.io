@@ -72,6 +72,53 @@
       </tags>
   </entry>
   <entry>
+    <title>Docker Swarm集群部署</title>
+    <url>/yyg/71468332/</url>
+    <content><![CDATA[<h2 id="Docker-Swarm集群部署"><a href="#Docker-Swarm集群部署" class="headerlink" title="Docker Swarm集群部署"></a><strong>Docker Swarm集群部署</strong></h2><p><strong>任务平台</strong></p>
+<p>3台虚拟机，一台作为manager 节点，另两台作为work节点。</p>
+<p><strong>部署指南</strong></p>
+<p>[TOC]</p>
+<h3 id="安装docker"><a href="#安装docker" class="headerlink" title="安装docker"></a>安装docker</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">下载并安装docker文件及依赖</span></span><br><span class="line">yum install -y yum-utils</span><br><span class="line">yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo</span><br><span class="line">yum install -y docker-ce docker-ce-cli containerd.io</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动docker并设置开机自启</span></span><br><span class="line">systemctl start docker  </span><br><span class="line">systemctl enable docker</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看版本</span></span><br><span class="line">docker -v</span><br></pre></td></tr></table></figure>
+<h3 id="配置防火墙开放端口"><a href="#配置防火墙开放端口" class="headerlink" title="配置防火墙开放端口"></a>配置防火墙开放端口</h3><p>TCP协议端口 2377 ：集群管理端口<br>TCP协议端口 7946 ：节点之间通讯端口（不开放则会负载均衡失效）<br>UDP协议端口 4789 ：overlay网络通讯端口</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">firewall-cmd --zone=public --add-port=2377/tcp --permanent</span><br><span class="line">firewall-cmd --zone=public --add-port=7946/tcp --permanent</span><br><span class="line">firewall-cmd --zone=public --add-port=7946/udp --permanent</span><br><span class="line">firewall-cmd --zone=public --add-port=4789/tcp --permanent</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重载防火墙</span></span><br><span class="line">firewall-cmd --reload</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看80端口是否开放</span></span><br><span class="line">firewall-cmd --query-port=80/tcp</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看所有放行的端口</span></span><br><span class="line">firewall-cmd --zone=public --list-ports</span><br></pre></td></tr></table></figure>
+<h3 id="在-manager-节点创建-Swarm-集群"><a href="#在-manager-节点创建-Swarm-集群" class="headerlink" title="在 manager 节点创建 Swarm 集群"></a>在 manager 节点创建 Swarm 集群</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker swarm init --advertise-addr=本机ip:2377 --listen-addr=本机ip:2377</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Swarm initialized: current node (608u180nsa654xbxdthdhl0f6) is now a manager.</p>
+<p>To add a worker to this swarm, run the following command:</p>
+<p>​    <code>docker swarm join --token SWMTKN-1-13dv43qm3tdux7243z3c0najcetizjpgly1urd4uchtcooxe87-4eh15dbayxttxipm34s5tod6t 172.20.1.51:2377</code></p>
+<p>To add a manager to this swarm, run ‘docker swarm join-token manager’ and follow the instructions.</p>
+</blockquote>
+<p>将执行后产生的命令（如上标红的），分别加入到其他主机中，执行后产生如下结果。即为成功加入。</p>
+<p>或者执行下面命令产生令牌，并且是定期轮换计划（推荐）</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker swarm join-token  --rotate worker</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>This node joined a swarm as a worker.</p>
+</blockquote>
+<p>（扩展）加入管理节点的命令</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker swarm join-token --rotate manager</span><br></pre></td></tr></table></figure>
+<p>在manager节点上输入<code>docker node ls</code> 可查看所有节点。</p>
+<img src="/yyg/71468332/image-20240323221029238-1711203035847-1.png" class="" title="image-20240323221029238">
+<h3 id="创建用于swarm服务的自定义的overlay网络"><a href="#创建用于swarm服务的自定义的overlay网络" class="headerlink" title="创建用于swarm服务的自定义的overlay网络"></a>创建用于swarm服务的自定义的overlay网络</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">方式一</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">--attachable选项表示该网络是可附加的，即其他容器可以连接到该网络</span>  </span><br><span class="line">docker network create -d overlay --attachable my-overlay</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">方式二</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">--subnet:子网 --gateway:网关</span></span><br><span class="line">docker network create --driver overlay --subnet 10.0.9.0/24 --gateway 10.0.9.99 my-overlay</span><br><span class="line">  </span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">查看docker网络</span></span><br><span class="line"> docker network ls</span><br></pre></td></tr></table></figure>
+<h3 id="测试跨主机容器通信"><a href="#测试跨主机容器通信" class="headerlink" title="测试跨主机容器通信"></a>测试跨主机容器通信</h3><ol>
+<li>在三台主机上各部署一个容器，进行相互ping，结果如下图。</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一</span></span><br><span class="line">docker run -it --name master --net=my-overlay ubuntu:latest</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二</span></span><br><span class="line">docker run -it --name node1 --net=my-overlay ubuntu:latest</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机三</span></span><br><span class="line">docker run -it --name node2 --net=my-overlay ubuntu:latest</span><br></pre></td></tr></table></figure>
+<ol>
+<li>安装测试工具</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">apt-get update</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ping工具</span></span><br><span class="line">apt-get install inetutils-ping -y</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ip查看工具</span></span><br><span class="line">apt-get install net-tools -y</span><br></pre></td></tr></table></figure>
+<img src="/yyg/71468332/image-20240323221151231-1711203113839-3.png" class="" title="image-20240323221151231">
+]]></content>
+      <categories>
+        <category>容器化</category>
+        <category>docker</category>
+      </categories>
+      <tags>
+        <tag>docker</tag>
+        <tag>docker Swarm</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Docker部署Matomo</title>
     <url>/yyg/a52e3ab6/</url>
     <content><![CDATA[<h1 id="Docker部署Matomo"><a href="#Docker部署Matomo" class="headerlink" title="Docker部署Matomo"></a>Docker部署Matomo</h1><h2 id="基础环境"><a href="#基础环境" class="headerlink" title="基础环境"></a>基础环境</h2><p>系统环境：</p>
@@ -126,53 +173,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Docker Swarm集群部署</title>
-    <url>/yyg/71468332/</url>
-    <content><![CDATA[<h2 id="Docker-Swarm集群部署"><a href="#Docker-Swarm集群部署" class="headerlink" title="Docker Swarm集群部署"></a><strong>Docker Swarm集群部署</strong></h2><p><strong>任务平台</strong></p>
-<p>3台虚拟机，一台作为manager 节点，另两台作为work节点。</p>
-<p><strong>部署指南</strong></p>
-<p>[TOC]</p>
-<h3 id="安装docker"><a href="#安装docker" class="headerlink" title="安装docker"></a>安装docker</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">下载并安装docker文件及依赖</span></span><br><span class="line">yum install -y yum-utils</span><br><span class="line">yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo</span><br><span class="line">yum install -y docker-ce docker-ce-cli containerd.io</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动docker并设置开机自启</span></span><br><span class="line">systemctl start docker  </span><br><span class="line">systemctl enable docker</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看版本</span></span><br><span class="line">docker -v</span><br></pre></td></tr></table></figure>
-<h3 id="配置防火墙开放端口"><a href="#配置防火墙开放端口" class="headerlink" title="配置防火墙开放端口"></a>配置防火墙开放端口</h3><p>TCP协议端口 2377 ：集群管理端口<br>TCP协议端口 7946 ：节点之间通讯端口（不开放则会负载均衡失效）<br>UDP协议端口 4789 ：overlay网络通讯端口</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">firewall-cmd --zone=public --add-port=2377/tcp --permanent</span><br><span class="line">firewall-cmd --zone=public --add-port=7946/tcp --permanent</span><br><span class="line">firewall-cmd --zone=public --add-port=7946/udp --permanent</span><br><span class="line">firewall-cmd --zone=public --add-port=4789/tcp --permanent</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重载防火墙</span></span><br><span class="line">firewall-cmd --reload</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看80端口是否开放</span></span><br><span class="line">firewall-cmd --query-port=80/tcp</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看所有放行的端口</span></span><br><span class="line">firewall-cmd --zone=public --list-ports</span><br></pre></td></tr></table></figure>
-<h3 id="在-manager-节点创建-Swarm-集群"><a href="#在-manager-节点创建-Swarm-集群" class="headerlink" title="在 manager 节点创建 Swarm 集群"></a>在 manager 节点创建 Swarm 集群</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker swarm init --advertise-addr=本机ip:2377 --listen-addr=本机ip:2377</span><br></pre></td></tr></table></figure>
-<blockquote>
-<p>Swarm initialized: current node (608u180nsa654xbxdthdhl0f6) is now a manager.</p>
-<p>To add a worker to this swarm, run the following command:</p>
-<p>​    <code>docker swarm join --token SWMTKN-1-13dv43qm3tdux7243z3c0najcetizjpgly1urd4uchtcooxe87-4eh15dbayxttxipm34s5tod6t 172.20.1.51:2377</code></p>
-<p>To add a manager to this swarm, run ‘docker swarm join-token manager’ and follow the instructions.</p>
-</blockquote>
-<p>将执行后产生的命令（如上标红的），分别加入到其他主机中，执行后产生如下结果。即为成功加入。</p>
-<p>或者执行下面命令产生令牌，并且是定期轮换计划（推荐）</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker swarm join-token  --rotate worker</span><br></pre></td></tr></table></figure>
-<blockquote>
-<p>This node joined a swarm as a worker.</p>
-</blockquote>
-<p>（扩展）加入管理节点的命令</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker swarm join-token --rotate manager</span><br></pre></td></tr></table></figure>
-<p>在manager节点上输入<code>docker node ls</code> 可查看所有节点。</p>
-<img src="/yyg/71468332/image-20240323221029238-1711203035847-1.png" class="" title="image-20240323221029238">
-<h3 id="创建用于swarm服务的自定义的overlay网络"><a href="#创建用于swarm服务的自定义的overlay网络" class="headerlink" title="创建用于swarm服务的自定义的overlay网络"></a>创建用于swarm服务的自定义的overlay网络</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">方式一</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">--attachable选项表示该网络是可附加的，即其他容器可以连接到该网络</span>  </span><br><span class="line">docker network create -d overlay --attachable my-overlay</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">方式二</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">--subnet:子网 --gateway:网关</span></span><br><span class="line">docker network create --driver overlay --subnet 10.0.9.0/24 --gateway 10.0.9.99 my-overlay</span><br><span class="line">  </span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">查看docker网络</span></span><br><span class="line"> docker network ls</span><br></pre></td></tr></table></figure>
-<h3 id="测试跨主机容器通信"><a href="#测试跨主机容器通信" class="headerlink" title="测试跨主机容器通信"></a>测试跨主机容器通信</h3><ol>
-<li>在三台主机上各部署一个容器，进行相互ping，结果如下图。</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一</span></span><br><span class="line">docker run -it --name master --net=my-overlay ubuntu:latest</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二</span></span><br><span class="line">docker run -it --name node1 --net=my-overlay ubuntu:latest</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机三</span></span><br><span class="line">docker run -it --name node2 --net=my-overlay ubuntu:latest</span><br></pre></td></tr></table></figure>
-<ol>
-<li>安装测试工具</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">apt-get update</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ping工具</span></span><br><span class="line">apt-get install inetutils-ping -y</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ip查看工具</span></span><br><span class="line">apt-get install net-tools -y</span><br></pre></td></tr></table></figure>
-<img src="/yyg/71468332/image-20240323221151231-1711203113839-3.png" class="" title="image-20240323221151231">
-]]></content>
-      <categories>
-        <category>容器化</category>
-        <category>docker</category>
-      </categories>
-      <tags>
-        <tag>docker</tag>
-        <tag>docker Swarm</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Hexo-Butterfly美化教程 | 基础环境</title>
     <url>/yyg/e102aa73/</url>
     <content><![CDATA[<h1 id="Hexo-Butterfly美化教程-基础环境"><a href="#Hexo-Butterfly美化教程-基础环境" class="headerlink" title="Hexo-Butterfly美化教程 | 基础环境"></a>Hexo-Butterfly美化教程 | 基础环境</h1><h2 id="基础环境："><a href="#基础环境：" class="headerlink" title="基础环境："></a>基础环境：</h2><ol>
@@ -208,6 +208,38 @@
         <tag>Hexo</tag>
         <tag>Butterfly</tag>
         <tag>博客教程</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Hexo-Butterfly美化教程 | 繁沙</title>
+    <url>/yyg/ca46b09/</url>
+    <content><![CDATA[<h1 id="Hexo-Butterfly美化教程-繁沙"><a href="#Hexo-Butterfly美化教程-繁沙" class="headerlink" title="Hexo-Butterfly美化教程 | 繁沙"></a>Hexo-Butterfly美化教程 | 繁沙</h1><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>平时在工作和生活中，有一些很好用的软件、网站，就想着找一个地方都给记下来。在创建hexo博客时，看到了有在博客里添加网站导航的，感觉这样挺不错的，也就有了<code>繁沙</code>：一个搜录（个人）好用软件和网站的地方。样式借用了<a href="https://blog.leonus.cn/">Leonus </a>博主的<a href="https://blog.leonus.cn/2022/butterflyTag.html">作品推荐卡片—标签外挂 | Leonus</a>，做了一点修改适配：</p>
+<ul>
+<li><p><code>卡片盒子可一行放多个</code></p>
+</li>
+<li><p><code>盒内的提示文本内容转成了一个外部独立显示的提示框文本</code><br>（尚待优化，若有好的优化方式，请Q我一下），具体效果可以下面的按钮预览。</p>
+</li>
+</ul>
+<div class="hide-block"><button type="button" class="hide-button" style="background-color: #386768;color: color">点击预览效果
+    </button><div class="hide-content"></div></div>
+<h2 id="教程"><a href="#教程" class="headerlink" title="教程"></a>教程</h2><p>（1）在<code>博客根目录\themes\butterfly\scripts\tag</code>中创建<code>card.js</code> 并粘入以下代码：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * card</span></span><br><span class="line"><span class="comment"> * &#123;% card name,url,bg,star,text,icon,tag,w,h %&#125;</span></span><br><span class="line"><span class="comment"> * &#123;% card 标题,链接,背景,评分,评价,图标,标签,宽度,高度 %&#125;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">&#x27;use strict&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 分数转成星星</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">tostar</span>(<span class="params">num</span>) &#123;</span><br><span class="line">    <span class="keyword">let</span> tmp = <span class="string">&#x27;&#x27;</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; <span class="title class_">Math</span>.<span class="title function_">floor</span>(num); i++) &#123; tmp += <span class="string">&#x27;&lt;i class=&quot;fa-solid fa-star&quot;&gt;&lt;/i&gt;&#x27;</span> &#125; <span class="comment">// 整数部分加实心星星</span></span><br><span class="line">    <span class="keyword">if</span> (num - <span class="title class_">Math</span>.<span class="title function_">floor</span>(num) != <span class="number">0</span>) tmp += <span class="string">&#x27;&lt;i class=&quot;fa-solid fa-star-half-alt&quot;&gt;&lt;/i&gt;&#x27;</span> <span class="comment">// 小数部分转成半星</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; <span class="number">5</span> - <span class="title class_">Math</span>.<span class="title function_">ceil</span>(num); i++) &#123; tmp += <span class="string">&#x27;&lt;i class=&quot;fa-regular fa-star&quot;&gt;&lt;/i&gt;&#x27;</span> &#125; <span class="comment">// 不够5个补空心星星</span></span><br><span class="line">    <span class="keyword">return</span> tmp</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">card</span>(<span class="params">args</span>) &#123;</span><br><span class="line">    args = args.<span class="title function_">join</span>(<span class="string">&#x27; &#x27;</span>).<span class="title function_">split</span>(<span class="string">&#x27;,&#x27;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 获取参数</span></span><br><span class="line">    <span class="keyword">let</span> name = (args[<span class="number">0</span>] || <span class="string">&#x27;未知&#x27;</span>).<span class="title function_">trim</span>()</span><br><span class="line">    <span class="keyword">let</span> url = (args[<span class="number">1</span>] || <span class="string">&#x27;&#x27;</span>).<span class="title function_">trim</span>()</span><br><span class="line">    <span class="keyword">let</span> bg = (args[<span class="number">2</span>] ? <span class="string">`background-image: url(<span class="subst">$&#123;args[<span class="number">2</span>]&#125;</span>);`</span> : <span class="string">&#x27;background-color: #333;&#x27;</span>).<span class="title function_">trim</span>()</span><br><span class="line">    <span class="keyword">let</span> star = <span class="title function_">tostar</span>(<span class="title class_">Number</span>(args[<span class="number">3</span>]) || <span class="number">0</span>)</span><br><span class="line">    <span class="keyword">let</span> text = (args[<span class="number">4</span>] || <span class="string">&#x27;暂无说明&#x27;</span>).<span class="title function_">trim</span>()   </span><br><span class="line">    <span class="keyword">let</span> icon = (args[<span class="number">5</span>] || <span class="string">&#x27;&#x27;</span>).<span class="title function_">trim</span>()</span><br><span class="line">    <span class="keyword">let</span> tag = (args[<span class="number">6</span>] || <span class="string">&#x27;&#x27;</span>).<span class="title function_">trim</span>()</span><br><span class="line">    <span class="keyword">let</span> w = args[<span class="number">7</span>] || <span class="string">&#x27;200px&#x27;</span></span><br><span class="line">    <span class="keyword">let</span> h = args[<span class="number">8</span>] || <span class="string">&#x27;275px&#x27;</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="string">`&lt;div title=&quot;<span class="subst">$&#123;name&#125;</span>&quot; referrerPolicy=&quot;no-referrer&quot; class=&quot;card_box&quot; style=&quot;<span class="subst">$&#123;bg&#125;</span> width:<span class="subst">$&#123;w&#125;</span>; height:<span class="subst">$&#123;h&#125;</span>;&quot;&gt;</span></span><br><span class="line"><span class="string">    &lt;div class=&quot;card_mask&quot;&gt;</span></span><br><span class="line"><span class="string">      &lt;span class=&quot;tooltiptext&quot;&gt;<span class="subst">$&#123;text&#125;</span>&lt;/span&gt;  //此处新添加了tooltiptext类名，添加了新css样式</span></span><br><span class="line"><span class="string">      <span class="subst">$&#123;url?<span class="string">&#x27;&lt;a href=&quot;&#x27;</span>+url+<span class="string">&#x27;&quot;&gt;查看详情&lt;/a&gt;&#x27;</span>:<span class="string">&#x27;&#x27;</span>&#125;</span></span></span><br><span class="line"><span class="string">    &lt;/div&gt;</span></span><br><span class="line"><span class="string">    &lt;div class=&quot;card_top&quot;&gt;</span></span><br><span class="line"><span class="string">      &lt;i class=&quot;<span class="subst">$&#123;icon&#125;</span>&quot;&gt;&lt;/i&gt;</span></span><br><span class="line"><span class="string">      &lt;span&gt;<span class="subst">$&#123;tag&#125;</span>&lt;/span&gt;</span></span><br><span class="line"><span class="string">    &lt;/div&gt;</span></span><br><span class="line"><span class="string">    &lt;div class=&quot;card_content&quot;&gt;</span></span><br><span class="line"><span class="string">      &lt;span&gt;<span class="subst">$&#123;name&#125;</span>&lt;/span&gt;</span></span><br><span class="line"><span class="string">      &lt;div&gt;<span class="subst">$&#123;star&#125;</span>&lt;/div&gt;</span></span><br><span class="line"><span class="string">    &lt;/div&gt;</span></span><br><span class="line"><span class="string">  &lt;/div&gt;`</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">hexo.<span class="property">extend</span>.<span class="property">tag</span>.<span class="title function_">register</span>(<span class="string">&#x27;card&#x27;</span>, card, &#123; <span class="attr">ends</span>: <span class="literal">false</span> &#125;)</span><br></pre></td></tr></table></figure>
+<p>（2）在 <code>博客根目录\themes\butterfly\source\css\_tags</code> 中创建 <code>card.styl</code> 并粘入以下代码：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">.<span class="property">card_box</span></span><br><span class="line">  <span class="attr">display</span>: inline-flex       <span class="comment">//此处将flex改为inline-flex，使得card盒子可以一行放多个</span></span><br><span class="line">  justify-<span class="attr">content</span>: space-between</span><br><span class="line">  flex-<span class="attr">direction</span>: column</span><br><span class="line">  background-<span class="attr">position</span>: center</span><br><span class="line">  background-<span class="attr">size</span>: cover</span><br><span class="line">  border-<span class="attr">radius</span>: 12px</span><br><span class="line">  <span class="attr">position</span>: relative</span><br><span class="line">  <span class="attr">overflow</span>: hidden</span><br><span class="line">  <span class="attr">padding</span>: 10px</span><br><span class="line">  <span class="attr">color</span>: #fff !important</span><br><span class="line">  <span class="attr">margin</span>: 10px auto</span><br><span class="line">  &amp;::after</span><br><span class="line">    <span class="attr">content</span>: <span class="string">&#x27;&#x27;</span></span><br><span class="line">    <span class="attr">position</span>: absolute</span><br><span class="line">    <span class="attr">height</span>: <span class="number">100</span>%</span><br><span class="line">    <span class="attr">width</span>: <span class="number">100</span>%</span><br><span class="line">    <span class="attr">left</span>: <span class="number">0</span></span><br><span class="line">    <span class="attr">top</span>: <span class="number">0</span></span><br><span class="line">    <span class="attr">background</span>: <span class="title function_">rgba</span>(<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0.1</span>)</span><br><span class="line">    <span class="attr">transition</span>: .5s</span><br><span class="line">    z-<span class="attr">index</span>: <span class="number">0</span></span><br><span class="line">  &amp;:hover</span><br><span class="line">    .<span class="property">card_mask</span></span><br><span class="line">      <span class="attr">opacity</span>: <span class="number">1</span></span><br><span class="line">      pointer-<span class="attr">events</span>: auto</span><br><span class="line">  .<span class="property">card_top</span></span><br><span class="line">    <span class="attr">display</span>: flex</span><br><span class="line">    z-<span class="attr">index</span>: <span class="number">1</span></span><br><span class="line">    align-<span class="attr">items</span>: center</span><br><span class="line">    justify-<span class="attr">content</span>: space-between</span><br><span class="line">  .<span class="property">card_mask</span></span><br><span class="line">    <span class="attr">position</span>: absolute</span><br><span class="line">    pointer-<span class="attr">events</span>: none</span><br><span class="line">    z-<span class="attr">index</span>: <span class="number">2</span></span><br><span class="line">    <span class="attr">transition</span>: .5s</span><br><span class="line">    <span class="attr">opacity</span>: <span class="number">0</span></span><br><span class="line">    <span class="attr">width</span>: <span class="number">100</span>%</span><br><span class="line">    <span class="attr">height</span>: <span class="number">100</span>%</span><br><span class="line">    <span class="attr">left</span>: <span class="number">0</span></span><br><span class="line">    <span class="attr">top</span>: <span class="number">0</span></span><br><span class="line">    <span class="attr">padding</span>: 20px</span><br><span class="line">    <span class="attr">background</span>: #<span class="number">333</span></span><br><span class="line">    span</span><br><span class="line">      <span class="attr">display</span>: block</span><br><span class="line">      <span class="attr">height</span>: <span class="title function_">calc</span>(<span class="number">100</span>% - 40px)</span><br><span class="line">      <span class="attr">overflow</span>: auto</span><br><span class="line">    a</span><br><span class="line">      text-<span class="attr">align</span>: center</span><br><span class="line">      <span class="attr">background</span>: #fff</span><br><span class="line">      <span class="attr">color</span>: #<span class="number">333</span> !important</span><br><span class="line">      border-<span class="attr">radius</span>: 5px</span><br><span class="line">      <span class="attr">position</span>: absolute</span><br><span class="line">      <span class="attr">width</span>: <span class="title function_">calc</span>(<span class="number">100</span>% - 40px)</span><br><span class="line">      <span class="attr">bottom</span>: 20px</span><br><span class="line">      <span class="attr">left</span>: 20px</span><br><span class="line">      &amp;:hover</span><br><span class="line">        text-<span class="attr">decoration</span>: none !important</span><br><span class="line">        <span class="attr">color</span>: white !important</span><br><span class="line">        <span class="attr">background</span>: #49b1f5</span><br><span class="line"></span><br><span class="line">  .<span class="property">card_content</span></span><br><span class="line">    z-<span class="attr">index</span>: <span class="number">1</span></span><br><span class="line">    span</span><br><span class="line">      font-<span class="attr">size</span>: 18px</span><br><span class="line">      font-<span class="attr">weight</span>: bold</span><br><span class="line"></span><br><span class="line"><span class="comment">/* ##################这部分为新加样式代码################## */</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* card_mask 文本 */</span></span><br><span class="line">.<span class="property">card_mask</span> .<span class="property">tooltiptext</span> &#123;</span><br><span class="line">    <span class="attr">visibility</span>: hidden;</span><br><span class="line">    background-<span class="attr">color</span>: #f5f9fc;</span><br><span class="line">    <span class="attr">color</span>: #<span class="number">000</span>;</span><br><span class="line">    text-<span class="attr">align</span>: center;</span><br><span class="line">    <span class="attr">padding</span>: 5px <span class="number">0</span>;</span><br><span class="line">    border-<span class="attr">radius</span>: 6px;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 定位 */</span></span><br><span class="line">    <span class="attr">position</span>: fixed;</span><br><span class="line">    z-<span class="attr">index</span>: <span class="number">1</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 鼠标移动上去后显示提示框 */</span></span><br><span class="line">.<span class="property">card_mask</span>:hover .<span class="property">tooltiptext</span> &#123;</span><br><span class="line">     <span class="attr">visibility</span>: visible;</span><br><span class="line">     max-<span class="attr">width</span>: <span class="number">40</span>%;</span><br><span class="line">     word-<span class="attr">wrap</span>: <span class="keyword">break</span>-word;</span><br><span class="line">     text-<span class="attr">align</span>: center;</span><br><span class="line">     max-<span class="attr">height</span>: <span class="number">10</span>%;</span><br><span class="line">     <span class="attr">top</span>: <span class="number">10</span>%;</span><br><span class="line">     <span class="attr">padding</span>: 5px;</span><br><span class="line">     margin-<span class="attr">right</span>:<span class="number">20</span>%;    </span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/* ##################这部分为新加样式代码################## */</span></span><br><span class="line"></span><br><span class="line">[data-theme=<span class="string">&#x27;dark&#x27;</span>]</span><br><span class="line">  .<span class="property">card_box</span></span><br><span class="line">    <span class="attr">color</span>: #ddd !important</span><br><span class="line">    &amp;::after</span><br><span class="line">      <span class="attr">background</span>: <span class="title function_">rgba</span>(<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0.1</span>)</span><br></pre></td></tr></table></figure>
+<h2 id="应用"><a href="#应用" class="headerlink" title="应用"></a>应用</h2><p>应用参数格式：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;% card 标题,链接,背景,评分,评价,图标,标签,宽度,高度 %&#125;</span><br></pre></td></tr></table></figure>
+<p>具体应用的参数应用访问<code>Leonus | 作品推荐卡片—标签外挂</code>的原链接查看。链接如下：</p>
+<div class="tag link"><a class="link-card" title="Leonus | 作品推荐卡片—标签外挂" href="https://blog.leonus.cn/2022/butterflyTag.html"><div class="left"><img src="https://q1.qlogo.cn/g?b=qq&nk=990320751&s=5"/></div><div class="right"><p class="text">Leonus | 作品推荐卡片—标签外挂</p><p class="url">https://blog.leonus.cn/2022/butterflyTag.html</p></div></a></div>
+]]></content>
+      <categories>
+        <category>博客教程</category>
+        <category>美化教程</category>
+      </categories>
+      <tags>
+        <tag>Hexo</tag>
+        <tag>Butterfly</tag>
+        <tag>博客教程</tag>
+        <tag>美化教程</tag>
       </tags>
   </entry>
   <entry>
@@ -495,38 +527,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Hexo-Butterfly美化教程 | 繁沙</title>
-    <url>/yyg/ca46b09/</url>
-    <content><![CDATA[<h1 id="Hexo-Butterfly美化教程-繁沙"><a href="#Hexo-Butterfly美化教程-繁沙" class="headerlink" title="Hexo-Butterfly美化教程 | 繁沙"></a>Hexo-Butterfly美化教程 | 繁沙</h1><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>平时在工作和生活中，有一些很好用的软件、网站，就想着找一个地方都给记下来。在创建hexo博客时，看到了有在博客里添加网站导航的，感觉这样挺不错的，也就有了<code>繁沙</code>：一个搜录（个人）好用软件和网站的地方。样式借用了<a href="https://blog.leonus.cn/">Leonus </a>博主的<a href="https://blog.leonus.cn/2022/butterflyTag.html">作品推荐卡片—标签外挂 | Leonus</a>，做了一点修改适配：</p>
-<ul>
-<li><p><code>卡片盒子可一行放多个</code></p>
-</li>
-<li><p><code>盒内的提示文本内容转成了一个外部独立显示的提示框文本</code><br>（尚待优化，若有好的优化方式，请Q我一下），具体效果可以下面的按钮预览。</p>
-</li>
-</ul>
-<div class="hide-block"><button type="button" class="hide-button" style="background-color: #386768;color: color">点击预览效果
-    </button><div class="hide-content"></div></div>
-<h2 id="教程"><a href="#教程" class="headerlink" title="教程"></a>教程</h2><p>（1）在<code>博客根目录\themes\butterfly\scripts\tag</code>中创建<code>card.js</code> 并粘入以下代码：</p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * card</span></span><br><span class="line"><span class="comment"> * &#123;% card name,url,bg,star,text,icon,tag,w,h %&#125;</span></span><br><span class="line"><span class="comment"> * &#123;% card 标题,链接,背景,评分,评价,图标,标签,宽度,高度 %&#125;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">&#x27;use strict&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 分数转成星星</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">tostar</span>(<span class="params">num</span>) &#123;</span><br><span class="line">    <span class="keyword">let</span> tmp = <span class="string">&#x27;&#x27;</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; <span class="title class_">Math</span>.<span class="title function_">floor</span>(num); i++) &#123; tmp += <span class="string">&#x27;&lt;i class=&quot;fa-solid fa-star&quot;&gt;&lt;/i&gt;&#x27;</span> &#125; <span class="comment">// 整数部分加实心星星</span></span><br><span class="line">    <span class="keyword">if</span> (num - <span class="title class_">Math</span>.<span class="title function_">floor</span>(num) != <span class="number">0</span>) tmp += <span class="string">&#x27;&lt;i class=&quot;fa-solid fa-star-half-alt&quot;&gt;&lt;/i&gt;&#x27;</span> <span class="comment">// 小数部分转成半星</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; <span class="number">5</span> - <span class="title class_">Math</span>.<span class="title function_">ceil</span>(num); i++) &#123; tmp += <span class="string">&#x27;&lt;i class=&quot;fa-regular fa-star&quot;&gt;&lt;/i&gt;&#x27;</span> &#125; <span class="comment">// 不够5个补空心星星</span></span><br><span class="line">    <span class="keyword">return</span> tmp</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">card</span>(<span class="params">args</span>) &#123;</span><br><span class="line">    args = args.<span class="title function_">join</span>(<span class="string">&#x27; &#x27;</span>).<span class="title function_">split</span>(<span class="string">&#x27;,&#x27;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 获取参数</span></span><br><span class="line">    <span class="keyword">let</span> name = (args[<span class="number">0</span>] || <span class="string">&#x27;未知&#x27;</span>).<span class="title function_">trim</span>()</span><br><span class="line">    <span class="keyword">let</span> url = (args[<span class="number">1</span>] || <span class="string">&#x27;&#x27;</span>).<span class="title function_">trim</span>()</span><br><span class="line">    <span class="keyword">let</span> bg = (args[<span class="number">2</span>] ? <span class="string">`background-image: url(<span class="subst">$&#123;args[<span class="number">2</span>]&#125;</span>);`</span> : <span class="string">&#x27;background-color: #333;&#x27;</span>).<span class="title function_">trim</span>()</span><br><span class="line">    <span class="keyword">let</span> star = <span class="title function_">tostar</span>(<span class="title class_">Number</span>(args[<span class="number">3</span>]) || <span class="number">0</span>)</span><br><span class="line">    <span class="keyword">let</span> text = (args[<span class="number">4</span>] || <span class="string">&#x27;暂无说明&#x27;</span>).<span class="title function_">trim</span>()   </span><br><span class="line">    <span class="keyword">let</span> icon = (args[<span class="number">5</span>] || <span class="string">&#x27;&#x27;</span>).<span class="title function_">trim</span>()</span><br><span class="line">    <span class="keyword">let</span> tag = (args[<span class="number">6</span>] || <span class="string">&#x27;&#x27;</span>).<span class="title function_">trim</span>()</span><br><span class="line">    <span class="keyword">let</span> w = args[<span class="number">7</span>] || <span class="string">&#x27;200px&#x27;</span></span><br><span class="line">    <span class="keyword">let</span> h = args[<span class="number">8</span>] || <span class="string">&#x27;275px&#x27;</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="string">`&lt;div title=&quot;<span class="subst">$&#123;name&#125;</span>&quot; referrerPolicy=&quot;no-referrer&quot; class=&quot;card_box&quot; style=&quot;<span class="subst">$&#123;bg&#125;</span> width:<span class="subst">$&#123;w&#125;</span>; height:<span class="subst">$&#123;h&#125;</span>;&quot;&gt;</span></span><br><span class="line"><span class="string">    &lt;div class=&quot;card_mask&quot;&gt;</span></span><br><span class="line"><span class="string">      &lt;span class=&quot;tooltiptext&quot;&gt;<span class="subst">$&#123;text&#125;</span>&lt;/span&gt;  //此处新添加了tooltiptext类名，添加了新css样式</span></span><br><span class="line"><span class="string">      <span class="subst">$&#123;url?<span class="string">&#x27;&lt;a href=&quot;&#x27;</span>+url+<span class="string">&#x27;&quot;&gt;查看详情&lt;/a&gt;&#x27;</span>:<span class="string">&#x27;&#x27;</span>&#125;</span></span></span><br><span class="line"><span class="string">    &lt;/div&gt;</span></span><br><span class="line"><span class="string">    &lt;div class=&quot;card_top&quot;&gt;</span></span><br><span class="line"><span class="string">      &lt;i class=&quot;<span class="subst">$&#123;icon&#125;</span>&quot;&gt;&lt;/i&gt;</span></span><br><span class="line"><span class="string">      &lt;span&gt;<span class="subst">$&#123;tag&#125;</span>&lt;/span&gt;</span></span><br><span class="line"><span class="string">    &lt;/div&gt;</span></span><br><span class="line"><span class="string">    &lt;div class=&quot;card_content&quot;&gt;</span></span><br><span class="line"><span class="string">      &lt;span&gt;<span class="subst">$&#123;name&#125;</span>&lt;/span&gt;</span></span><br><span class="line"><span class="string">      &lt;div&gt;<span class="subst">$&#123;star&#125;</span>&lt;/div&gt;</span></span><br><span class="line"><span class="string">    &lt;/div&gt;</span></span><br><span class="line"><span class="string">  &lt;/div&gt;`</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">hexo.<span class="property">extend</span>.<span class="property">tag</span>.<span class="title function_">register</span>(<span class="string">&#x27;card&#x27;</span>, card, &#123; <span class="attr">ends</span>: <span class="literal">false</span> &#125;)</span><br></pre></td></tr></table></figure>
-<p>（2）在 <code>博客根目录\themes\butterfly\source\css\_tags</code> 中创建 <code>card.styl</code> 并粘入以下代码：</p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">.<span class="property">card_box</span></span><br><span class="line">  <span class="attr">display</span>: inline-flex       <span class="comment">//此处将flex改为inline-flex，使得card盒子可以一行放多个</span></span><br><span class="line">  justify-<span class="attr">content</span>: space-between</span><br><span class="line">  flex-<span class="attr">direction</span>: column</span><br><span class="line">  background-<span class="attr">position</span>: center</span><br><span class="line">  background-<span class="attr">size</span>: cover</span><br><span class="line">  border-<span class="attr">radius</span>: 12px</span><br><span class="line">  <span class="attr">position</span>: relative</span><br><span class="line">  <span class="attr">overflow</span>: hidden</span><br><span class="line">  <span class="attr">padding</span>: 10px</span><br><span class="line">  <span class="attr">color</span>: #fff !important</span><br><span class="line">  <span class="attr">margin</span>: 10px auto</span><br><span class="line">  &amp;::after</span><br><span class="line">    <span class="attr">content</span>: <span class="string">&#x27;&#x27;</span></span><br><span class="line">    <span class="attr">position</span>: absolute</span><br><span class="line">    <span class="attr">height</span>: <span class="number">100</span>%</span><br><span class="line">    <span class="attr">width</span>: <span class="number">100</span>%</span><br><span class="line">    <span class="attr">left</span>: <span class="number">0</span></span><br><span class="line">    <span class="attr">top</span>: <span class="number">0</span></span><br><span class="line">    <span class="attr">background</span>: <span class="title function_">rgba</span>(<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0.1</span>)</span><br><span class="line">    <span class="attr">transition</span>: .5s</span><br><span class="line">    z-<span class="attr">index</span>: <span class="number">0</span></span><br><span class="line">  &amp;:hover</span><br><span class="line">    .<span class="property">card_mask</span></span><br><span class="line">      <span class="attr">opacity</span>: <span class="number">1</span></span><br><span class="line">      pointer-<span class="attr">events</span>: auto</span><br><span class="line">  .<span class="property">card_top</span></span><br><span class="line">    <span class="attr">display</span>: flex</span><br><span class="line">    z-<span class="attr">index</span>: <span class="number">1</span></span><br><span class="line">    align-<span class="attr">items</span>: center</span><br><span class="line">    justify-<span class="attr">content</span>: space-between</span><br><span class="line">  .<span class="property">card_mask</span></span><br><span class="line">    <span class="attr">position</span>: absolute</span><br><span class="line">    pointer-<span class="attr">events</span>: none</span><br><span class="line">    z-<span class="attr">index</span>: <span class="number">2</span></span><br><span class="line">    <span class="attr">transition</span>: .5s</span><br><span class="line">    <span class="attr">opacity</span>: <span class="number">0</span></span><br><span class="line">    <span class="attr">width</span>: <span class="number">100</span>%</span><br><span class="line">    <span class="attr">height</span>: <span class="number">100</span>%</span><br><span class="line">    <span class="attr">left</span>: <span class="number">0</span></span><br><span class="line">    <span class="attr">top</span>: <span class="number">0</span></span><br><span class="line">    <span class="attr">padding</span>: 20px</span><br><span class="line">    <span class="attr">background</span>: #<span class="number">333</span></span><br><span class="line">    span</span><br><span class="line">      <span class="attr">display</span>: block</span><br><span class="line">      <span class="attr">height</span>: <span class="title function_">calc</span>(<span class="number">100</span>% - 40px)</span><br><span class="line">      <span class="attr">overflow</span>: auto</span><br><span class="line">    a</span><br><span class="line">      text-<span class="attr">align</span>: center</span><br><span class="line">      <span class="attr">background</span>: #fff</span><br><span class="line">      <span class="attr">color</span>: #<span class="number">333</span> !important</span><br><span class="line">      border-<span class="attr">radius</span>: 5px</span><br><span class="line">      <span class="attr">position</span>: absolute</span><br><span class="line">      <span class="attr">width</span>: <span class="title function_">calc</span>(<span class="number">100</span>% - 40px)</span><br><span class="line">      <span class="attr">bottom</span>: 20px</span><br><span class="line">      <span class="attr">left</span>: 20px</span><br><span class="line">      &amp;:hover</span><br><span class="line">        text-<span class="attr">decoration</span>: none !important</span><br><span class="line">        <span class="attr">color</span>: white !important</span><br><span class="line">        <span class="attr">background</span>: #49b1f5</span><br><span class="line"></span><br><span class="line">  .<span class="property">card_content</span></span><br><span class="line">    z-<span class="attr">index</span>: <span class="number">1</span></span><br><span class="line">    span</span><br><span class="line">      font-<span class="attr">size</span>: 18px</span><br><span class="line">      font-<span class="attr">weight</span>: bold</span><br><span class="line"></span><br><span class="line"><span class="comment">/* ##################这部分为新加样式代码################## */</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* card_mask 文本 */</span></span><br><span class="line">.<span class="property">card_mask</span> .<span class="property">tooltiptext</span> &#123;</span><br><span class="line">    <span class="attr">visibility</span>: hidden;</span><br><span class="line">    background-<span class="attr">color</span>: #f5f9fc;</span><br><span class="line">    <span class="attr">color</span>: #<span class="number">000</span>;</span><br><span class="line">    text-<span class="attr">align</span>: center;</span><br><span class="line">    <span class="attr">padding</span>: 5px <span class="number">0</span>;</span><br><span class="line">    border-<span class="attr">radius</span>: 6px;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 定位 */</span></span><br><span class="line">    <span class="attr">position</span>: fixed;</span><br><span class="line">    z-<span class="attr">index</span>: <span class="number">1</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 鼠标移动上去后显示提示框 */</span></span><br><span class="line">.<span class="property">card_mask</span>:hover .<span class="property">tooltiptext</span> &#123;</span><br><span class="line">     <span class="attr">visibility</span>: visible;</span><br><span class="line">     max-<span class="attr">width</span>: <span class="number">40</span>%;</span><br><span class="line">     word-<span class="attr">wrap</span>: <span class="keyword">break</span>-word;</span><br><span class="line">     text-<span class="attr">align</span>: center;</span><br><span class="line">     max-<span class="attr">height</span>: <span class="number">10</span>%;</span><br><span class="line">     <span class="attr">top</span>: <span class="number">10</span>%;</span><br><span class="line">     <span class="attr">padding</span>: 5px;</span><br><span class="line">     margin-<span class="attr">right</span>:<span class="number">20</span>%;    </span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/* ##################这部分为新加样式代码################## */</span></span><br><span class="line"></span><br><span class="line">[data-theme=<span class="string">&#x27;dark&#x27;</span>]</span><br><span class="line">  .<span class="property">card_box</span></span><br><span class="line">    <span class="attr">color</span>: #ddd !important</span><br><span class="line">    &amp;::after</span><br><span class="line">      <span class="attr">background</span>: <span class="title function_">rgba</span>(<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0.1</span>)</span><br></pre></td></tr></table></figure>
-<h2 id="应用"><a href="#应用" class="headerlink" title="应用"></a>应用</h2><p>应用参数格式：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;% card 标题,链接,背景,评分,评价,图标,标签,宽度,高度 %&#125;</span><br></pre></td></tr></table></figure>
-<p>具体应用的参数应用访问<code>Leonus | 作品推荐卡片—标签外挂</code>的原链接查看。链接如下：</p>
-<div class="tag link"><a class="link-card" title="Leonus | 作品推荐卡片—标签外挂" href="https://blog.leonus.cn/2022/butterflyTag.html"><div class="left"><img src="https://q1.qlogo.cn/g?b=qq&nk=990320751&s=5"/></div><div class="right"><p class="text">Leonus | 作品推荐卡片—标签外挂</p><p class="url">https://blog.leonus.cn/2022/butterflyTag.html</p></div></a></div>
-]]></content>
-      <categories>
-        <category>博客教程</category>
-        <category>美化教程</category>
-      </categories>
-      <tags>
-        <tag>Hexo</tag>
-        <tag>Butterfly</tag>
-        <tag>博客教程</tag>
-        <tag>美化教程</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>docker 安装 redis</title>
     <url>/yyg/6fffbcc4/</url>
     <content><![CDATA[<h1 id="docker-安装-redis"><a href="#docker-安装-redis" class="headerlink" title="docker 安装 redis"></a>docker 安装 redis</h1><p>首先输入命令<code>docker pull redis</code> ，将最新版redis安装到本地</p>
@@ -551,113 +551,6 @@
       <tags>
         <tag>docker</tag>
         <tag>redis</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>docker基础知识</title>
-    <url>/yyg/7b36b89c/</url>
-    <content><![CDATA[<h1 id="docker基础知识"><a href="#docker基础知识" class="headerlink" title="docker基础知识"></a>docker基础知识</h1><p><code>docker search 镜像</code> #搜索要下载的镜像</p>
-<p><code>docker pull 镜像</code> #将镜像拉到本地</p>
-<p><code>docker images</code> #查看已拉取到本地的镜像</p>
-<p><code>docker rmi 镜像名或ID</code> #删除镜像</p>
-<p><code>docker rm 容器ID</code> #删除已停止容器</p>
-<blockquote>
-<p><code>docker rm -f 容器ID</code> #强制删除容器</p>
-</blockquote>
-<p>一次性删除多个容器</p>
-<blockquote>
-<p><code>docker rm -f $(docker ps -a -q)</code></p>
-<p><code>docker ps -a -q |xargs docker rm</code></p>
-</blockquote>
-<p>删除虚悬镜像</p>
-<blockquote>
-<p><code>docker image ls -f dangling=true</code> #显示所有的虚悬镜像</p>
-<p><code>docker image prune</code> #删除虚悬镜像</p>
-</blockquote>
-<p><code>docker ps</code> #查看正在运行的容器</p>
-<blockquote>
-<p><code>docker ps -a</code> #列出所有正在运行和曾运行过的容器</p>
-<p><code>docker ps -l</code> #显示最近创建的容器</p>
-<p><code>docker ps -n</code> #显示最近创建的n个容器</p>
-<p><code>docker ps -q</code> #只显示容器编号</p>
-</blockquote>
-<p><code>docker stop  容器名或ID</code> #结束容器运行</p>
-<p><code>docker kill  容器名或ID</code> #强制停止容器运行</p>
-<p><code>docker start 容器名或ID</code> #启动已停止的容器</p>
-<p><code>docker restart 容器名或ID</code> #重启容器</p>
-<p><code>docker run -it 镜像名或ID</code> #启动镜像(-it指交互式启动)</p>
-<blockquote>
-<p><code>docker run -d 容器名或ID</code> #容器后台运行</p>
-<p><code>docker run -it -p 端口号:端口号 容器名或ID</code> #以特定端口号运行容器</p>
-<p><code>docker run -it -P 容器名或ID</code> #随机分配端口号运行容器</p>
-<p>启动镜像后，按下<code>ctrl+p+q</code>，容器后台运行 </p>
-</blockquote>
-<p>重新进入后台运行的容器</p>
-<blockquote>
-<p><code>docker exec -it  容器ID</code> #在容器中打开新的终端，并且可以启动新的进程，用exit退出，不会导致容器的停止。(推荐使用)</p>
-<p><code>docker attach 容器ID</code>  #直接进入容器启动命令的终端，不会启动新的进程，用exit退出，会导致容器的停止。</p>
-</blockquote>
-<p><code>docker inspect 容器ID</code>#显示容器内的详细信息</p>
-<p><code>docker logs  容器ID</code> #查看容器日志</p>
-<p><code>docker top  容器ID</code> 查看容器内进程</p>
-<p><code>docker cp  容器ID:容器内路径 目的主机路径</code> #将文件从容器拷贝到主机</p>
-<p>容器的导入导出</p>
-<blockquote>
-<p><code>docker export  容器ID &gt;文件名.tar</code> #将容器及内容导出为tar包</p>
-<p><code>cat 文件名.tar | docker import -镜像用户/镜像名:镜像版本号</code> #从tar包中创建一个新文件系统再导入镜像</p>
-</blockquote>
-<p><code>docker run -it --privileged=true -v /宿主机目录:/容器内目录 镜像名</code>#宿主机与容器之间映射添加容器卷</p>
-<p><code>docker run -it --privileged=true -v /宿主机目录:/容器内目录:rw 镜像名</code>#宿主机与容器之间映射添加容器卷,容器内文件可读可写</p>
-<p><code>docker run -it --privileged=true -v /宿主机目录:/容器内目录:ro 镜像名</code>#宿主机与容器之间映射添加容器卷,容器内文件只可读</p>
-<p><code>docker run -it --privileged=true -volumes-from 父类 -name 容器2名称 镜像名</code> #容器2继承容器1的卷规则</p>
-<img src="/yyg/7b36b89c/image-20240323215245387.png" class="" title="image-20240323215245387">]]></content>
-      <categories>
-        <category>容器化</category>
-        <category>docker</category>
-        <category>梳理总结</category>
-      </categories>
-      <tags>
-        <tag>docker</tag>
-        <tag>docker基础</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>docker安装mysql</title>
-    <url>/yyg/25ae9841/</url>
-    <content><![CDATA[<h1 id="docker安装mysql"><a href="#docker安装mysql" class="headerlink" title="docker安装mysql"></a>docker安装mysql</h1><blockquote>
-<p><code>docker pull mysql</code> #拉取mysql镜像(最新版)</p>
-</blockquote>
-<p>若安装特定版本如6.0，则命令如下：</p>
-<p><code>docker pull mysql:6.0</code></p>
-<p>运行mysql，并分配3306端口，该命令如下：(<strong>注：下面的是一条命令</strong>)</p>
-<p>此命令中的<code>jiamian</code>为小编的liunx系统的用户名，用时需替换为自己的用户名</p>
-<p><code>MYSQL_ROOT_PASSWORD</code>后填的是mysql的密码，可自行替换</p>
-<p><code>--name</code>后填的mysql-1是运行的mysql容器的名称，也可自行替换</p>
-<blockquote>
-<p>docker run -d -p 3306:3306 —privileged=true -v /jiamian/mysql/log:/var/log/mysql</p>
-<p>-v /jiamian/mysql/data:/var/lib/mysql -v /jiamian/mysql/conf:/etc/mysql/conf.d </p>
-<p>-e MYSQL_ROOT_PASSWORD=123456 —name mysql-1 mysql</p>
-</blockquote>
-<p>此命令也可解决在删除mysql容器后，而出现的数据库数据丢失的问题。若要找回数据，则只需重新运行命令即可。</p>
-<img src="/yyg/25ae9841/image-20230410201124021.png" class="" title="image-20230410201124021">
-<p>运行<code>docker ps</code>命令，可查看到mysql正在运行</p>
-<img src="/yyg/25ae9841/image-20230410201052873.png" class="" title="image-20230410201052873">
-<h2 id="解决mysql插入中文乱码的情况"><a href="#解决mysql插入中文乱码的情况" class="headerlink" title="解决mysql插入中文乱码的情况"></a>解决mysql插入中文乱码的情况</h2><p>然后输入命令<code>cd /jiamian/mysql/conf</code>。进入该目录后，输入命令<code>vim my.cnf</code>，新建my.cnf文件，</p>
-<p>并输入以下代码</p>
-<blockquote>
-<p>[client]<br>default_character_set=utf8<br>[mysqld]<br>collation_server = utf8_general_ci<br>character_set_server = utf8</p>
-</blockquote>
-<p>保存退出后，输入 <code>docker restart mysql-1</code>，重启mysql。</p>
-<p>再输入<code>docker exec -it mysql-1 /bin/bash</code>进入mysql环境，此时汉字可正常显示</p>
-<img src="/yyg/25ae9841/image-20230410202120798.png" class="" title="image-20230410202120798">
-]]></content>
-      <categories>
-        <category>容器化</category>
-        <category>docker</category>
-      </categories>
-      <tags>
-        <tag>docker</tag>
-        <tag>mysql</tag>
       </tags>
   </entry>
   <entry>
@@ -859,6 +752,113 @@
       </tags>
   </entry>
   <entry>
+    <title>docker基础知识</title>
+    <url>/yyg/7b36b89c/</url>
+    <content><![CDATA[<h1 id="docker基础知识"><a href="#docker基础知识" class="headerlink" title="docker基础知识"></a>docker基础知识</h1><p><code>docker search 镜像</code> #搜索要下载的镜像</p>
+<p><code>docker pull 镜像</code> #将镜像拉到本地</p>
+<p><code>docker images</code> #查看已拉取到本地的镜像</p>
+<p><code>docker rmi 镜像名或ID</code> #删除镜像</p>
+<p><code>docker rm 容器ID</code> #删除已停止容器</p>
+<blockquote>
+<p><code>docker rm -f 容器ID</code> #强制删除容器</p>
+</blockquote>
+<p>一次性删除多个容器</p>
+<blockquote>
+<p><code>docker rm -f $(docker ps -a -q)</code></p>
+<p><code>docker ps -a -q |xargs docker rm</code></p>
+</blockquote>
+<p>删除虚悬镜像</p>
+<blockquote>
+<p><code>docker image ls -f dangling=true</code> #显示所有的虚悬镜像</p>
+<p><code>docker image prune</code> #删除虚悬镜像</p>
+</blockquote>
+<p><code>docker ps</code> #查看正在运行的容器</p>
+<blockquote>
+<p><code>docker ps -a</code> #列出所有正在运行和曾运行过的容器</p>
+<p><code>docker ps -l</code> #显示最近创建的容器</p>
+<p><code>docker ps -n</code> #显示最近创建的n个容器</p>
+<p><code>docker ps -q</code> #只显示容器编号</p>
+</blockquote>
+<p><code>docker stop  容器名或ID</code> #结束容器运行</p>
+<p><code>docker kill  容器名或ID</code> #强制停止容器运行</p>
+<p><code>docker start 容器名或ID</code> #启动已停止的容器</p>
+<p><code>docker restart 容器名或ID</code> #重启容器</p>
+<p><code>docker run -it 镜像名或ID</code> #启动镜像(-it指交互式启动)</p>
+<blockquote>
+<p><code>docker run -d 容器名或ID</code> #容器后台运行</p>
+<p><code>docker run -it -p 端口号:端口号 容器名或ID</code> #以特定端口号运行容器</p>
+<p><code>docker run -it -P 容器名或ID</code> #随机分配端口号运行容器</p>
+<p>启动镜像后，按下<code>ctrl+p+q</code>，容器后台运行 </p>
+</blockquote>
+<p>重新进入后台运行的容器</p>
+<blockquote>
+<p><code>docker exec -it  容器ID</code> #在容器中打开新的终端，并且可以启动新的进程，用exit退出，不会导致容器的停止。(推荐使用)</p>
+<p><code>docker attach 容器ID</code>  #直接进入容器启动命令的终端，不会启动新的进程，用exit退出，会导致容器的停止。</p>
+</blockquote>
+<p><code>docker inspect 容器ID</code>#显示容器内的详细信息</p>
+<p><code>docker logs  容器ID</code> #查看容器日志</p>
+<p><code>docker top  容器ID</code> 查看容器内进程</p>
+<p><code>docker cp  容器ID:容器内路径 目的主机路径</code> #将文件从容器拷贝到主机</p>
+<p>容器的导入导出</p>
+<blockquote>
+<p><code>docker export  容器ID &gt;文件名.tar</code> #将容器及内容导出为tar包</p>
+<p><code>cat 文件名.tar | docker import -镜像用户/镜像名:镜像版本号</code> #从tar包中创建一个新文件系统再导入镜像</p>
+</blockquote>
+<p><code>docker run -it --privileged=true -v /宿主机目录:/容器内目录 镜像名</code>#宿主机与容器之间映射添加容器卷</p>
+<p><code>docker run -it --privileged=true -v /宿主机目录:/容器内目录:rw 镜像名</code>#宿主机与容器之间映射添加容器卷,容器内文件可读可写</p>
+<p><code>docker run -it --privileged=true -v /宿主机目录:/容器内目录:ro 镜像名</code>#宿主机与容器之间映射添加容器卷,容器内文件只可读</p>
+<p><code>docker run -it --privileged=true -volumes-from 父类 -name 容器2名称 镜像名</code> #容器2继承容器1的卷规则</p>
+<img src="/yyg/7b36b89c/image-20240323215245387.png" class="" title="image-20240323215245387">]]></content>
+      <categories>
+        <category>容器化</category>
+        <category>docker</category>
+        <category>梳理总结</category>
+      </categories>
+      <tags>
+        <tag>docker</tag>
+        <tag>docker基础</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>docker安装mysql</title>
+    <url>/yyg/25ae9841/</url>
+    <content><![CDATA[<h1 id="docker安装mysql"><a href="#docker安装mysql" class="headerlink" title="docker安装mysql"></a>docker安装mysql</h1><blockquote>
+<p><code>docker pull mysql</code> #拉取mysql镜像(最新版)</p>
+</blockquote>
+<p>若安装特定版本如6.0，则命令如下：</p>
+<p><code>docker pull mysql:6.0</code></p>
+<p>运行mysql，并分配3306端口，该命令如下：(<strong>注：下面的是一条命令</strong>)</p>
+<p>此命令中的<code>jiamian</code>为小编的liunx系统的用户名，用时需替换为自己的用户名</p>
+<p><code>MYSQL_ROOT_PASSWORD</code>后填的是mysql的密码，可自行替换</p>
+<p><code>--name</code>后填的mysql-1是运行的mysql容器的名称，也可自行替换</p>
+<blockquote>
+<p>docker run -d -p 3306:3306 —privileged=true -v /jiamian/mysql/log:/var/log/mysql</p>
+<p>-v /jiamian/mysql/data:/var/lib/mysql -v /jiamian/mysql/conf:/etc/mysql/conf.d </p>
+<p>-e MYSQL_ROOT_PASSWORD=123456 —name mysql-1 mysql</p>
+</blockquote>
+<p>此命令也可解决在删除mysql容器后，而出现的数据库数据丢失的问题。若要找回数据，则只需重新运行命令即可。</p>
+<img src="/yyg/25ae9841/image-20230410201124021.png" class="" title="image-20230410201124021">
+<p>运行<code>docker ps</code>命令，可查看到mysql正在运行</p>
+<img src="/yyg/25ae9841/image-20230410201052873.png" class="" title="image-20230410201052873">
+<h2 id="解决mysql插入中文乱码的情况"><a href="#解决mysql插入中文乱码的情况" class="headerlink" title="解决mysql插入中文乱码的情况"></a>解决mysql插入中文乱码的情况</h2><p>然后输入命令<code>cd /jiamian/mysql/conf</code>。进入该目录后，输入命令<code>vim my.cnf</code>，新建my.cnf文件，</p>
+<p>并输入以下代码</p>
+<blockquote>
+<p>[client]<br>default_character_set=utf8<br>[mysqld]<br>collation_server = utf8_general_ci<br>character_set_server = utf8</p>
+</blockquote>
+<p>保存退出后，输入 <code>docker restart mysql-1</code>，重启mysql。</p>
+<p>再输入<code>docker exec -it mysql-1 /bin/bash</code>进入mysql环境，此时汉字可正常显示</p>
+<img src="/yyg/25ae9841/image-20230410202120798.png" class="" title="image-20230410202120798">
+]]></content>
+      <categories>
+        <category>容器化</category>
+        <category>docker</category>
+      </categories>
+      <tags>
+        <tag>docker</tag>
+        <tag>mysql</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>docker容器日志配置管理</title>
     <url>/yyg/3b57c0c6/</url>
     <content><![CDATA[<h1 id="docker容器日志配置管理"><a href="#docker容器日志配置管理" class="headerlink" title="docker容器日志配置管理"></a>docker容器日志配置管理</h1><p>运行的项目容器突然就停了，查看容器日志发现磁盘空间不足，导致容器没法运行了。</p>
@@ -929,141 +929,6 @@
         <tag>Linux</tag>
         <tag>总结</tag>
         <tag>知识梳理</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>docker镜像仓库搭建(Harbor)</title>
-    <url>/yyg/c3b2f9c5/</url>
-    <content><![CDATA[<h2 id="任务目标"><a href="#任务目标" class="headerlink" title="任务目标"></a>任务目标</h2><ol>
-<li>完成docker镜像仓库的搭建</li>
-</ol>
-<h2 id="任务平台"><a href="#任务平台" class="headerlink" title="任务平台"></a>任务平台</h2><ol>
-<li>物理设备—</li>
-<li>操作系统：openEuler 22.03 LTS SP2</li>
-</ol>
-<h2 id="部署指南"><a href="#部署指南" class="headerlink" title="部署指南"></a>部署指南</h2><h3 id="任务一：环境需求"><a href="#任务一：环境需求" class="headerlink" title="任务一：环境需求"></a>任务一：环境需求</h3><ol>
-<li>硬件配置</li>
-</ol>
-<p>下图列出了部署 Harbor 的最低硬件配置和推荐的硬件配置。</p>
-<img src="/yyg/c3b2f9c5/image-20240323215852040.png" class="" title="image-20240323215852040">
-<ol>
-<li>网络端口</li>
-</ol>
-<p>Harbor 要求在目标主机上打开以下端口</p>
-<div class="table-container">
-<table>
-<thead>
-<tr>
-<th>端口</th>
-<th>协议</th>
-<th>备注</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>443</td>
-<td>HTTPS</td>
-<td>Harbor 门户和核心 API 接受此端口上的 HTTPS 请求</td>
-</tr>
-<tr>
-<td>4443</td>
-<td>HTTPS</td>
-<td>连接到适用于 Harbor 的 Docker 内容信任服务</td>
-</tr>
-<tr>
-<td>80</td>
-<td>HTTP</td>
-<td>Harbor 门户和核心 API 接受此端口上的 HTTP 请求</td>
-</tr>
-</tbody>
-</table>
-</div>
-<h3 id="任务二：基础环境准备"><a href="#任务二：基础环境准备" class="headerlink" title="任务二：基础环境准备"></a>任务二：基础环境准备</h3><h3 id="任务三：部署"><a href="#任务三：部署" class="headerlink" title="任务三：部署"></a>任务三：部署</h3><ol>
-<li><h4 id="下载Harbor"><a href="#下载Harbor" class="headerlink" title="下载Harbor"></a>下载Harbor</h4></li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">wget https://github.com/goharbor/harbor/releases/download/v2.9.1/harbor-offline-installer-v2.9.1.tgz</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">解压</span></span><br><span class="line">tar -vzxf harbor-offline-installer-v2.9.1.tgz</span><br></pre></td></tr></table></figure>
-<ol>
-<li><h4 id="安装https证书"><a href="#安装https证书" class="headerlink" title="安装https证书"></a>安装https证书</h4><ol>
-<li><h5 id="简单版"><a href="#简单版" class="headerlink" title="简单版"></a>简单版</h5></li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">创建证书目录，并赋予权限</span></span><br><span class="line">mkdir -p /data/cert/</span><br><span class="line">chmod  -R 777 /data/cert/</span><br><span class="line">cd /data/cert</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">创建私钥</span></span><br><span class="line">openssl genrsa -des3 -out harbor.key 2048</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">生成ca证书，ip为本机ip</span></span><br><span class="line">openssl req -sha512 -new \</span><br><span class="line">     -subj &quot;/C=CN/ST=hennan/L=zhengzhou/O=qishi/OU=qishi/CN=images.store.net.crt&quot; \</span><br><span class="line">     -key harbor.key \</span><br><span class="line">     -out harbor.csr</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">备份证书</span></span><br><span class="line"> cp harbor.key  harbor.key.org</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">转化为不带密码的私钥</span></span><br><span class="line"> openssl rsa -in harbor.key.org -out harbor.key</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">使用证书进行签名</span></span><br><span class="line">  openssl x509 -req -days 100000  -in harbor.csr -signkey harbor.key -out harbor.crt</span><br></pre></td></tr></table></figure>
-<ol>
-<li><h5 id="官方版"><a href="#官方版" class="headerlink" title="官方版"></a>官方版</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">创建存放目录</span></span><br><span class="line">mkdir -p /data/harbor-ca</span><br><span class="line">cd /data/harbor-ca</span><br></pre></td></tr></table></figure>
-<ul>
-<li>生成证书颁发机构证书</li>
-</ul>
-<ol>
-<li>生成 CA 证书私钥</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">openssl genrsa -out ca.key 4096</span><br></pre></td></tr></table></figure>
-<ol>
-<li>生成 CA 证书</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">CN后的内容为ip或者域名</span></span><br><span class="line">openssl req -x509 -new -nodes -sha512 -days 3650 \</span><br><span class="line"> -subj &quot;/C=CN/ST=henan/L=zhengzhou/O=qishi/OU=qishi/CN=hub-docker.tiliatech.net&quot; \</span><br><span class="line"> -key ca.key \</span><br><span class="line"> -out ca.crt</span><br></pre></td></tr></table></figure>
-<ul>
-<li>生成服务器证书</li>
-</ul>
-<ol>
-<li>生成私钥</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">域名或ip命名</span></span><br><span class="line">openssl genrsa -out hub-docker.tiliatech.net.key 4096</span><br></pre></td></tr></table></figure>
-<ol>
-<li>生成证书签名请求 （CSR）</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">openssl req -sha512 -new \</span><br><span class="line">    -subj &quot;/C=CN/ST=henan/L=zhengzhou/O=qishi/OU=qishi/CN=hub-docker.tiliatech.net&quot; \</span><br><span class="line">    -key hub-docker.tiliatech.net.key \</span><br><span class="line">    -out hub-docker.tiliatech.net.csr</span><br></pre></td></tr></table></figure>
-<ol>
-<li>生成 x509 v3 扩展文件</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">cat &gt; v3.ext &lt;&lt;-EOF</span><br><span class="line">authorityKeyIdentifier=keyid,issuer</span><br><span class="line">basicConstraints=CA:FALSE</span><br><span class="line">keyUsage = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment</span><br><span class="line">extendedKeyUsage = serverAuth</span><br><span class="line">subjectAltName = @alt_names</span><br><span class="line"></span><br><span class="line">[alt_names]</span><br><span class="line">DNS.1=hub-docker.tiliatech.net</span><br><span class="line">DNS.2=hub-docker.tiliatech</span><br><span class="line">DNS.3=hub-docker</span><br><span class="line">EOF</span><br></pre></td></tr></table></figure>
-<ol>
-<li>使用v3.ext生成证书</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">openssl x509 -req -sha512 -days 3650 \</span><br><span class="line">    -extfile v3.ext \</span><br><span class="line">    -CA ca.crt -CAkey ca.key -CAcreateserial \</span><br><span class="line">    -in hub-docker.tiliatech.net.csr \</span><br><span class="line">    -out hub-docker.tiliatech.net.crt</span><br></pre></td></tr></table></figure>
-<ul>
-<li>向 Harbor 和 Docker 提供证书<ul>
-<li>将服务器证书和密钥复制到存放 harbor使用证书的目录</li>
-<li>```Shell<h1 id="创建存放harbor使用证书的目录"><a href="#创建存放harbor使用证书的目录" class="headerlink" title="创建存放harbor使用证书的目录"></a>创建存放harbor使用证书的目录</h1>mkdir -p /data/cert/<h1 id="拷贝证书"><a href="#拷贝证书" class="headerlink" title="拷贝证书"></a>拷贝证书</h1>cp hub-docker.tiliatech.net.crt /data/cert/<br>cp hub-docker.tiliatech.net.key /data/cert/<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">- 转换证书，供docker使用</span><br><span class="line">- ```Shell</span><br><span class="line">  openssl x509 -inform PEM -in hub-docker.tiliatech.net.crt -out hub-docker.tiliatech.net.cert</span><br><span class="line">  #创建存放docker使用证书目录，命名方式为ip:端口，或者域名</span><br><span class="line">  mkdir -p /etc/docker/certs.d/hub-docker.tiliatech.net/</span><br><span class="line">  #拷贝证书</span><br><span class="line">  cp hub-docker.tiliatech.net.cert /etc/docker/certs.d/hub-docker.tiliatech.net/</span><br><span class="line">  cp hub-docker.tiliatech.net.key /etc/docker/certs.d/hub-docker.tiliatech.net/</span><br><span class="line">  cp ca.crt /etc/docker/certs.d/hub-docker.tiliatech.net/</span><br><span class="line">  </span><br><span class="line">  #重启docker</span><br><span class="line">  systemctl restart docker</span><br></pre></td></tr></table></figure>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-</ol>
-</li>
-<li><h4 id="安装Harbor"><a href="#安装Harbor" class="headerlink" title="安装Harbor"></a>安装Harbor</h4></li>
-</ol>
-<p>修改配置文件</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">cp harbor.yml.tmpl harbor.yml</span><br><span class="line">vi harbor.yml</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash"><span class="comment">################################</span></span></span><br><span class="line">hostname: hub-docker.tiliatech.net   #修改为本机ip,或者自定义域名</span><br><span class="line">http:</span><br><span class="line">   port: 80 #端口可自定义</span><br><span class="line">https:   </span><br><span class="line">   port: 443 #端口可自定义</span><br><span class="line">certificate: /data/harbor/harbor-ca/hub-docker.tiliatech.net.crt #证书路径</span><br><span class="line">private_key: /data/harbor/harbor-ca/hub-docker.tiliatech.net.key #私钥路径</span><br><span class="line">harbor_admin_password: Harbor12345 #登录密码</span><br><span class="line">data_volume: /data/harbor-data #数据存储目录</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash"><span class="comment">################################</span></span></span><br></pre></td></tr></table></figure>
-<p>执行安装</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">./install.sh  --with-trivy</span><br></pre></td></tr></table></figure>
-<p>浏览器输入ip加端口访问(添加hosts后，域名访问)</p>
-<img src="/yyg/c3b2f9c5/image-20240323220017893.png" class="" title="image-20240323220017893">
-<h3 id="任务四：设置docker-login-登录凭证加密（要拉取镜像的主机）"><a href="#任务四：设置docker-login-登录凭证加密（要拉取镜像的主机）" class="headerlink" title="任务四：设置docker login 登录凭证加密（要拉取镜像的主机）"></a>任务四：设置docker login 登录凭证加密（要拉取镜像的主机）</h3><ol>
-<li>安装pass</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">基础环境</span></span><br><span class="line"> yum install -y make</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">获取pass源码</span></span><br><span class="line">wget https://git.zx2c4.com/password-store/snapshot/password-store-1.7.4.tar.xz</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">解压到/usr/local/目录</span></span><br><span class="line">tar Jxf password-store-1.7.4.tar.xz -C /usr/local/</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">执行安装</span></span><br><span class="line">cd /usr/local/password-store-1.7.4</span><br><span class="line">make install</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">验证</span></span><br><span class="line"> pass version</span><br></pre></td></tr></table></figure>
-<ol>
-<li>安装docker-credential-helpers</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装go基础环境</span></span><br><span class="line">yum -y install golang-1.17.3</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">获取docker-credential-helpers源码</span></span><br><span class="line">wget https://github.com/docker/docker-credential-helpers/archive/refs/tags/v0.8.0.tar.gz</span><br><span class="line">tar -xf v0.8.0.tar.gz</span><br><span class="line"> mv docker-credential-helpers-0.8.0 docker-credential-helpers</span><br><span class="line"> cd docker-credential-helpers/</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">使用pass方式安装</span></span><br><span class="line"> make pass</span><br><span class="line"> cp bin/build/docker-credential-pass /usr/bin/</span><br><span class="line"> chmod +x /usr/bin/docker-credential-pass</span><br></pre></td></tr></table></figure>
-<ol>
-<li>修改密码配置文件</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">生成密钥对</span></span><br><span class="line"> gpg --full-generate-key</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">查看密钥</span></span><br><span class="line"> gpg --list-keys</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash"><span class="comment">#################################################</span></span></span><br><span class="line"> /root/.gnupg/pubring.kbx</span><br><span class="line">------------------------</span><br><span class="line">pub   rsa3072 2023-11-30 [SC] [有效至：2025-11-29]</span><br><span class="line">      56CCF64EC289B13B1C0F14CCF2BB16136358AEA4</span><br><span class="line">uid             [ 绝对 ] qishi &lt;qishi@qq.com&gt;</span><br><span class="line">sub   rsa3072 2023-11-30 [E] [有效至：2025-11-29]</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash"><span class="comment">#################################################</span></span></span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">初始化</span></span><br><span class="line"> pass init 56CCF64EC289B13B1C0F14CCF2BB16136358AEA4</span><br><span class="line"><span class="meta prompt_"> </span></span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">登录docker仓库，查看登录凭证是否加密</span></span><br><span class="line"> docker login hub-docker.tiliatech.net</span><br><span class="line"> cat /root/.docker/config.json</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash"><span class="comment">######################################</span></span></span><br><span class="line"> &#123;</span><br><span class="line">        &quot;auths&quot;: &#123;</span><br><span class="line">                &quot;hub-docker.tiliatech.net&quot;: &#123;&#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        &quot;credsStore&quot;: &quot;pass&quot;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash"><span class="comment">######################################</span></span></span><br><span class="line"> </span><br><span class="line"><span class="meta prompt_">  #</span><span class="language-bash">创建密码本保存文件目录</span></span><br><span class="line">  pass insert docker-credential-helpers/docker-pass-initialized-check</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">查看密码本列表</span></span><br><span class="line">  docker-credential-pass list</span><br><span class="line"><span class="meta prompt_">  #</span><span class="language-bash">验证密码本</span></span><br><span class="line">  yum install tree -y</span><br><span class="line">  pass</span><br><span class="line"><span class="meta prompt_">  #</span><span class="language-bash">以实际路径为准</span></span><br><span class="line">  pass show docker-credential-helpers/aW1hZ2VzLnN0b3JlLm5ldA==/admin</span><br></pre></td></tr></table></figure>
-<h3 id="任务五：上传下载镜像（要拉取镜像的主机）"><a href="#任务五：上传下载镜像（要拉取镜像的主机）" class="headerlink" title="任务五：上传下载镜像（要拉取镜像的主机）"></a>任务五：上传下载镜像（要拉取镜像的主机）</h3><p>在需要拉取和上传镜像的主机上，修改daemon.json文件，再重启docker</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">vi /etc/docker/daemon.json</span><br><span class="line">&#123;</span><br><span class="line">  &quot;insecure-registries&quot;: [&quot;hub-docker.tiliatech.net&quot;] #ip或者域名</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">systemctl restart docker</span><br></pre></td></tr></table></figure>
-<p>拉取和上传镜像</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">拉取nginx镜像做测试</span></span><br><span class="line">docker pull nginx</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重新打上标签，其中<span class="built_in">test</span>为harbor中存在的项目</span></span><br><span class="line">docker tag nginx:latest 172.20.1.55/test/qs-nginx:1.0</span><br><span class="line">docker tag nginx:latest hub-docker.tiliatech.net/test/qs-nginx:1.0</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">登录仓库，输入用户名和密码</span></span><br><span class="line">docker login 172.20.1.55</span><br><span class="line">docker login hub-docker.tiliatech.net</span><br><span class="line">systemctl restart docker</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">将镜像推送到仓库</span></span><br><span class="line">docker push 172.20.1.55/test/qs-nginx:1.0</span><br><span class="line">docker push hub-docker.tiliatech.net/test/qs-nginx:1.0</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">拉取镜像</span></span><br><span class="line">docker pull 172.20.1.55/test/qs-nginx:1.0</span><br><span class="line">docker pull hub-docker.tiliatech.net/test/qs-nginx:1.0</span><br></pre></td></tr></table></figure>
-<h3 id="任务六：cosign签名镜像（要拉取镜像的主机）"><a href="#任务六：cosign签名镜像（要拉取镜像的主机）" class="headerlink" title="任务六：cosign签名镜像（要拉取镜像的主机）"></a>任务六：cosign签名镜像（要拉取镜像的主机）</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">mkdir -p /data/cosign</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">下载，安装cosign</span></span><br><span class="line">wget https://github.com/sigstore/cosign/releases/download/v2.2.2/cosign-2.2.2-1.x86_64.rpm</span><br><span class="line">rpm -ivh cosign-2.2.2-1.x86_64.rpm</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">arm</span></span><br><span class="line">wget https://github.com/sigstore/cosign/releases/download/v2.2.2/cosign-2.2.2-1.aarch64.rpm</span><br><span class="line">rpm -ivh cosign-2.2.2-1.aarch64.rpm</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">验证安装</span></span><br><span class="line">cosign version</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">生成密钥</span></span><br><span class="line">cosign generate-key-pair</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">对镜像进行加密签名</span></span><br><span class="line">cosign sign  --allow-insecure-registry --key /data/cosign/cosign.key images.store.net/test/test-nginx:1.0.0</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">解密验证</span></span><br><span class="line">cosign  verify  --allow-insecure-registry --key /data/cosign/cosign.pub images.store.net/test/test-nginx:1.0.0</span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>容器化</category>
-        <category>docker</category>
-      </categories>
-      <tags>
-        <tag>docker</tag>
-        <tag>Harbor</tag>
-        <tag>容器镜像仓库</tag>
       </tags>
   </entry>
   <entry>
@@ -1208,6 +1073,141 @@
       </tags>
   </entry>
   <entry>
+    <title>docker镜像仓库搭建(Harbor)</title>
+    <url>/yyg/c3b2f9c5/</url>
+    <content><![CDATA[<h2 id="任务目标"><a href="#任务目标" class="headerlink" title="任务目标"></a>任务目标</h2><ol>
+<li>完成docker镜像仓库的搭建</li>
+</ol>
+<h2 id="任务平台"><a href="#任务平台" class="headerlink" title="任务平台"></a>任务平台</h2><ol>
+<li>物理设备—</li>
+<li>操作系统：openEuler 22.03 LTS SP2</li>
+</ol>
+<h2 id="部署指南"><a href="#部署指南" class="headerlink" title="部署指南"></a>部署指南</h2><h3 id="任务一：环境需求"><a href="#任务一：环境需求" class="headerlink" title="任务一：环境需求"></a>任务一：环境需求</h3><ol>
+<li>硬件配置</li>
+</ol>
+<p>下图列出了部署 Harbor 的最低硬件配置和推荐的硬件配置。</p>
+<img src="/yyg/c3b2f9c5/image-20240323215852040.png" class="" title="image-20240323215852040">
+<ol>
+<li>网络端口</li>
+</ol>
+<p>Harbor 要求在目标主机上打开以下端口</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>端口</th>
+<th>协议</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>443</td>
+<td>HTTPS</td>
+<td>Harbor 门户和核心 API 接受此端口上的 HTTPS 请求</td>
+</tr>
+<tr>
+<td>4443</td>
+<td>HTTPS</td>
+<td>连接到适用于 Harbor 的 Docker 内容信任服务</td>
+</tr>
+<tr>
+<td>80</td>
+<td>HTTP</td>
+<td>Harbor 门户和核心 API 接受此端口上的 HTTP 请求</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="任务二：基础环境准备"><a href="#任务二：基础环境准备" class="headerlink" title="任务二：基础环境准备"></a>任务二：基础环境准备</h3><h3 id="任务三：部署"><a href="#任务三：部署" class="headerlink" title="任务三：部署"></a>任务三：部署</h3><ol>
+<li><h4 id="下载Harbor"><a href="#下载Harbor" class="headerlink" title="下载Harbor"></a>下载Harbor</h4></li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">wget https://github.com/goharbor/harbor/releases/download/v2.9.1/harbor-offline-installer-v2.9.1.tgz</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">解压</span></span><br><span class="line">tar -vzxf harbor-offline-installer-v2.9.1.tgz</span><br></pre></td></tr></table></figure>
+<ol>
+<li><h4 id="安装https证书"><a href="#安装https证书" class="headerlink" title="安装https证书"></a>安装https证书</h4><ol>
+<li><h5 id="简单版"><a href="#简单版" class="headerlink" title="简单版"></a>简单版</h5></li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">创建证书目录，并赋予权限</span></span><br><span class="line">mkdir -p /data/cert/</span><br><span class="line">chmod  -R 777 /data/cert/</span><br><span class="line">cd /data/cert</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">创建私钥</span></span><br><span class="line">openssl genrsa -des3 -out harbor.key 2048</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">生成ca证书，ip为本机ip</span></span><br><span class="line">openssl req -sha512 -new \</span><br><span class="line">     -subj &quot;/C=CN/ST=hennan/L=zhengzhou/O=qishi/OU=qishi/CN=images.store.net.crt&quot; \</span><br><span class="line">     -key harbor.key \</span><br><span class="line">     -out harbor.csr</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">备份证书</span></span><br><span class="line"> cp harbor.key  harbor.key.org</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">转化为不带密码的私钥</span></span><br><span class="line"> openssl rsa -in harbor.key.org -out harbor.key</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">使用证书进行签名</span></span><br><span class="line">  openssl x509 -req -days 100000  -in harbor.csr -signkey harbor.key -out harbor.crt</span><br></pre></td></tr></table></figure>
+<ol>
+<li><h5 id="官方版"><a href="#官方版" class="headerlink" title="官方版"></a>官方版</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">创建存放目录</span></span><br><span class="line">mkdir -p /data/harbor-ca</span><br><span class="line">cd /data/harbor-ca</span><br></pre></td></tr></table></figure>
+<ul>
+<li>生成证书颁发机构证书</li>
+</ul>
+<ol>
+<li>生成 CA 证书私钥</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">openssl genrsa -out ca.key 4096</span><br></pre></td></tr></table></figure>
+<ol>
+<li>生成 CA 证书</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">CN后的内容为ip或者域名</span></span><br><span class="line">openssl req -x509 -new -nodes -sha512 -days 3650 \</span><br><span class="line"> -subj &quot;/C=CN/ST=henan/L=zhengzhou/O=qishi/OU=qishi/CN=hub-docker.tiliatech.net&quot; \</span><br><span class="line"> -key ca.key \</span><br><span class="line"> -out ca.crt</span><br></pre></td></tr></table></figure>
+<ul>
+<li>生成服务器证书</li>
+</ul>
+<ol>
+<li>生成私钥</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">域名或ip命名</span></span><br><span class="line">openssl genrsa -out hub-docker.tiliatech.net.key 4096</span><br></pre></td></tr></table></figure>
+<ol>
+<li>生成证书签名请求 （CSR）</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">openssl req -sha512 -new \</span><br><span class="line">    -subj &quot;/C=CN/ST=henan/L=zhengzhou/O=qishi/OU=qishi/CN=hub-docker.tiliatech.net&quot; \</span><br><span class="line">    -key hub-docker.tiliatech.net.key \</span><br><span class="line">    -out hub-docker.tiliatech.net.csr</span><br></pre></td></tr></table></figure>
+<ol>
+<li>生成 x509 v3 扩展文件</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">cat &gt; v3.ext &lt;&lt;-EOF</span><br><span class="line">authorityKeyIdentifier=keyid,issuer</span><br><span class="line">basicConstraints=CA:FALSE</span><br><span class="line">keyUsage = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment</span><br><span class="line">extendedKeyUsage = serverAuth</span><br><span class="line">subjectAltName = @alt_names</span><br><span class="line"></span><br><span class="line">[alt_names]</span><br><span class="line">DNS.1=hub-docker.tiliatech.net</span><br><span class="line">DNS.2=hub-docker.tiliatech</span><br><span class="line">DNS.3=hub-docker</span><br><span class="line">EOF</span><br></pre></td></tr></table></figure>
+<ol>
+<li>使用v3.ext生成证书</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">openssl x509 -req -sha512 -days 3650 \</span><br><span class="line">    -extfile v3.ext \</span><br><span class="line">    -CA ca.crt -CAkey ca.key -CAcreateserial \</span><br><span class="line">    -in hub-docker.tiliatech.net.csr \</span><br><span class="line">    -out hub-docker.tiliatech.net.crt</span><br></pre></td></tr></table></figure>
+<ul>
+<li>向 Harbor 和 Docker 提供证书<ul>
+<li>将服务器证书和密钥复制到存放 harbor使用证书的目录</li>
+<li>```Shell<h1 id="创建存放harbor使用证书的目录"><a href="#创建存放harbor使用证书的目录" class="headerlink" title="创建存放harbor使用证书的目录"></a>创建存放harbor使用证书的目录</h1>mkdir -p /data/cert/<h1 id="拷贝证书"><a href="#拷贝证书" class="headerlink" title="拷贝证书"></a>拷贝证书</h1>cp hub-docker.tiliatech.net.crt /data/cert/<br>cp hub-docker.tiliatech.net.key /data/cert/<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">- 转换证书，供docker使用</span><br><span class="line">- ```Shell</span><br><span class="line">  openssl x509 -inform PEM -in hub-docker.tiliatech.net.crt -out hub-docker.tiliatech.net.cert</span><br><span class="line">  #创建存放docker使用证书目录，命名方式为ip:端口，或者域名</span><br><span class="line">  mkdir -p /etc/docker/certs.d/hub-docker.tiliatech.net/</span><br><span class="line">  #拷贝证书</span><br><span class="line">  cp hub-docker.tiliatech.net.cert /etc/docker/certs.d/hub-docker.tiliatech.net/</span><br><span class="line">  cp hub-docker.tiliatech.net.key /etc/docker/certs.d/hub-docker.tiliatech.net/</span><br><span class="line">  cp ca.crt /etc/docker/certs.d/hub-docker.tiliatech.net/</span><br><span class="line">  </span><br><span class="line">  #重启docker</span><br><span class="line">  systemctl restart docker</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+</li>
+<li><h4 id="安装Harbor"><a href="#安装Harbor" class="headerlink" title="安装Harbor"></a>安装Harbor</h4></li>
+</ol>
+<p>修改配置文件</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">cp harbor.yml.tmpl harbor.yml</span><br><span class="line">vi harbor.yml</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash"><span class="comment">################################</span></span></span><br><span class="line">hostname: hub-docker.tiliatech.net   #修改为本机ip,或者自定义域名</span><br><span class="line">http:</span><br><span class="line">   port: 80 #端口可自定义</span><br><span class="line">https:   </span><br><span class="line">   port: 443 #端口可自定义</span><br><span class="line">certificate: /data/harbor/harbor-ca/hub-docker.tiliatech.net.crt #证书路径</span><br><span class="line">private_key: /data/harbor/harbor-ca/hub-docker.tiliatech.net.key #私钥路径</span><br><span class="line">harbor_admin_password: Harbor12345 #登录密码</span><br><span class="line">data_volume: /data/harbor-data #数据存储目录</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash"><span class="comment">################################</span></span></span><br></pre></td></tr></table></figure>
+<p>执行安装</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">./install.sh  --with-trivy</span><br></pre></td></tr></table></figure>
+<p>浏览器输入ip加端口访问(添加hosts后，域名访问)</p>
+<img src="/yyg/c3b2f9c5/image-20240323220017893.png" class="" title="image-20240323220017893">
+<h3 id="任务四：设置docker-login-登录凭证加密（要拉取镜像的主机）"><a href="#任务四：设置docker-login-登录凭证加密（要拉取镜像的主机）" class="headerlink" title="任务四：设置docker login 登录凭证加密（要拉取镜像的主机）"></a>任务四：设置docker login 登录凭证加密（要拉取镜像的主机）</h3><ol>
+<li>安装pass</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">基础环境</span></span><br><span class="line"> yum install -y make</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">获取pass源码</span></span><br><span class="line">wget https://git.zx2c4.com/password-store/snapshot/password-store-1.7.4.tar.xz</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">解压到/usr/local/目录</span></span><br><span class="line">tar Jxf password-store-1.7.4.tar.xz -C /usr/local/</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">执行安装</span></span><br><span class="line">cd /usr/local/password-store-1.7.4</span><br><span class="line">make install</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">验证</span></span><br><span class="line"> pass version</span><br></pre></td></tr></table></figure>
+<ol>
+<li>安装docker-credential-helpers</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装go基础环境</span></span><br><span class="line">yum -y install golang-1.17.3</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">获取docker-credential-helpers源码</span></span><br><span class="line">wget https://github.com/docker/docker-credential-helpers/archive/refs/tags/v0.8.0.tar.gz</span><br><span class="line">tar -xf v0.8.0.tar.gz</span><br><span class="line"> mv docker-credential-helpers-0.8.0 docker-credential-helpers</span><br><span class="line"> cd docker-credential-helpers/</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">使用pass方式安装</span></span><br><span class="line"> make pass</span><br><span class="line"> cp bin/build/docker-credential-pass /usr/bin/</span><br><span class="line"> chmod +x /usr/bin/docker-credential-pass</span><br></pre></td></tr></table></figure>
+<ol>
+<li>修改密码配置文件</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">生成密钥对</span></span><br><span class="line"> gpg --full-generate-key</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">查看密钥</span></span><br><span class="line"> gpg --list-keys</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash"><span class="comment">#################################################</span></span></span><br><span class="line"> /root/.gnupg/pubring.kbx</span><br><span class="line">------------------------</span><br><span class="line">pub   rsa3072 2023-11-30 [SC] [有效至：2025-11-29]</span><br><span class="line">      56CCF64EC289B13B1C0F14CCF2BB16136358AEA4</span><br><span class="line">uid             [ 绝对 ] qishi &lt;qishi@qq.com&gt;</span><br><span class="line">sub   rsa3072 2023-11-30 [E] [有效至：2025-11-29]</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash"><span class="comment">#################################################</span></span></span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">初始化</span></span><br><span class="line"> pass init 56CCF64EC289B13B1C0F14CCF2BB16136358AEA4</span><br><span class="line"><span class="meta prompt_"> </span></span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">登录docker仓库，查看登录凭证是否加密</span></span><br><span class="line"> docker login hub-docker.tiliatech.net</span><br><span class="line"> cat /root/.docker/config.json</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash"><span class="comment">######################################</span></span></span><br><span class="line"> &#123;</span><br><span class="line">        &quot;auths&quot;: &#123;</span><br><span class="line">                &quot;hub-docker.tiliatech.net&quot;: &#123;&#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        &quot;credsStore&quot;: &quot;pass&quot;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash"><span class="comment">######################################</span></span></span><br><span class="line"> </span><br><span class="line"><span class="meta prompt_">  #</span><span class="language-bash">创建密码本保存文件目录</span></span><br><span class="line">  pass insert docker-credential-helpers/docker-pass-initialized-check</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">查看密码本列表</span></span><br><span class="line">  docker-credential-pass list</span><br><span class="line"><span class="meta prompt_">  #</span><span class="language-bash">验证密码本</span></span><br><span class="line">  yum install tree -y</span><br><span class="line">  pass</span><br><span class="line"><span class="meta prompt_">  #</span><span class="language-bash">以实际路径为准</span></span><br><span class="line">  pass show docker-credential-helpers/aW1hZ2VzLnN0b3JlLm5ldA==/admin</span><br></pre></td></tr></table></figure>
+<h3 id="任务五：上传下载镜像（要拉取镜像的主机）"><a href="#任务五：上传下载镜像（要拉取镜像的主机）" class="headerlink" title="任务五：上传下载镜像（要拉取镜像的主机）"></a>任务五：上传下载镜像（要拉取镜像的主机）</h3><p>在需要拉取和上传镜像的主机上，修改daemon.json文件，再重启docker</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">vi /etc/docker/daemon.json</span><br><span class="line">&#123;</span><br><span class="line">  &quot;insecure-registries&quot;: [&quot;hub-docker.tiliatech.net&quot;] #ip或者域名</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">systemctl restart docker</span><br></pre></td></tr></table></figure>
+<p>拉取和上传镜像</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">拉取nginx镜像做测试</span></span><br><span class="line">docker pull nginx</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重新打上标签，其中<span class="built_in">test</span>为harbor中存在的项目</span></span><br><span class="line">docker tag nginx:latest 172.20.1.55/test/qs-nginx:1.0</span><br><span class="line">docker tag nginx:latest hub-docker.tiliatech.net/test/qs-nginx:1.0</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">登录仓库，输入用户名和密码</span></span><br><span class="line">docker login 172.20.1.55</span><br><span class="line">docker login hub-docker.tiliatech.net</span><br><span class="line">systemctl restart docker</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">将镜像推送到仓库</span></span><br><span class="line">docker push 172.20.1.55/test/qs-nginx:1.0</span><br><span class="line">docker push hub-docker.tiliatech.net/test/qs-nginx:1.0</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">拉取镜像</span></span><br><span class="line">docker pull 172.20.1.55/test/qs-nginx:1.0</span><br><span class="line">docker pull hub-docker.tiliatech.net/test/qs-nginx:1.0</span><br></pre></td></tr></table></figure>
+<h3 id="任务六：cosign签名镜像（要拉取镜像的主机）"><a href="#任务六：cosign签名镜像（要拉取镜像的主机）" class="headerlink" title="任务六：cosign签名镜像（要拉取镜像的主机）"></a>任务六：cosign签名镜像（要拉取镜像的主机）</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">mkdir -p /data/cosign</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">下载，安装cosign</span></span><br><span class="line">wget https://github.com/sigstore/cosign/releases/download/v2.2.2/cosign-2.2.2-1.x86_64.rpm</span><br><span class="line">rpm -ivh cosign-2.2.2-1.x86_64.rpm</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">arm</span></span><br><span class="line">wget https://github.com/sigstore/cosign/releases/download/v2.2.2/cosign-2.2.2-1.aarch64.rpm</span><br><span class="line">rpm -ivh cosign-2.2.2-1.aarch64.rpm</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">验证安装</span></span><br><span class="line">cosign version</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">生成密钥</span></span><br><span class="line">cosign generate-key-pair</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">对镜像进行加密签名</span></span><br><span class="line">cosign sign  --allow-insecure-registry --key /data/cosign/cosign.key images.store.net/test/test-nginx:1.0.0</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">解密验证</span></span><br><span class="line">cosign  verify  --allow-insecure-registry --key /data/cosign/cosign.pub images.store.net/test/test-nginx:1.0.0</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>容器化</category>
+        <category>docker</category>
+      </categories>
+      <tags>
+        <tag>docker</tag>
+        <tag>Harbor</tag>
+        <tag>容器镜像仓库</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>podman-5.1.2 部署</title>
     <url>/yyg/c10999ab/</url>
     <content><![CDATA[<h1 id="podman-5-1-2-部署"><a href="#podman-5-1-2-部署" class="headerlink" title="podman-5.1.2 部署"></a>podman-5.1.2 部署</h1><h2 id="基础环境"><a href="#基础环境" class="headerlink" title="基础环境"></a>基础环境</h2><p>系统：openEuler 22.03 (LTS-SP4) X86</p>
@@ -1285,101 +1285,6 @@ Mastodon:  @Podman_io@fosstodon.org
         <tag>运维</tag>
         <tag>Linux</tag>
         <tag>podman</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>使用cephadm方式部署ceph集群</title>
-    <url>/yyg/89bdf9b5/</url>
-    <content><![CDATA[<h1 id="使用cephadm方式部署ceph集群"><a href="#使用cephadm方式部署ceph集群" class="headerlink" title="使用cephadm方式部署ceph集群"></a>使用cephadm方式部署ceph集群</h1><h2 id="任务目标"><a href="#任务目标" class="headerlink" title="任务目标"></a>任务目标</h2><ol>
-<li>完成使用cephadm方式部署ceph集群</li>
-</ol>
-<h2 id="任务平台"><a href="#任务平台" class="headerlink" title="任务平台"></a>任务平台</h2><ol>
-<li>物理设备—</li>
-<li>操作系统：openEuler 22.03 LTS SP2</li>
-</ol>
-<h2 id="部署指南"><a href="#部署指南" class="headerlink" title="部署指南"></a>部署指南</h2><h3 id="任务一：配置准备"><a href="#任务一：配置准备" class="headerlink" title="任务一：配置准备"></a>任务一：配置准备</h3><ol>
-<li>重命名hostname</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">将10.10.3.117的主机名改为future-ceph-node0</span></span><br><span class="line">hostnamectl set-hostname future-ceph-node0 &amp;&amp; bash</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">将10.10.3.118的主机名改为future-ceph-node1</span></span><br><span class="line">hostnamectl set-hostname future-ceph-node1 &amp;&amp; bash</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">将10.10.3.119的主机名改为future-ceph-node2</span></span><br><span class="line">hostnamectl set-hostname future-ceph-node2 &amp;&amp; bash</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">将10.10.3.120的主机名改为future-ceph-node3</span></span><br><span class="line">hostnamectl set-hostname future-ceph-node3 &amp;&amp; bash</span><br></pre></td></tr></table></figure>
-<ol>
-<li>安装前的配置修改</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">关闭防火墙</span></span><br><span class="line">systemctl stop firewalld</span><br><span class="line">systemctl disable firewalld</span><br><span class="line">firewall-cmd --state</span><br><span class="line"><span class="meta prompt_"> </span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">selinux永久关闭</span></span><br><span class="line">setenforce 0</span><br><span class="line"> sed -i &#x27;s/^SELINUX=enforcing$/SELINUX=permissive/&#x27; /etc/selinux/config</span><br><span class="line">cat /etc/selinux/config</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">添加hosts</span></span><br><span class="line">cat &gt;&gt; /etc/hosts &lt;&lt; EOF</span><br><span class="line">10.10.3.117 future-ceph-node0</span><br><span class="line">10.10.3.118 future-ceph-node1</span><br><span class="line">10.10.3.119 future-ceph-node2</span><br><span class="line">10.10.3.120 future-ceph-node3</span><br><span class="line">EOF</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看</span></span><br><span class="line">cat /etc/hosts</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">同步时间</span></span><br><span class="line">yum install ntp -y</span><br><span class="line">systemctl start ntpd</span><br><span class="line">systemctl enable ntpd</span><br><span class="line">yum install chrony  -y</span><br><span class="line">systemctl start chronyd</span><br><span class="line">systemctl enable chronyd</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">修改配置，添加内容</span></span><br><span class="line">echo &quot;</span><br><span class="line">server 10.10.3.70 iburst</span><br><span class="line">allow 10.10.3.0/24</span><br><span class="line">&quot; &gt;&gt; /etc/chrony.conf</span><br><span class="line">timedatectl set-ntp true</span><br><span class="line">systemctl restart chronyd</span><br><span class="line">timedatectl status</span><br><span class="line">date</span><br></pre></td></tr></table></figure>
-<ol>
-<li>添加SSH免密通信</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">ssh-keygen -t rsa</span><br><span class="line">ssh-copy-id 10.10.3.118</span><br><span class="line">ssh-copy-id 10.10.3.119</span><br><span class="line">ssh-copy-id 10.10.3.120</span><br></pre></td></tr></table></figure>
-<h3 id="任务二：安装docker"><a href="#任务二：安装docker" class="headerlink" title="任务二：安装docker"></a>任务二：安装docker</h3><ol>
-<li>配置Docker CE的yum存储库。打开<code>docker-ce.repo</code>的文件，并将以下内容复制到文件中：</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">[docker-ce-stable]</span><br><span class="line">name=Docker CE Stable - $basearch</span><br><span class="line">baseurl=https://download.docker.com/linux/centos/7/$basearch/stable</span><br><span class="line">enabled=1</span><br><span class="line">gpgcheck=1</span><br><span class="line">gpgkey=https://download.docker.com/linux/centos/gpg &#x27; &gt; /etc/yum.repos.d/docker-ce.repo</span><br></pre></td></tr></table></figure>
-<p>保存并退出文件。</p>
-<ol>
-<li>安装Docker CE。运行以下命令来安装Docker CE：</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"> yum -y install docker-ce docker-ce-cli  containerd.io</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动docker并设置开机自启</span></span><br><span class="line">systemctl start docker  </span><br><span class="line">systemctl enable docker</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看版本</span></span><br><span class="line">docker -v</span><br><span class="line">docker compose version</span><br></pre></td></tr></table></figure>
-<ol>
-<li>Docker配置修改存储路径，配置修改为如下。</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">将配置写入daemon.json文件</span></span><br><span class="line">echo &#x27;&#123;</span><br><span class="line">  &quot;data-root&quot;: &quot;/data/docker&quot;</span><br><span class="line">&#125; &#x27; &gt; /etc/docker/daemon.json</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看</span></span><br><span class="line">cat /etc/docker/daemon.json</span><br><span class="line">systemctl daemon-reload</span><br><span class="line">systemctl restart docker</span><br><span class="line">docker info</span><br></pre></td></tr></table></figure>
-<h3 id="任务三：使用cephadm建设集群"><a href="#任务三：使用cephadm建设集群" class="headerlink" title="任务三：使用cephadm建设集群"></a>任务三：使用cephadm建设集群</h3><ol>
-<li><h4 id="安装ceph软件"><a href="#安装ceph软件" class="headerlink" title="安装ceph软件"></a>安装ceph软件</h4></li>
-</ol>
-<p>在所有主机上安装ceph软件</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum install -y cephadm ceph-common</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看版本</span></span><br><span class="line">ceph -v</span><br></pre></td></tr></table></figure>
-<ol>
-<li><h4 id="启用admin节点"><a href="#启用admin节点" class="headerlink" title="启用admin节点"></a>启用admin节点</h4></li>
-</ol>
-<p>在10.10.3.117上启用集群</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">cephadm bootstrap --mon-ip 10.10.3.117</span><br></pre></td></tr></table></figure>
-<p>访问dashboard修改默认密码</p>
-<blockquote>
-<p>Fetching dashboard port number…</p>
-<p>Ceph Dashboard is now available at:</p>
-<p>​             URL: <a href="https://future-ceph-node0:8443/">https://future-ceph-node0:8443/</a></p>
-<p>​            User: admin</p>
-<p>​        Password: p4csdavtmr</p>
-<p>Enabling client.admin keyring and conf on hosts with “admin” label</p>
-<p>You can access the Ceph CLI with:</p>
-<p>​        sudo /usr/sbin/cephadm shell —fsid 5f344e64-85e4-11ee-9181-0050569a1378 -c /etc/ceph/ceph.conf -k /etc/ceph/ceph.client.admin.keyring</p>
-</blockquote>
-<ol>
-<li><h4 id="添加节点"><a href="#添加节点" class="headerlink" title="添加节点"></a>添加节点</h4></li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启用ceph命令</span></span><br><span class="line">cephadm shell</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">添加ceph的免密访问</span></span><br><span class="line">ceph cephadm get-pub-key &gt; ~/ceph.pub</span><br><span class="line">ssh-copy-id -f -i ~/ceph.pub root@future-ceph-node1</span><br><span class="line">ssh-copy-id -f -i ~/ceph.pub root@future-ceph-node2</span><br><span class="line">ssh-copy-id -f -i ~/ceph.pub root@future-ceph-node3</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">添加ceph节点</span></span><br><span class="line">ceph orch host add future-ceph-node1 10.10.3.118</span><br><span class="line">ceph orch host add future-ceph-node2 10.10.3.119</span><br><span class="line">ceph orch host add future-ceph-node3 10.10.3.120</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看节点</span></span><br><span class="line">ceph orch host ls</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">添加_admin标签允许该节点运行ceph相关命令</span></span><br><span class="line">ceph orch host label add future-ceph-node1  _admin</span><br><span class="line">ceph orch host label add future-ceph-node2  _admin</span><br><span class="line">ceph orch host label add future-ceph-node3  _admin</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">将配置文件拷贝到其他节点</span></span><br><span class="line">scp /etc/ceph/ceph.conf future-ceph-node1:/etc/ceph/</span><br><span class="line">scp /etc/ceph/ceph.conf future-ceph-node2:/etc/ceph/</span><br><span class="line">scp /etc/ceph/ceph.conf future-ceph-node3:/etc/ceph/</span><br><span class="line">scp /etc/ceph/ceph.client.admin.keyring future-ceph-node1:/etc/ceph/</span><br><span class="line">scp /etc/ceph/ceph.client.admin.keyring future-ceph-node2:/etc/ceph/</span><br><span class="line">scp /etc/ceph/ceph.client.admin.keyring future-ceph-node3:/etc/ceph/</span><br></pre></td></tr></table></figure>
-<ol>
-<li><h4 id="设置mon节点（监控）"><a href="#设置mon节点（监控）" class="headerlink" title="设置mon节点（监控）"></a>设置mon节点（监控）</h4></li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">ceph orch apply mon --placement=&quot;4 future-ceph-node0 future-ceph-node1 future-ceph-node2 future-ceph-node3&quot;</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看mon的详细信息</span></span><br><span class="line">ceph mon dump</span><br></pre></td></tr></table></figure>
-<ol>
-<li><h4 id="设置mgr节点（管理）"><a href="#设置mgr节点（管理）" class="headerlink" title="设置mgr节点（管理）"></a>设置mgr节点（管理）</h4></li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">ceph orch apply mgr --placement=&quot;2 future-ceph-node0 future-ceph-node1 &quot;</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看详情</span></span><br><span class="line"> ceph orch ls</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">打上标签</span></span><br><span class="line"> ceph orch host label add future-ceph-node0 master</span><br><span class="line"> ceph orch host label add future-ceph-node1 master</span><br></pre></td></tr></table></figure>
-<ol>
-<li><h4 id="添加osd（存储数据）"><a href="#添加osd（存储数据）" class="headerlink" title="添加osd（存储数据）"></a>添加osd（存储数据）</h4></li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看要挂载的磁盘</span></span><br><span class="line">lsblk</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">所有节点</span></span><br><span class="line">ceph orch daemon add osd future-ceph-node0:/dev/sdb</span><br><span class="line">ceph orch daemon add osd future-ceph-node1:/dev/sdb</span><br><span class="line">ceph orch daemon add osd future-ceph-node2:/dev/sdb</span><br><span class="line">ceph orch daemon add osd future-ceph-node3:/dev/sdb</span><br></pre></td></tr></table></figure>
-<ol>
-<li><h4 id="创建mds（元数据）"><a href="#创建mds（元数据）" class="headerlink" title="创建mds（元数据）"></a>创建mds（元数据）</h4></li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">创建cephfs文件系统</span></span><br><span class="line">ceph osd pool create cephfs_data</span><br><span class="line">ceph osd pool create cephfs_metadata</span><br><span class="line">ceph fs new cephfs cephfs_metadata cephfs_data</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">设置mds组件</span></span><br><span class="line"> ceph orch apply mds cephfs --placement=&quot;4 future-ceph-node0 future-ceph-node1 future-ceph-node2 future-ceph-node3&quot;</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">查看mds状态</span></span><br><span class="line"> ceph orch ps --daemon-type mds</span><br></pre></td></tr></table></figure>
-<ol>
-<li><h4 id="配置rgw（对象网关）"><a href="#配置rgw（对象网关）" class="headerlink" title="配置rgw（对象网关）"></a>配置rgw（对象网关）</h4></li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">创建名为myorg的realm</span></span><br><span class="line">radosgw-admin realm create --rgw-realm=myorg </span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">创建名为default的区域组(设置为主区域组)</span></span><br><span class="line">radosgw-admin zonegroup create --rgw-zonegroup=default --master</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">创建名为cn-east-1的区域（设置为主区域）</span></span><br><span class="line"> radosgw-admin zone create --rgw-zonegroup=default --rgw-zone=cn-east-1 --master</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">为realm与区域配置radosgw</span></span><br><span class="line"> ceph orch apply rgw myorg cn-east-1 --placement=&quot;4 future-ceph-node0 future-ceph-node1 future-ceph-node2 future-ceph-node3&quot;</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">验证</span></span><br><span class="line"> ceph orch ps --daemon-type rgw</span><br><span class="line"> ceph -s</span><br></pre></td></tr></table></figure>
-<ol>
-<li><h4 id="访问测试"><a href="#访问测试" class="headerlink" title="访问测试"></a>访问测试</h4></li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">ceph-Dashboard</span></span><br><span class="line">https://10.10.3.117:8443</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">Prometheus</span></span><br><span class="line">http://10.10.3.117:9095/</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">Grafana</span></span><br><span class="line">https://10.10.3.117:3000/</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>存储系统</category>
-        <category>ceph</category>
-      </categories>
-      <tags>
-        <tag>ceph</tag>
-        <tag>共享存储</tag>
-        <tag>ceph集群</tag>
-        <tag>cephadm</tag>
       </tags>
   </entry>
   <entry>
@@ -1541,12 +1446,99 @@ Mastodon:  @Podman_io@fosstodon.org
       </tags>
   </entry>
   <entry>
-    <title></title>
-    <url>/yyg/0/</url>
-    <content><![CDATA[]]></content>
+    <title>使用cephadm方式部署ceph集群</title>
+    <url>/yyg/89bdf9b5/</url>
+    <content><![CDATA[<h1 id="使用cephadm方式部署ceph集群"><a href="#使用cephadm方式部署ceph集群" class="headerlink" title="使用cephadm方式部署ceph集群"></a>使用cephadm方式部署ceph集群</h1><h2 id="任务目标"><a href="#任务目标" class="headerlink" title="任务目标"></a>任务目标</h2><ol>
+<li>完成使用cephadm方式部署ceph集群</li>
+</ol>
+<h2 id="任务平台"><a href="#任务平台" class="headerlink" title="任务平台"></a>任务平台</h2><ol>
+<li>物理设备—</li>
+<li>操作系统：openEuler 22.03 LTS SP2</li>
+</ol>
+<h2 id="部署指南"><a href="#部署指南" class="headerlink" title="部署指南"></a>部署指南</h2><h3 id="任务一：配置准备"><a href="#任务一：配置准备" class="headerlink" title="任务一：配置准备"></a>任务一：配置准备</h3><ol>
+<li>重命名hostname</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">将10.10.3.117的主机名改为future-ceph-node0</span></span><br><span class="line">hostnamectl set-hostname future-ceph-node0 &amp;&amp; bash</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">将10.10.3.118的主机名改为future-ceph-node1</span></span><br><span class="line">hostnamectl set-hostname future-ceph-node1 &amp;&amp; bash</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">将10.10.3.119的主机名改为future-ceph-node2</span></span><br><span class="line">hostnamectl set-hostname future-ceph-node2 &amp;&amp; bash</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">将10.10.3.120的主机名改为future-ceph-node3</span></span><br><span class="line">hostnamectl set-hostname future-ceph-node3 &amp;&amp; bash</span><br></pre></td></tr></table></figure>
+<ol>
+<li>安装前的配置修改</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">关闭防火墙</span></span><br><span class="line">systemctl stop firewalld</span><br><span class="line">systemctl disable firewalld</span><br><span class="line">firewall-cmd --state</span><br><span class="line"><span class="meta prompt_"> </span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">selinux永久关闭</span></span><br><span class="line">setenforce 0</span><br><span class="line"> sed -i &#x27;s/^SELINUX=enforcing$/SELINUX=permissive/&#x27; /etc/selinux/config</span><br><span class="line">cat /etc/selinux/config</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">添加hosts</span></span><br><span class="line">cat &gt;&gt; /etc/hosts &lt;&lt; EOF</span><br><span class="line">10.10.3.117 future-ceph-node0</span><br><span class="line">10.10.3.118 future-ceph-node1</span><br><span class="line">10.10.3.119 future-ceph-node2</span><br><span class="line">10.10.3.120 future-ceph-node3</span><br><span class="line">EOF</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看</span></span><br><span class="line">cat /etc/hosts</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">同步时间</span></span><br><span class="line">yum install ntp -y</span><br><span class="line">systemctl start ntpd</span><br><span class="line">systemctl enable ntpd</span><br><span class="line">yum install chrony  -y</span><br><span class="line">systemctl start chronyd</span><br><span class="line">systemctl enable chronyd</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">修改配置，添加内容</span></span><br><span class="line">echo &quot;</span><br><span class="line">server 10.10.3.70 iburst</span><br><span class="line">allow 10.10.3.0/24</span><br><span class="line">&quot; &gt;&gt; /etc/chrony.conf</span><br><span class="line">timedatectl set-ntp true</span><br><span class="line">systemctl restart chronyd</span><br><span class="line">timedatectl status</span><br><span class="line">date</span><br></pre></td></tr></table></figure>
+<ol>
+<li>添加SSH免密通信</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">ssh-keygen -t rsa</span><br><span class="line">ssh-copy-id 10.10.3.118</span><br><span class="line">ssh-copy-id 10.10.3.119</span><br><span class="line">ssh-copy-id 10.10.3.120</span><br></pre></td></tr></table></figure>
+<h3 id="任务二：安装docker"><a href="#任务二：安装docker" class="headerlink" title="任务二：安装docker"></a>任务二：安装docker</h3><ol>
+<li>配置Docker CE的yum存储库。打开<code>docker-ce.repo</code>的文件，并将以下内容复制到文件中：</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">[docker-ce-stable]</span><br><span class="line">name=Docker CE Stable - $basearch</span><br><span class="line">baseurl=https://download.docker.com/linux/centos/7/$basearch/stable</span><br><span class="line">enabled=1</span><br><span class="line">gpgcheck=1</span><br><span class="line">gpgkey=https://download.docker.com/linux/centos/gpg &#x27; &gt; /etc/yum.repos.d/docker-ce.repo</span><br></pre></td></tr></table></figure>
+<p>保存并退出文件。</p>
+<ol>
+<li>安装Docker CE。运行以下命令来安装Docker CE：</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"> yum -y install docker-ce docker-ce-cli  containerd.io</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动docker并设置开机自启</span></span><br><span class="line">systemctl start docker  </span><br><span class="line">systemctl enable docker</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看版本</span></span><br><span class="line">docker -v</span><br><span class="line">docker compose version</span><br></pre></td></tr></table></figure>
+<ol>
+<li>Docker配置修改存储路径，配置修改为如下。</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">将配置写入daemon.json文件</span></span><br><span class="line">echo &#x27;&#123;</span><br><span class="line">  &quot;data-root&quot;: &quot;/data/docker&quot;</span><br><span class="line">&#125; &#x27; &gt; /etc/docker/daemon.json</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看</span></span><br><span class="line">cat /etc/docker/daemon.json</span><br><span class="line">systemctl daemon-reload</span><br><span class="line">systemctl restart docker</span><br><span class="line">docker info</span><br></pre></td></tr></table></figure>
+<h3 id="任务三：使用cephadm建设集群"><a href="#任务三：使用cephadm建设集群" class="headerlink" title="任务三：使用cephadm建设集群"></a>任务三：使用cephadm建设集群</h3><ol>
+<li><h4 id="安装ceph软件"><a href="#安装ceph软件" class="headerlink" title="安装ceph软件"></a>安装ceph软件</h4></li>
+</ol>
+<p>在所有主机上安装ceph软件</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum install -y cephadm ceph-common</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看版本</span></span><br><span class="line">ceph -v</span><br></pre></td></tr></table></figure>
+<ol>
+<li><h4 id="启用admin节点"><a href="#启用admin节点" class="headerlink" title="启用admin节点"></a>启用admin节点</h4></li>
+</ol>
+<p>在10.10.3.117上启用集群</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">cephadm bootstrap --mon-ip 10.10.3.117</span><br></pre></td></tr></table></figure>
+<p>访问dashboard修改默认密码</p>
+<blockquote>
+<p>Fetching dashboard port number…</p>
+<p>Ceph Dashboard is now available at:</p>
+<p>​             URL: <a href="https://future-ceph-node0:8443/">https://future-ceph-node0:8443/</a></p>
+<p>​            User: admin</p>
+<p>​        Password: p4csdavtmr</p>
+<p>Enabling client.admin keyring and conf on hosts with “admin” label</p>
+<p>You can access the Ceph CLI with:</p>
+<p>​        sudo /usr/sbin/cephadm shell —fsid 5f344e64-85e4-11ee-9181-0050569a1378 -c /etc/ceph/ceph.conf -k /etc/ceph/ceph.client.admin.keyring</p>
+</blockquote>
+<ol>
+<li><h4 id="添加节点"><a href="#添加节点" class="headerlink" title="添加节点"></a>添加节点</h4></li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启用ceph命令</span></span><br><span class="line">cephadm shell</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">添加ceph的免密访问</span></span><br><span class="line">ceph cephadm get-pub-key &gt; ~/ceph.pub</span><br><span class="line">ssh-copy-id -f -i ~/ceph.pub root@future-ceph-node1</span><br><span class="line">ssh-copy-id -f -i ~/ceph.pub root@future-ceph-node2</span><br><span class="line">ssh-copy-id -f -i ~/ceph.pub root@future-ceph-node3</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">添加ceph节点</span></span><br><span class="line">ceph orch host add future-ceph-node1 10.10.3.118</span><br><span class="line">ceph orch host add future-ceph-node2 10.10.3.119</span><br><span class="line">ceph orch host add future-ceph-node3 10.10.3.120</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看节点</span></span><br><span class="line">ceph orch host ls</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">添加_admin标签允许该节点运行ceph相关命令</span></span><br><span class="line">ceph orch host label add future-ceph-node1  _admin</span><br><span class="line">ceph orch host label add future-ceph-node2  _admin</span><br><span class="line">ceph orch host label add future-ceph-node3  _admin</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">将配置文件拷贝到其他节点</span></span><br><span class="line">scp /etc/ceph/ceph.conf future-ceph-node1:/etc/ceph/</span><br><span class="line">scp /etc/ceph/ceph.conf future-ceph-node2:/etc/ceph/</span><br><span class="line">scp /etc/ceph/ceph.conf future-ceph-node3:/etc/ceph/</span><br><span class="line">scp /etc/ceph/ceph.client.admin.keyring future-ceph-node1:/etc/ceph/</span><br><span class="line">scp /etc/ceph/ceph.client.admin.keyring future-ceph-node2:/etc/ceph/</span><br><span class="line">scp /etc/ceph/ceph.client.admin.keyring future-ceph-node3:/etc/ceph/</span><br></pre></td></tr></table></figure>
+<ol>
+<li><h4 id="设置mon节点（监控）"><a href="#设置mon节点（监控）" class="headerlink" title="设置mon节点（监控）"></a>设置mon节点（监控）</h4></li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">ceph orch apply mon --placement=&quot;4 future-ceph-node0 future-ceph-node1 future-ceph-node2 future-ceph-node3&quot;</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看mon的详细信息</span></span><br><span class="line">ceph mon dump</span><br></pre></td></tr></table></figure>
+<ol>
+<li><h4 id="设置mgr节点（管理）"><a href="#设置mgr节点（管理）" class="headerlink" title="设置mgr节点（管理）"></a>设置mgr节点（管理）</h4></li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">ceph orch apply mgr --placement=&quot;2 future-ceph-node0 future-ceph-node1 &quot;</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看详情</span></span><br><span class="line"> ceph orch ls</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">打上标签</span></span><br><span class="line"> ceph orch host label add future-ceph-node0 master</span><br><span class="line"> ceph orch host label add future-ceph-node1 master</span><br></pre></td></tr></table></figure>
+<ol>
+<li><h4 id="添加osd（存储数据）"><a href="#添加osd（存储数据）" class="headerlink" title="添加osd（存储数据）"></a>添加osd（存储数据）</h4></li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看要挂载的磁盘</span></span><br><span class="line">lsblk</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">所有节点</span></span><br><span class="line">ceph orch daemon add osd future-ceph-node0:/dev/sdb</span><br><span class="line">ceph orch daemon add osd future-ceph-node1:/dev/sdb</span><br><span class="line">ceph orch daemon add osd future-ceph-node2:/dev/sdb</span><br><span class="line">ceph orch daemon add osd future-ceph-node3:/dev/sdb</span><br></pre></td></tr></table></figure>
+<ol>
+<li><h4 id="创建mds（元数据）"><a href="#创建mds（元数据）" class="headerlink" title="创建mds（元数据）"></a>创建mds（元数据）</h4></li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">创建cephfs文件系统</span></span><br><span class="line">ceph osd pool create cephfs_data</span><br><span class="line">ceph osd pool create cephfs_metadata</span><br><span class="line">ceph fs new cephfs cephfs_metadata cephfs_data</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">设置mds组件</span></span><br><span class="line"> ceph orch apply mds cephfs --placement=&quot;4 future-ceph-node0 future-ceph-node1 future-ceph-node2 future-ceph-node3&quot;</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">查看mds状态</span></span><br><span class="line"> ceph orch ps --daemon-type mds</span><br></pre></td></tr></table></figure>
+<ol>
+<li><h4 id="配置rgw（对象网关）"><a href="#配置rgw（对象网关）" class="headerlink" title="配置rgw（对象网关）"></a>配置rgw（对象网关）</h4></li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">创建名为myorg的realm</span></span><br><span class="line">radosgw-admin realm create --rgw-realm=myorg </span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">创建名为default的区域组(设置为主区域组)</span></span><br><span class="line">radosgw-admin zonegroup create --rgw-zonegroup=default --master</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">创建名为cn-east-1的区域（设置为主区域）</span></span><br><span class="line"> radosgw-admin zone create --rgw-zonegroup=default --rgw-zone=cn-east-1 --master</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">为realm与区域配置radosgw</span></span><br><span class="line"> ceph orch apply rgw myorg cn-east-1 --placement=&quot;4 future-ceph-node0 future-ceph-node1 future-ceph-node2 future-ceph-node3&quot;</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">验证</span></span><br><span class="line"> ceph orch ps --daemon-type rgw</span><br><span class="line"> ceph -s</span><br></pre></td></tr></table></figure>
+<ol>
+<li><h4 id="访问测试"><a href="#访问测试" class="headerlink" title="访问测试"></a>访问测试</h4></li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">ceph-Dashboard</span></span><br><span class="line">https://10.10.3.117:8443</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">Prometheus</span></span><br><span class="line">http://10.10.3.117:9095/</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">Grafana</span></span><br><span class="line">https://10.10.3.117:3000/</span><br></pre></td></tr></table></figure>]]></content>
       <categories>
-        <category>漫谈</category>
+        <category>存储系统</category>
+        <category>ceph</category>
       </categories>
+      <tags>
+        <tag>ceph</tag>
+        <tag>共享存储</tag>
+        <tag>ceph集群</tag>
+        <tag>cephadm</tag>
+      </tags>
   </entry>
   <entry>
     <title>使用portainer管理容器</title>
@@ -1731,6 +1723,14 @@ Mastodon:  @Podman_io@fosstodon.org
         <tag>docker</tag>
         <tag>容器通信</tag>
       </tags>
+  </entry>
+  <entry>
+    <title></title>
+    <url>/yyg/0/</url>
+    <content><![CDATA[]]></content>
+      <categories>
+        <category>漫谈</category>
+      </categories>
   </entry>
   <entry>
     <title>项目问题总结</title>
