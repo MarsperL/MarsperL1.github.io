@@ -192,17 +192,31 @@
   </entry>
   
   <entry>
-    <title></title>
-    <link href="https://marsperl.github.io/yyg/0/"/>
-    <id>https://marsperl.github.io/yyg/0/</id>
+    <title>一些免费的gpt网站</title>
+    <link href="https://marsperl.github.io/yyg/30035ff1/"/>
+    <id>https://marsperl.github.io/yyg/30035ff1/</id>
     <published>2024-07-23T16:27:12.946Z</published>
-    <updated>2024-07-23T16:28:02.405Z</updated>
+    <updated>2024-08-11T14:33:12.913Z</updated>
     
+    <content type="html"><![CDATA[<div title="CodeNews" referrerPolicy="no-referrer" class="card_box" style="background-color: #333; width:96px; height:80px;">    <div class="card_mask">      <span class="tooltiptext">免费免登录</span>      <a href="https://codenews.cc/chatgpt">查看详情</a>    </div>    <div class="card_top">      <i class="fas fa-paperclip"></i>      <span></span>    </div>    <div class="card_content">      <span>CodeNews</span>      <div></div>    </div>  </div><div title="思妍AI" referrerPolicy="no-referrer" class="card_box" style="background-color: #333; width:96px; height:80px;">    <div class="card_mask">      <span class="tooltiptext">免费免登录</span>      <a href="https://chat.ttext.cn/">查看详情</a>    </div>    <div class="card_top">      <i class="fas fa-paperclip"></i>      <span></span>    </div>    <div class="card_content">      <span>思妍AI</span>      <div></div>    </div>  </div><div title="FreeGPT" referrerPolicy="no-referrer" class="card_box" style="background-color: #333; width:96px; height:80px;">    <div class="card_mask">      <span class="tooltiptext">免费免登录</span>      <a href="https://free.netfly.top/#/chat">查看详情</a>    </div>    <div class="card_top">      <i class="fas fa-paperclip"></i>      <span></span>    </div>    <div class="card_content">      <span>FreeGPT</span>      <div></div>    </div>  </div><div title="智能AI助手" referrerPolicy="no-referrer" class="card_box" style="background-color: #333; width:96px; height:80px;">    <div class="card_mask">      <span class="tooltiptext">免费免登录</span>      <a href="https://chat.tinycms.xyz:3002/#/chat">查看详情</a>    </div>    <div class="card_top">      <i class="fas fa-paperclip"></i>      <span></span>    </div>    <div class="card_content">      <span>智能AI助手</span>      <div></div>    </div>  </div><div title="RawChat" referrerPolicy="no-referrer" class="card_box" style="background-color: #333; width:96px; height:80px;">    <div class="card_mask">      <span class="tooltiptext">免费免登录</span>      <a href="https://sharedchat.cn/">查看详情</a>    </div>    <div class="card_top">      <i class="fas fa-paperclip"></i>      <span></span>    </div>    <div class="card_content">      <span>RawChat</span>      <div></div>    </div>  </div><div title="FreeChat-镜像" referrerPolicy="no-referrer" class="card_box" style="background-color: #333; width:96px; height:80px;">    <div class="card_mask">      <span class="tooltiptext">ChatGPT镜像网站列表</span>      <a href="https://free-chat.cn/?sockstack&section=table">查看详情</a>    </div>    <div class="card_top">      <i class="fas fa-paperclip"></i>      <span></span>    </div>    <div class="card_content">      <span>FreeChat-镜像</span>      <div></div>    </div>  </div><div title="SockStack" referrerPolicy="no-referrer" class="card_box" style="background-color: #333; width:96px; height:80px;">    <div class="card_mask">      <span class="tooltiptext">ChatGPT镜像网站列表</span>      <a href="https://www.sockstack.cn/chat-mirrors">查看详情</a>    </div>    <div class="card_top">      <i class="fas fa-paperclip"></i>      <span></span>    </div>    <div class="card_content">      <span>SockStack</span>      <div></div>    </div>  </div>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;div title=&quot;CodeNews&quot; referrerPolicy=&quot;no-referrer&quot; class=&quot;card_box&quot; style=&quot;background-color: #333; width:96px; height:80px;&quot;&gt;
+    &lt;div class</summary>
+      
     
     
     
     <category term="漫谈" scheme="https://marsperl.github.io/categories/%E6%BC%AB%E8%B0%88/"/>
     
+    <category term="免费gpt网站" scheme="https://marsperl.github.io/categories/%E6%BC%AB%E8%B0%88/%E5%85%8D%E8%B4%B9gpt%E7%BD%91%E7%AB%99/"/>
+    
+    
+    <category term="人工智能助手" scheme="https://marsperl.github.io/tags/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD%E5%8A%A9%E6%89%8B/"/>
+    
+    <category term="免费gpt" scheme="https://marsperl.github.io/tags/%E5%85%8D%E8%B4%B9gpt/"/>
     
   </entry>
   
@@ -589,9 +603,9 @@
     
     <category term="容器化" scheme="https://marsperl.github.io/categories/%E5%AE%B9%E5%99%A8%E5%8C%96/"/>
     
-    <category term="k8s" scheme="https://marsperl.github.io/categories/%E5%AE%B9%E5%99%A8%E5%8C%96/k8s/"/>
-    
     <category term="存储系统" scheme="https://marsperl.github.io/categories/%E5%AD%98%E5%82%A8%E7%B3%BB%E7%BB%9F/"/>
+    
+    <category term="k8s" scheme="https://marsperl.github.io/categories/%E5%AE%B9%E5%99%A8%E5%8C%96/k8s/"/>
     
     <category term="ceph" scheme="https://marsperl.github.io/categories/%E5%AD%98%E5%82%A8%E7%B3%BB%E7%BB%9F/ceph/"/>
     
