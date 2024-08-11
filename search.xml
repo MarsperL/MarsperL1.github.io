@@ -72,53 +72,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Docker Swarm集群部署</title>
-    <url>/yyg/71468332/</url>
-    <content><![CDATA[<p><strong>任务平台</strong></p>
-<p>3台虚拟机，一台作为manager 节点，另两台作为work节点。</p>
-<p><strong>部署指南</strong></p>
-<p>[TOC]</p>
-<h3 id="安装docker"><a href="#安装docker" class="headerlink" title="安装docker"></a>安装docker</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">下载并安装docker文件及依赖</span></span><br><span class="line">yum install -y yum-utils</span><br><span class="line">yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo</span><br><span class="line">yum install -y docker-ce docker-ce-cli containerd.io</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动docker并设置开机自启</span></span><br><span class="line">systemctl start docker  </span><br><span class="line">systemctl enable docker</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看版本</span></span><br><span class="line">docker -v</span><br></pre></td></tr></table></figure>
-<h3 id="配置防火墙开放端口"><a href="#配置防火墙开放端口" class="headerlink" title="配置防火墙开放端口"></a>配置防火墙开放端口</h3><p>TCP协议端口 2377 ：集群管理端口<br>TCP协议端口 7946 ：节点之间通讯端口（不开放则会负载均衡失效）<br>UDP协议端口 4789 ：overlay网络通讯端口</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">firewall-cmd --zone=public --add-port=2377/tcp --permanent</span><br><span class="line">firewall-cmd --zone=public --add-port=7946/tcp --permanent</span><br><span class="line">firewall-cmd --zone=public --add-port=7946/udp --permanent</span><br><span class="line">firewall-cmd --zone=public --add-port=4789/tcp --permanent</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重载防火墙</span></span><br><span class="line">firewall-cmd --reload</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看80端口是否开放</span></span><br><span class="line">firewall-cmd --query-port=80/tcp</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看所有放行的端口</span></span><br><span class="line">firewall-cmd --zone=public --list-ports</span><br></pre></td></tr></table></figure>
-<h3 id="在-manager-节点创建-Swarm-集群"><a href="#在-manager-节点创建-Swarm-集群" class="headerlink" title="在 manager 节点创建 Swarm 集群"></a>在 manager 节点创建 Swarm 集群</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker swarm init --advertise-addr=本机ip:2377 --listen-addr=本机ip:2377</span><br></pre></td></tr></table></figure>
-<blockquote>
-<p>Swarm initialized: current node (608u180nsa654xbxdthdhl0f6) is now a manager.</p>
-<p>To add a worker to this swarm, run the following command:</p>
-<p>​    <code>docker swarm join --token SWMTKN-1-13dv43qm3tdux7243z3c0najcetizjpgly1urd4uchtcooxe87-4eh15dbayxttxipm34s5tod6t 172.20.1.51:2377</code></p>
-<p>To add a manager to this swarm, run ‘docker swarm join-token manager’ and follow the instructions.</p>
-</blockquote>
-<p>将执行后产生的命令（如上标红的），分别加入到其他主机中，执行后产生如下结果。即为成功加入。</p>
-<p>或者执行下面命令产生令牌，并且是定期轮换计划（推荐）</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker swarm join-token  --rotate worker</span><br></pre></td></tr></table></figure>
-<blockquote>
-<p>This node joined a swarm as a worker.</p>
-</blockquote>
-<p>（扩展）加入管理节点的命令</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker swarm join-token --rotate manager</span><br></pre></td></tr></table></figure>
-<p>在manager节点上输入<code>docker node ls</code> 可查看所有节点。</p>
-<img src="/yyg/71468332/image-20240323221029238-1711203035847-1.png" class="" title="image-20240323221029238">
-<h3 id="创建用于swarm服务的自定义的overlay网络"><a href="#创建用于swarm服务的自定义的overlay网络" class="headerlink" title="创建用于swarm服务的自定义的overlay网络"></a>创建用于swarm服务的自定义的overlay网络</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">方式一</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">--attachable选项表示该网络是可附加的，即其他容器可以连接到该网络</span>  </span><br><span class="line">docker network create -d overlay --attachable my-overlay</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">方式二</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">--subnet:子网 --gateway:网关</span></span><br><span class="line">docker network create --driver overlay --subnet 10.0.9.0/24 --gateway 10.0.9.99 my-overlay</span><br><span class="line">  </span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">查看docker网络</span></span><br><span class="line"> docker network ls</span><br></pre></td></tr></table></figure>
-<h3 id="测试跨主机容器通信"><a href="#测试跨主机容器通信" class="headerlink" title="测试跨主机容器通信"></a>测试跨主机容器通信</h3><ol>
-<li>在三台主机上各部署一个容器，进行相互ping，结果如下图。</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一</span></span><br><span class="line">docker run -it --name master --net=my-overlay ubuntu:latest</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二</span></span><br><span class="line">docker run -it --name node1 --net=my-overlay ubuntu:latest</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机三</span></span><br><span class="line">docker run -it --name node2 --net=my-overlay ubuntu:latest</span><br></pre></td></tr></table></figure>
-<ol>
-<li>安装测试工具</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">apt-get update</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ping工具</span></span><br><span class="line">apt-get install inetutils-ping -y</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ip查看工具</span></span><br><span class="line">apt-get install net-tools -y</span><br></pre></td></tr></table></figure>
-<img src="/yyg/71468332/image-20240323221151231-1711203113839-3.png" class="" title="image-20240323221151231">
-]]></content>
-      <categories>
-        <category>容器化</category>
-        <category>docker</category>
-      </categories>
-      <tags>
-        <tag>docker</tag>
-        <tag>docker Swarm</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Docker部署Matomo</title>
     <url>/yyg/a52e3ab6/</url>
     <content><![CDATA[<h2 id="基础环境"><a href="#基础环境" class="headerlink" title="基础环境"></a>基础环境</h2><p>系统环境：</p>
@@ -170,6 +123,53 @@
       <tags>
         <tag>docker</tag>
         <tag>Matomo</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Docker Swarm集群部署</title>
+    <url>/yyg/71468332/</url>
+    <content><![CDATA[<p><strong>任务平台</strong></p>
+<p>3台虚拟机，一台作为manager 节点，另两台作为work节点。</p>
+<p><strong>部署指南</strong></p>
+<p>[TOC]</p>
+<h3 id="安装docker"><a href="#安装docker" class="headerlink" title="安装docker"></a>安装docker</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">下载并安装docker文件及依赖</span></span><br><span class="line">yum install -y yum-utils</span><br><span class="line">yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo</span><br><span class="line">yum install -y docker-ce docker-ce-cli containerd.io</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动docker并设置开机自启</span></span><br><span class="line">systemctl start docker  </span><br><span class="line">systemctl enable docker</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看版本</span></span><br><span class="line">docker -v</span><br></pre></td></tr></table></figure>
+<h3 id="配置防火墙开放端口"><a href="#配置防火墙开放端口" class="headerlink" title="配置防火墙开放端口"></a>配置防火墙开放端口</h3><p>TCP协议端口 2377 ：集群管理端口<br>TCP协议端口 7946 ：节点之间通讯端口（不开放则会负载均衡失效）<br>UDP协议端口 4789 ：overlay网络通讯端口</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">firewall-cmd --zone=public --add-port=2377/tcp --permanent</span><br><span class="line">firewall-cmd --zone=public --add-port=7946/tcp --permanent</span><br><span class="line">firewall-cmd --zone=public --add-port=7946/udp --permanent</span><br><span class="line">firewall-cmd --zone=public --add-port=4789/tcp --permanent</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重载防火墙</span></span><br><span class="line">firewall-cmd --reload</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看80端口是否开放</span></span><br><span class="line">firewall-cmd --query-port=80/tcp</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看所有放行的端口</span></span><br><span class="line">firewall-cmd --zone=public --list-ports</span><br></pre></td></tr></table></figure>
+<h3 id="在-manager-节点创建-Swarm-集群"><a href="#在-manager-节点创建-Swarm-集群" class="headerlink" title="在 manager 节点创建 Swarm 集群"></a>在 manager 节点创建 Swarm 集群</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker swarm init --advertise-addr=本机ip:2377 --listen-addr=本机ip:2377</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Swarm initialized: current node (608u180nsa654xbxdthdhl0f6) is now a manager.</p>
+<p>To add a worker to this swarm, run the following command:</p>
+<p>​    <code>docker swarm join --token SWMTKN-1-13dv43qm3tdux7243z3c0najcetizjpgly1urd4uchtcooxe87-4eh15dbayxttxipm34s5tod6t 172.20.1.51:2377</code></p>
+<p>To add a manager to this swarm, run ‘docker swarm join-token manager’ and follow the instructions.</p>
+</blockquote>
+<p>将执行后产生的命令（如上标红的），分别加入到其他主机中，执行后产生如下结果。即为成功加入。</p>
+<p>或者执行下面命令产生令牌，并且是定期轮换计划（推荐）</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker swarm join-token  --rotate worker</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>This node joined a swarm as a worker.</p>
+</blockquote>
+<p>（扩展）加入管理节点的命令</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker swarm join-token --rotate manager</span><br></pre></td></tr></table></figure>
+<p>在manager节点上输入<code>docker node ls</code> 可查看所有节点。</p>
+<img src="/yyg/71468332/image-20240323221029238-1711203035847-1.png" class="" title="image-20240323221029238">
+<h3 id="创建用于swarm服务的自定义的overlay网络"><a href="#创建用于swarm服务的自定义的overlay网络" class="headerlink" title="创建用于swarm服务的自定义的overlay网络"></a>创建用于swarm服务的自定义的overlay网络</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">方式一</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">--attachable选项表示该网络是可附加的，即其他容器可以连接到该网络</span>  </span><br><span class="line">docker network create -d overlay --attachable my-overlay</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">方式二</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">--subnet:子网 --gateway:网关</span></span><br><span class="line">docker network create --driver overlay --subnet 10.0.9.0/24 --gateway 10.0.9.99 my-overlay</span><br><span class="line">  </span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">查看docker网络</span></span><br><span class="line"> docker network ls</span><br></pre></td></tr></table></figure>
+<h3 id="测试跨主机容器通信"><a href="#测试跨主机容器通信" class="headerlink" title="测试跨主机容器通信"></a>测试跨主机容器通信</h3><ol>
+<li>在三台主机上各部署一个容器，进行相互ping，结果如下图。</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一</span></span><br><span class="line">docker run -it --name master --net=my-overlay ubuntu:latest</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二</span></span><br><span class="line">docker run -it --name node1 --net=my-overlay ubuntu:latest</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机三</span></span><br><span class="line">docker run -it --name node2 --net=my-overlay ubuntu:latest</span><br></pre></td></tr></table></figure>
+<ol>
+<li>安装测试工具</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">apt-get update</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ping工具</span></span><br><span class="line">apt-get install inetutils-ping -y</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ip查看工具</span></span><br><span class="line">apt-get install net-tools -y</span><br></pre></td></tr></table></figure>
+<img src="/yyg/71468332/image-20240323221151231-1711203113839-3.png" class="" title="image-20240323221151231">
+]]></content>
+      <categories>
+        <category>容器化</category>
+        <category>docker</category>
+      </categories>
+      <tags>
+        <tag>docker</tag>
+        <tag>docker Swarm</tag>
       </tags>
   </entry>
   <entry>
@@ -420,43 +420,6 @@
       </tags>
   </entry>
   <entry>
-    <title>NTP服务器搭建</title>
-    <url>/yyg/29b27760/</url>
-    <content><![CDATA[<h2 id="服务器端"><a href="#服务器端" class="headerlink" title="服务器端"></a>服务器端</h2><p>（1）通过在线方式安装chrony</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">yum install -y chrony</span><br></pre></td></tr></table></figure>
-<p>（2）启动chrony服务</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">systemctl start chronyd</span><br></pre></td></tr></table></figure>
-<p>（3）查看chrony服务状态</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">systemctl status chronyd</span><br></pre></td></tr></table></figure>
-<p>（4）配置chrony服务为开机自启动</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">systemctl enable chronyd</span><br></pre></td></tr></table></figure>
-<p>（5）修改chronyd服务配置文件，完成NTP服务器的搭建</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">vi /etc/chrony.conf</span><br><span class="line">-------------------chrony.conf-------------------</span><br><span class="line">pool 2.centos.pool.ntp.org iburst</span><br><span class="line">sourcedir /run/chrony-dhcp</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">配置的多个NTP服务器</span></span><br><span class="line">server ftp.aliyun.com iburst</span><br><span class="line">server time1.aliyun.com iburst</span><br><span class="line">server time2.aliyun.com iburst</span><br><span class="line">server time3.aliyun.com iburst</span><br><span class="line">server time4.aliyun.com iburst</span><br><span class="line">server time5.aliyun.com iburst</span><br><span class="line">server 10.10.2.103 iburst</span><br><span class="line">driftfile /var/lib/chrony/drift</span><br><span class="line">makestep 1.0 3</span><br><span class="line">rtcsync</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">允许访问的网段</span></span><br><span class="line">allow 10.10.0.0/16</span><br><span class="line">keyfile /etc/chrony.keys</span><br><span class="line">ntsdumpdir /var/lib/chrony</span><br><span class="line">leapsectz right/UTC</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">日志存储路径</span></span><br><span class="line">logdir /var/log/chrony</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">日志测量统计指标</span></span><br><span class="line">log measurements statistics tracking</span><br><span class="line">-------------------chrony.conf-------------------</span><br></pre></td></tr></table></figure>
-<p>（6）配置防火墙，重启服务，使得配置生效</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 配置ntp服务访问策略，使其能够正常访问</span><br><span class="line">firewall-cmd --permanent --add-service=ntp</span><br><span class="line"># 重新加载防火墙策略</span><br><span class="line">firewall-cmd --reload</span><br><span class="line"># 重启chronyd服务</span><br><span class="line">systemctl restart chronyd</span><br></pre></td></tr></table></figure>
-<p>（7）查看连接NTP服务的客户机</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">chronyc clients</span><br></pre></td></tr></table></figure>
-<h2 id="客户机端"><a href="#客户机端" class="headerlink" title="客户机端"></a>客户机端</h2><p>（1）通过在线方式安装chrony</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">yum install -y chrony</span><br></pre></td></tr></table></figure>
-<p>（2）配置访问chrony服务器</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 修改chrony的配置文件</span><br><span class="line">vi /etc/chrony.conf</span><br><span class="line">-------------------chrony.conf-------------------</span><br><span class="line"># Use public servers from the pool.ntp.org project.</span><br><span class="line"># Please consider joining the pool (https://www.pool.ntp.org/join.html).</span><br><span class="line">pool 2.centos.pool.ntp.org iburst</span><br><span class="line"></span><br><span class="line"># Use NTP servers from DHCP.</span><br><span class="line">sourcedir /run/chrony-dhcp</span><br><span class="line"></span><br><span class="line"># Record the rate at which the system clock gains/losses time.</span><br><span class="line">driftfile /var/lib/chrony/drift</span><br><span class="line"># 配置ntp服务器地址</span><br><span class="line">server 10.10.2.103 iburst</span><br><span class="line">#为排版方便此处省略部分提示信息</span><br><span class="line">-----------------------------------------------</span><br></pre></td></tr></table></figure>
-<p>（3）启动chronyd服务，连接NTP服务器</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 启动chrony服务</span><br><span class="line">systemctl start chronyd</span><br><span class="line"># 查看chrony服务状态</span><br><span class="line">systemctl status chronyd</span><br><span class="line"># 配置chrony服务为开机自启动</span><br><span class="line">systemctl enable chronyd</span><br></pre></td></tr></table></figure>
-<p>（4）配置防火墙，使得配置生效</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 配置ntp服务访问策略，使其能够正常访问</span><br><span class="line">firewall-cmd --permanent --add-service=ntp</span><br><span class="line"># 重新加载防火墙策略</span><br><span class="line">firewall-cmd --reload</span><br></pre></td></tr></table></figure>
-<p>（5）验证NTP服务器的连接情况</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 查看源服务器状态</span><br><span class="line"> chronyc sourcestats</span><br><span class="line"># 查看详细同步状态</span><br><span class="line">chronyc sources -v</span><br><span class="line"># 追踪同步情况</span><br><span class="line">chronyc tracking</span><br><span class="line"># 开启网络时间同步</span><br><span class="line">timedatectl set-ntp true</span><br><span class="line"># 查看时间同步状态</span><br><span class="line">timedatectl status</span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>Linux运维</category>
-        <category>网络服务搭建</category>
-      </categories>
-      <tags>
-        <tag>Linux运维</tag>
-        <tag>NTP</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>LNMP部署</title>
     <url>/yyg/776a1cd4/</url>
     <content><![CDATA[<h2 id="基础环境"><a href="#基础环境" class="headerlink" title="基础环境"></a>基础环境</h2><p>系统环境：CentOS Stream 9</p>
@@ -605,6 +568,138 @@
         <tag>Linux</tag>
         <tag>Watchtower</tag>
         <tag>自动更新容器</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>NTP服务器搭建</title>
+    <url>/yyg/29b27760/</url>
+    <content><![CDATA[<h2 id="服务器端"><a href="#服务器端" class="headerlink" title="服务器端"></a>服务器端</h2><p>（1）通过在线方式安装chrony</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">yum install -y chrony</span><br></pre></td></tr></table></figure>
+<p>（2）启动chrony服务</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">systemctl start chronyd</span><br></pre></td></tr></table></figure>
+<p>（3）查看chrony服务状态</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">systemctl status chronyd</span><br></pre></td></tr></table></figure>
+<p>（4）配置chrony服务为开机自启动</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">systemctl enable chronyd</span><br></pre></td></tr></table></figure>
+<p>（5）修改chronyd服务配置文件，完成NTP服务器的搭建</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">vi /etc/chrony.conf</span><br><span class="line">-------------------chrony.conf-------------------</span><br><span class="line">pool 2.centos.pool.ntp.org iburst</span><br><span class="line">sourcedir /run/chrony-dhcp</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">配置的多个NTP服务器</span></span><br><span class="line">server ftp.aliyun.com iburst</span><br><span class="line">server time1.aliyun.com iburst</span><br><span class="line">server time2.aliyun.com iburst</span><br><span class="line">server time3.aliyun.com iburst</span><br><span class="line">server time4.aliyun.com iburst</span><br><span class="line">server time5.aliyun.com iburst</span><br><span class="line">server 10.10.2.103 iburst</span><br><span class="line">driftfile /var/lib/chrony/drift</span><br><span class="line">makestep 1.0 3</span><br><span class="line">rtcsync</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">允许访问的网段</span></span><br><span class="line">allow 10.10.0.0/16</span><br><span class="line">keyfile /etc/chrony.keys</span><br><span class="line">ntsdumpdir /var/lib/chrony</span><br><span class="line">leapsectz right/UTC</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">日志存储路径</span></span><br><span class="line">logdir /var/log/chrony</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">日志测量统计指标</span></span><br><span class="line">log measurements statistics tracking</span><br><span class="line">-------------------chrony.conf-------------------</span><br></pre></td></tr></table></figure>
+<p>（6）配置防火墙，重启服务，使得配置生效</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 配置ntp服务访问策略，使其能够正常访问</span><br><span class="line">firewall-cmd --permanent --add-service=ntp</span><br><span class="line"># 重新加载防火墙策略</span><br><span class="line">firewall-cmd --reload</span><br><span class="line"># 重启chronyd服务</span><br><span class="line">systemctl restart chronyd</span><br></pre></td></tr></table></figure>
+<p>（7）查看连接NTP服务的客户机</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">chronyc clients</span><br></pre></td></tr></table></figure>
+<h2 id="客户机端"><a href="#客户机端" class="headerlink" title="客户机端"></a>客户机端</h2><p>（1）通过在线方式安装chrony</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">yum install -y chrony</span><br></pre></td></tr></table></figure>
+<p>（2）配置访问chrony服务器</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 修改chrony的配置文件</span><br><span class="line">vi /etc/chrony.conf</span><br><span class="line">-------------------chrony.conf-------------------</span><br><span class="line"># Use public servers from the pool.ntp.org project.</span><br><span class="line"># Please consider joining the pool (https://www.pool.ntp.org/join.html).</span><br><span class="line">pool 2.centos.pool.ntp.org iburst</span><br><span class="line"></span><br><span class="line"># Use NTP servers from DHCP.</span><br><span class="line">sourcedir /run/chrony-dhcp</span><br><span class="line"></span><br><span class="line"># Record the rate at which the system clock gains/losses time.</span><br><span class="line">driftfile /var/lib/chrony/drift</span><br><span class="line"># 配置ntp服务器地址</span><br><span class="line">server 10.10.2.103 iburst</span><br><span class="line">#为排版方便此处省略部分提示信息</span><br><span class="line">-----------------------------------------------</span><br></pre></td></tr></table></figure>
+<p>（3）启动chronyd服务，连接NTP服务器</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 启动chrony服务</span><br><span class="line">systemctl start chronyd</span><br><span class="line"># 查看chrony服务状态</span><br><span class="line">systemctl status chronyd</span><br><span class="line"># 配置chrony服务为开机自启动</span><br><span class="line">systemctl enable chronyd</span><br></pre></td></tr></table></figure>
+<p>（4）配置防火墙，使得配置生效</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 配置ntp服务访问策略，使其能够正常访问</span><br><span class="line">firewall-cmd --permanent --add-service=ntp</span><br><span class="line"># 重新加载防火墙策略</span><br><span class="line">firewall-cmd --reload</span><br></pre></td></tr></table></figure>
+<p>（5）验证NTP服务器的连接情况</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 查看源服务器状态</span><br><span class="line"> chronyc sourcestats</span><br><span class="line"># 查看详细同步状态</span><br><span class="line">chronyc sources -v</span><br><span class="line"># 追踪同步情况</span><br><span class="line">chronyc tracking</span><br><span class="line"># 开启网络时间同步</span><br><span class="line">timedatectl set-ntp true</span><br><span class="line"># 查看时间同步状态</span><br><span class="line">timedatectl status</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>Linux运维</category>
+        <category>网络服务搭建</category>
+      </categories>
+      <tags>
+        <tag>Linux运维</tag>
+        <tag>NTP</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>docker 安装 redis</title>
+    <url>/yyg/6fffbcc4/</url>
+    <content><![CDATA[<p>首先输入命令<code>docker pull redis</code> ，将最新版redis安装到本地</p>
+<p>输入以下命令,后台启动redis(注：<strong>该命令是一条命令</strong>)</p>
+<p>其中<code>--name</code>后面的是redis容器的名称，可自行更改</p>
+<blockquote>
+<p>docker run -p 6379:6379 —name mars1 —privileged=true</p>
+<p> -v /app/redis/redis.conf:/etc/redis/redis.conf </p>
+<p>-v /app/redis/data:/data </p>
+<p>-d redis:latest redis-server /etc/redis/redis.conf</p>
+</blockquote>
+<p>此命令也可解决在删除redis容器后，而出现的数据丢失的问题。若要找回数据，则只需重新运行命令即可。</p>
+<img src="/yyg/6fffbcc4/image-20230411164804210.png" class="" title="image-20230411164804210">
+<p>运行<code>docker ps</code>命令，可查看到redis正在运行</p>
+<img src="/yyg/6fffbcc4/image-20230411163752381.png" class="" title="image-20230411163752381">
+<p>然后执行<code>docker exec -it mars1 /bin/bash</code>命令，redis成功运行</p>
+<img src="/yyg/6fffbcc4/image-20230411180817939-1711202816360-2.png" class="" title="image-20230411180817939">]]></content>
+      <categories>
+        <category>容器化</category>
+        <category>docker</category>
+      </categories>
+      <tags>
+        <tag>docker</tag>
+        <tag>redis</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>docker基础知识</title>
+    <url>/yyg/7b36b89c/</url>
+    <content><![CDATA[<p><code>docker search 镜像</code> #搜索要下载的镜像</p>
+<p><code>docker pull 镜像</code> #将镜像拉到本地</p>
+<p><code>docker images</code> #查看已拉取到本地的镜像</p>
+<p><code>docker rmi 镜像名或ID</code> #删除镜像</p>
+<p><code>docker rm 容器ID</code> #删除已停止容器</p>
+<blockquote>
+<p><code>docker rm -f 容器ID</code> #强制删除容器</p>
+</blockquote>
+<p>一次性删除多个容器</p>
+<blockquote>
+<p><code>docker rm -f $(docker ps -a -q)</code></p>
+<p><code>docker ps -a -q |xargs docker rm</code></p>
+</blockquote>
+<p>删除虚悬镜像</p>
+<blockquote>
+<p><code>docker image ls -f dangling=true</code> #显示所有的虚悬镜像</p>
+<p><code>docker image prune</code> #删除虚悬镜像</p>
+</blockquote>
+<p><code>docker ps</code> #查看正在运行的容器</p>
+<blockquote>
+<p><code>docker ps -a</code> #列出所有正在运行和曾运行过的容器</p>
+<p><code>docker ps -l</code> #显示最近创建的容器</p>
+<p><code>docker ps -n</code> #显示最近创建的n个容器</p>
+<p><code>docker ps -q</code> #只显示容器编号</p>
+</blockquote>
+<p><code>docker stop  容器名或ID</code> #结束容器运行</p>
+<p><code>docker kill  容器名或ID</code> #强制停止容器运行</p>
+<p><code>docker start 容器名或ID</code> #启动已停止的容器</p>
+<p><code>docker restart 容器名或ID</code> #重启容器</p>
+<p><code>docker run -it 镜像名或ID</code> #启动镜像(-it指交互式启动)</p>
+<blockquote>
+<p><code>docker run -d 容器名或ID</code> #容器后台运行</p>
+<p><code>docker run -it -p 端口号:端口号 容器名或ID</code> #以特定端口号运行容器</p>
+<p><code>docker run -it -P 容器名或ID</code> #随机分配端口号运行容器</p>
+<p>启动镜像后，按下<code>ctrl+p+q</code>，容器后台运行 </p>
+</blockquote>
+<p>重新进入后台运行的容器</p>
+<blockquote>
+<p><code>docker exec -it  容器ID</code> #在容器中打开新的终端，并且可以启动新的进程，用exit退出，不会导致容器的停止。(推荐使用)</p>
+<p><code>docker attach 容器ID</code>  #直接进入容器启动命令的终端，不会启动新的进程，用exit退出，会导致容器的停止。</p>
+</blockquote>
+<p><code>docker inspect 容器ID</code>#显示容器内的详细信息</p>
+<p><code>docker logs  容器ID</code> #查看容器日志</p>
+<p><code>docker top  容器ID</code> 查看容器内进程</p>
+<p><code>docker cp  容器ID:容器内路径 目的主机路径</code> #将文件从容器拷贝到主机</p>
+<p>容器的导入导出</p>
+<blockquote>
+<p><code>docker export  容器ID &gt;文件名.tar</code> #将容器及内容导出为tar包</p>
+<p><code>cat 文件名.tar | docker import -镜像用户/镜像名:镜像版本号</code> #从tar包中创建一个新文件系统再导入镜像</p>
+</blockquote>
+<p><code>docker run -it --privileged=true -v /宿主机目录:/容器内目录 镜像名</code>#宿主机与容器之间映射添加容器卷</p>
+<p><code>docker run -it --privileged=true -v /宿主机目录:/容器内目录:rw 镜像名</code>#宿主机与容器之间映射添加容器卷,容器内文件可读可写</p>
+<p><code>docker run -it --privileged=true -v /宿主机目录:/容器内目录:ro 镜像名</code>#宿主机与容器之间映射添加容器卷,容器内文件只可读</p>
+<p><code>docker run -it --privileged=true -volumes-from 父类 -name 容器2名称 镜像名</code> #容器2继承容器1的卷规则</p>
+<img src="/yyg/7b36b89c/image-20240323215245387.png" class="" title="image-20240323215245387">]]></content>
+      <categories>
+        <category>容器化</category>
+        <category>docker</category>
+        <category>梳理总结</category>
+      </categories>
+      <tags>
+        <tag>docker</tag>
+        <tag>docker基础</tag>
       </tags>
   </entry>
   <entry>
@@ -806,140 +901,6 @@
       </tags>
   </entry>
   <entry>
-    <title>docker 安装 redis</title>
-    <url>/yyg/6fffbcc4/</url>
-    <content><![CDATA[<p>首先输入命令<code>docker pull redis</code> ，将最新版redis安装到本地</p>
-<p>输入以下命令,后台启动redis(注：<strong>该命令是一条命令</strong>)</p>
-<p>其中<code>--name</code>后面的是redis容器的名称，可自行更改</p>
-<blockquote>
-<p>docker run -p 6379:6379 —name mars1 —privileged=true</p>
-<p> -v /app/redis/redis.conf:/etc/redis/redis.conf </p>
-<p>-v /app/redis/data:/data </p>
-<p>-d redis:latest redis-server /etc/redis/redis.conf</p>
-</blockquote>
-<p>此命令也可解决在删除redis容器后，而出现的数据丢失的问题。若要找回数据，则只需重新运行命令即可。</p>
-<img src="/yyg/6fffbcc4/image-20230411164804210.png" class="" title="image-20230411164804210">
-<p>运行<code>docker ps</code>命令，可查看到redis正在运行</p>
-<img src="/yyg/6fffbcc4/image-20230411163752381.png" class="" title="image-20230411163752381">
-<p>然后执行<code>docker exec -it mars1 /bin/bash</code>命令，redis成功运行</p>
-<img src="/yyg/6fffbcc4/image-20230411180817939-1711202816360-2.png" class="" title="image-20230411180817939">]]></content>
-      <categories>
-        <category>容器化</category>
-        <category>docker</category>
-      </categories>
-      <tags>
-        <tag>docker</tag>
-        <tag>redis</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>docker基础知识</title>
-    <url>/yyg/7b36b89c/</url>
-    <content><![CDATA[<p><code>docker search 镜像</code> #搜索要下载的镜像</p>
-<p><code>docker pull 镜像</code> #将镜像拉到本地</p>
-<p><code>docker images</code> #查看已拉取到本地的镜像</p>
-<p><code>docker rmi 镜像名或ID</code> #删除镜像</p>
-<p><code>docker rm 容器ID</code> #删除已停止容器</p>
-<blockquote>
-<p><code>docker rm -f 容器ID</code> #强制删除容器</p>
-</blockquote>
-<p>一次性删除多个容器</p>
-<blockquote>
-<p><code>docker rm -f $(docker ps -a -q)</code></p>
-<p><code>docker ps -a -q |xargs docker rm</code></p>
-</blockquote>
-<p>删除虚悬镜像</p>
-<blockquote>
-<p><code>docker image ls -f dangling=true</code> #显示所有的虚悬镜像</p>
-<p><code>docker image prune</code> #删除虚悬镜像</p>
-</blockquote>
-<p><code>docker ps</code> #查看正在运行的容器</p>
-<blockquote>
-<p><code>docker ps -a</code> #列出所有正在运行和曾运行过的容器</p>
-<p><code>docker ps -l</code> #显示最近创建的容器</p>
-<p><code>docker ps -n</code> #显示最近创建的n个容器</p>
-<p><code>docker ps -q</code> #只显示容器编号</p>
-</blockquote>
-<p><code>docker stop  容器名或ID</code> #结束容器运行</p>
-<p><code>docker kill  容器名或ID</code> #强制停止容器运行</p>
-<p><code>docker start 容器名或ID</code> #启动已停止的容器</p>
-<p><code>docker restart 容器名或ID</code> #重启容器</p>
-<p><code>docker run -it 镜像名或ID</code> #启动镜像(-it指交互式启动)</p>
-<blockquote>
-<p><code>docker run -d 容器名或ID</code> #容器后台运行</p>
-<p><code>docker run -it -p 端口号:端口号 容器名或ID</code> #以特定端口号运行容器</p>
-<p><code>docker run -it -P 容器名或ID</code> #随机分配端口号运行容器</p>
-<p>启动镜像后，按下<code>ctrl+p+q</code>，容器后台运行 </p>
-</blockquote>
-<p>重新进入后台运行的容器</p>
-<blockquote>
-<p><code>docker exec -it  容器ID</code> #在容器中打开新的终端，并且可以启动新的进程，用exit退出，不会导致容器的停止。(推荐使用)</p>
-<p><code>docker attach 容器ID</code>  #直接进入容器启动命令的终端，不会启动新的进程，用exit退出，会导致容器的停止。</p>
-</blockquote>
-<p><code>docker inspect 容器ID</code>#显示容器内的详细信息</p>
-<p><code>docker logs  容器ID</code> #查看容器日志</p>
-<p><code>docker top  容器ID</code> 查看容器内进程</p>
-<p><code>docker cp  容器ID:容器内路径 目的主机路径</code> #将文件从容器拷贝到主机</p>
-<p>容器的导入导出</p>
-<blockquote>
-<p><code>docker export  容器ID &gt;文件名.tar</code> #将容器及内容导出为tar包</p>
-<p><code>cat 文件名.tar | docker import -镜像用户/镜像名:镜像版本号</code> #从tar包中创建一个新文件系统再导入镜像</p>
-</blockquote>
-<p><code>docker run -it --privileged=true -v /宿主机目录:/容器内目录 镜像名</code>#宿主机与容器之间映射添加容器卷</p>
-<p><code>docker run -it --privileged=true -v /宿主机目录:/容器内目录:rw 镜像名</code>#宿主机与容器之间映射添加容器卷,容器内文件可读可写</p>
-<p><code>docker run -it --privileged=true -v /宿主机目录:/容器内目录:ro 镜像名</code>#宿主机与容器之间映射添加容器卷,容器内文件只可读</p>
-<p><code>docker run -it --privileged=true -volumes-from 父类 -name 容器2名称 镜像名</code> #容器2继承容器1的卷规则</p>
-<img src="/yyg/7b36b89c/image-20240323215245387.png" class="" title="image-20240323215245387">]]></content>
-      <categories>
-        <category>容器化</category>
-        <category>docker</category>
-        <category>梳理总结</category>
-      </categories>
-      <tags>
-        <tag>docker</tag>
-        <tag>docker基础</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>docker安装mysql</title>
-    <url>/yyg/25ae9841/</url>
-    <content><![CDATA[<blockquote>
-<p><code>docker pull mysql</code> #拉取mysql镜像(最新版)</p>
-</blockquote>
-<p>若安装特定版本如6.0，则命令如下：</p>
-<p><code>docker pull mysql:6.0</code></p>
-<p>运行mysql，并分配3306端口，该命令如下：(<strong>注：下面的是一条命令</strong>)</p>
-<p>此命令中的<code>jiamian</code>为小编的liunx系统的用户名，用时需替换为自己的用户名</p>
-<p><code>MYSQL_ROOT_PASSWORD</code>后填的是mysql的密码，可自行替换</p>
-<p><code>--name</code>后填的mysql-1是运行的mysql容器的名称，也可自行替换</p>
-<blockquote>
-<p>docker run -d -p 3306:3306 —privileged=true -v /jiamian/mysql/log:/var/log/mysql</p>
-<p>-v /jiamian/mysql/data:/var/lib/mysql -v /jiamian/mysql/conf:/etc/mysql/conf.d </p>
-<p>-e MYSQL_ROOT_PASSWORD=123456 —name mysql-1 mysql</p>
-</blockquote>
-<p>此命令也可解决在删除mysql容器后，而出现的数据库数据丢失的问题。若要找回数据，则只需重新运行命令即可。</p>
-<img src="/yyg/25ae9841/image-20230410201124021.png" class="" title="image-20230410201124021">
-<p>运行<code>docker ps</code>命令，可查看到mysql正在运行</p>
-<img src="/yyg/25ae9841/image-20230410201052873.png" class="" title="image-20230410201052873">
-<h2 id="解决mysql插入中文乱码的情况"><a href="#解决mysql插入中文乱码的情况" class="headerlink" title="解决mysql插入中文乱码的情况"></a>解决mysql插入中文乱码的情况</h2><p>然后输入命令<code>cd /jiamian/mysql/conf</code>。进入该目录后，输入命令<code>vim my.cnf</code>，新建my.cnf文件，</p>
-<p>并输入以下代码</p>
-<blockquote>
-<p>[client]<br>default_character_set=utf8<br>[mysqld]<br>collation_server = utf8_general_ci<br>character_set_server = utf8</p>
-</blockquote>
-<p>保存退出后，输入 <code>docker restart mysql-1</code>，重启mysql。</p>
-<p>再输入<code>docker exec -it mysql-1 /bin/bash</code>进入mysql环境，此时汉字可正常显示</p>
-<img src="/yyg/25ae9841/image-20230410202120798.png" class="" title="image-20230410202120798">
-]]></content>
-      <categories>
-        <category>容器化</category>
-        <category>docker</category>
-      </categories>
-      <tags>
-        <tag>docker</tag>
-        <tag>mysql</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>docker容器日志配置管理</title>
     <url>/yyg/3b57c0c6/</url>
     <content><![CDATA[<p>运行的项目容器突然就停了，查看容器日志发现磁盘空间不足，导致容器没法运行了。</p>
@@ -981,6 +942,45 @@
         <tag>运维</tag>
         <tag>Linux</tag>
         <tag>知识梳理</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>docker安装mysql</title>
+    <url>/yyg/25ae9841/</url>
+    <content><![CDATA[<blockquote>
+<p><code>docker pull mysql</code> #拉取mysql镜像(最新版)</p>
+</blockquote>
+<p>若安装特定版本如6.0，则命令如下：</p>
+<p><code>docker pull mysql:6.0</code></p>
+<p>运行mysql，并分配3306端口，该命令如下：(<strong>注：下面的是一条命令</strong>)</p>
+<p>此命令中的<code>jiamian</code>为小编的liunx系统的用户名，用时需替换为自己的用户名</p>
+<p><code>MYSQL_ROOT_PASSWORD</code>后填的是mysql的密码，可自行替换</p>
+<p><code>--name</code>后填的mysql-1是运行的mysql容器的名称，也可自行替换</p>
+<blockquote>
+<p>docker run -d -p 3306:3306 —privileged=true -v /jiamian/mysql/log:/var/log/mysql</p>
+<p>-v /jiamian/mysql/data:/var/lib/mysql -v /jiamian/mysql/conf:/etc/mysql/conf.d </p>
+<p>-e MYSQL_ROOT_PASSWORD=123456 —name mysql-1 mysql</p>
+</blockquote>
+<p>此命令也可解决在删除mysql容器后，而出现的数据库数据丢失的问题。若要找回数据，则只需重新运行命令即可。</p>
+<img src="/yyg/25ae9841/image-20230410201124021.png" class="" title="image-20230410201124021">
+<p>运行<code>docker ps</code>命令，可查看到mysql正在运行</p>
+<img src="/yyg/25ae9841/image-20230410201052873.png" class="" title="image-20230410201052873">
+<h2 id="解决mysql插入中文乱码的情况"><a href="#解决mysql插入中文乱码的情况" class="headerlink" title="解决mysql插入中文乱码的情况"></a>解决mysql插入中文乱码的情况</h2><p>然后输入命令<code>cd /jiamian/mysql/conf</code>。进入该目录后，输入命令<code>vim my.cnf</code>，新建my.cnf文件，</p>
+<p>并输入以下代码</p>
+<blockquote>
+<p>[client]<br>default_character_set=utf8<br>[mysqld]<br>collation_server = utf8_general_ci<br>character_set_server = utf8</p>
+</blockquote>
+<p>保存退出后，输入 <code>docker restart mysql-1</code>，重启mysql。</p>
+<p>再输入<code>docker exec -it mysql-1 /bin/bash</code>进入mysql环境，此时汉字可正常显示</p>
+<img src="/yyg/25ae9841/image-20230410202120798.png" class="" title="image-20230410202120798">
+]]></content>
+      <categories>
+        <category>容器化</category>
+        <category>docker</category>
+      </categories>
+      <tags>
+        <tag>docker</tag>
+        <tag>mysql</tag>
       </tags>
   </entry>
   <entry>
@@ -1640,6 +1640,65 @@ Mastodon:  @Podman_io@fosstodon.org
       </tags>
   </entry>
   <entry>
+    <title>使用portainer管理容器</title>
+    <url>/yyg/c60df0d6/</url>
+    <content><![CDATA[<h2 id="基础环境"><a href="#基础环境" class="headerlink" title="基础环境"></a>基础环境</h2><p>系统环境：</p>
+<p>操作系统：CentOS 7.9</p>
+<p>软件环境：</p>
+<p>Docker-26.1.4、Docker Compose-2.27.1 、portainer-2.20.3</p>
+<p>配置阿里yum源 :</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">cd /etc/yum.repos.d</span><br><span class="line">mv CentOS-Base.repo CentOS-Base.repo.bak</span><br><span class="line">curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo</span><br></pre></td></tr></table></figure>
+<p>配置防火墙策略：</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">firewall-cmd --add-port=9443/tcp --permanent</span><br><span class="line">sudo firewall-cmd --reload</span><br><span class="line">sudo firewall-cmd --list-all</span><br></pre></td></tr></table></figure>
+<h2 id="安装Docker"><a href="#安装Docker" class="headerlink" title="安装Docker"></a>安装Docker</h2><p>（1）安装 yum-utils 软件包（提供 yum-config-manager 实用程序）并设置存储库。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">安装 yum-utils 软件包</span></span><br><span class="line">yum install -y yum-utils</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">设置docker-ce存储库</span></span><br><span class="line">yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo</span><br></pre></td></tr></table></figure>
+<p>（2）安装最新版docker和docker compose。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin</span><br></pre></td></tr></table></figure>
+<p>（3）修改Docker的数据目录为“/data/dockerData”,并修改docker镜像源。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">创建Docker守护进程配置文件,编辑配置文件/etc/docker/daemon.json，配置docker数据目录，并修改docker镜像源</span></span><br><span class="line">echo &#x27;&#123;</span><br><span class="line">  &quot;data-root&quot;: &quot;/data/dockerData&quot;,</span><br><span class="line">    &quot;registry-mirrors&quot;: [</span><br><span class="line">    &quot;https://registry.docker-cn.com&quot;,</span><br><span class="line">    &quot;http://hub-mirror.c.163.com&quot;,</span><br><span class="line">    &quot;https://dockerhub.azk8s.cn&quot;,</span><br><span class="line">    &quot;https://mirror.ccs.tencentyun.com&quot;,</span><br><span class="line">    &quot;https://registry.cn-hangzhou.aliyuncs.com&quot;,</span><br><span class="line">    &quot;https://docker.mirrors.ustc.edu.cn&quot;,</span><br><span class="line">    &quot;https://docker.m.daocloud.io&quot;,</span><br><span class="line">    &quot;https://noohub.ru&quot;,</span><br><span class="line">    &quot;https://huecker.io&quot;,</span><br><span class="line">    &quot;https://dockerhub.timeweb.cloud&quot;</span><br><span class="line">  ]</span><br><span class="line">&#125;&#x27; &gt; /etc/docker/daemon.json</span><br></pre></td></tr></table></figure>
+<p>（4）启动Docker服务，并设置为开机自启动。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">启动Docker服务</span></span><br><span class="line">systemctl start docker</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">设置Docker为开机自启动</span></span><br><span class="line">systemctl enable docker</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看Docker服务状态</span></span><br><span class="line">systemctl status docker</span><br></pre></td></tr></table></figure>
+<h2 id="安装portainer"><a href="#安装portainer" class="headerlink" title="安装portainer"></a>安装portainer</h2><p>（1）拉取portainer镜像并创建容器</p>
+<p>方式一：使用docker命令</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">docker run -d -p 9443:9443 --name portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v /data/portainer:/data portainer/portainer-ce:2.20.3</span><br></pre></td></tr></table></figure>
+<p>方式二：使用compose文件安装</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">vi portainer.yml</span><br><span class="line">--------------------------------------------------</span><br><span class="line">services:</span><br><span class="line">  portainer:</span><br><span class="line">    image: portainer/portainer-ce:2.20.3</span><br><span class="line">    container_name: portainer</span><br><span class="line">    restart: always</span><br><span class="line">    ports:</span><br><span class="line">      - &quot;9443:9443&quot;</span><br><span class="line">    volumes:</span><br><span class="line">      - /var/run/docker.sock:/var/run/docker.sock</span><br><span class="line">      - /data/portainer:/data</span><br><span class="line">    user: &quot;0&quot;</span><br><span class="line">    networks:</span><br><span class="line">      net:</span><br><span class="line">        ipv4_address: 172.20.110.10</span><br><span class="line"></span><br><span class="line">networks:</span><br><span class="line"> net:</span><br><span class="line">  driver: bridge</span><br><span class="line">  ipam:</span><br><span class="line">   config:</span><br><span class="line">    - subnet: 172.20.110.0/24</span><br><span class="line">--------------------------------------------------</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">运行安装</span></span><br><span class="line">docker compose -f portainer.yml up -d</span><br></pre></td></tr></table></figure>
+<p>（2）初始化portainer，设置admin用户的密码</p>
+<img src="/yyg/c60df0d6/1.png" class="" title="image-20240718163227768">
+<p>（3）进入系统后，点击“Get Started”，查看本机的容器，如下图。</p>
+<img src="/yyg/c60df0d6/2.png" class="" title="image-20240718164748722">
+<h2 id="多实例环境管理"><a href="#多实例环境管理" class="headerlink" title="多实例环境管理"></a>多实例环境管理</h2><p>Portainer可以管理多个环境，包括Docker Standalone、Docker Swarm、Kubernetes、ACI等。</p>
+<p>使用Portainer管理多Docker Standalone实例，有两种方式，分别是api和客户端容器。</p>
+<h3 id="方式一：使用docker-api-管理Docker-Standalone实例"><a href="#方式一：使用docker-api-管理Docker-Standalone实例" class="headerlink" title="方式一：使用docker api 管理Docker Standalone实例"></a>方式一：使用docker api 管理Docker Standalone实例</h3><p>（1）在其他实例环境上，修改docker服务的配置文件，让Docker守护进程通过TCP在的2375端口监听连接，并通过UNIX套接字在本地监听连接。</p>
+<p>即在ExecStart后添加-H tcp://0.0.0.0:2375 -H unix:///var/run/docker.sock参数。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">vi /usr/lib/systemd/system/docker.service</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">修改内容如下</span></span><br><span class="line">[Service]</span><br><span class="line">ExecStart=/usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock -H tcp://0.0.0.0:2375 -H unix:///var/run/docker.sock</span><br></pre></td></tr></table></figure>
+<p>（2）重新加载配置，使配置生效。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#重新加载配置</span><br><span class="line">systemctl daemon-reload</span><br><span class="line">#重启docker</span><br><span class="line">systemctl restart docker</span><br></pre></td></tr></table></figure>
+<p>（3）设置防火墙策略</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#只允许Portainer主机访问该主机的2375端口</span><br><span class="line">sudo firewall-cmd --permanent --add-rich-rule=&quot;rule family=&quot;ipv4&quot; source address=&quot;192.168.22.23/32&quot; port protocol=&quot;tcp&quot; port=&quot;2357&quot; accept&quot;</span><br></pre></td></tr></table></figure>
+<p>（4）点击Environment-related菜单中的Environments，点击Add environment按钮，添加Docker Standalone，如下图。</p>
+<img src="/yyg/c60df0d6/3.png" class="" title="image-20240723122531889">
+<p>（5）选择API，填写名称和Docker Standalone实例的ip和端口（2375），点击Connect，连接成功后，点击Close，如下图。</p>
+<img src="/yyg/c60df0d6/4.png" class="" title="image-20240723122857044">
+<h3 id="方式二：使用agent容器管理Docker-Standalone实例"><a href="#方式二：使用agent容器管理Docker-Standalone实例" class="headerlink" title="方式二：使用agent容器管理Docker Standalone实例"></a>方式二：使用agent容器管理Docker Standalone实例</h3><p>（1）在其他实例环境上，部署agent容器进行连接，具体命令如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">docker run -d \</span><br><span class="line">  -p 9001:9001 \</span><br><span class="line">  --name portainer_agent \</span><br><span class="line">  --restart=always \</span><br><span class="line">  -v /var/run/docker.sock:/var/run/docker.sock \</span><br><span class="line">  -v /var/lib/docker/volumes:/var/lib/docker/volumes \</span><br><span class="line">  portainer/agent:2.20.3</span><br></pre></td></tr></table></figure>
+<p>（2）设置防火墙策略</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#只允许Portainer主机访问该主机的9001端口</span><br><span class="line">sudo firewall-cmd --permanent --add-rich-rule=&quot;rule family=&quot;ipv4&quot; source address=&quot;192.168.22.23/9001&quot; port protocol=&quot;tcp&quot; port=&quot;9001&quot; accept&quot;</span><br></pre></td></tr></table></figure>
+<p>连接成功后，在Home界面查看两种方式连接的Docker Standalone实例</p>
+<img src="/yyg/c60df0d6/5.png" class="" title="image-20240723124359442">
+]]></content>
+      <categories>
+        <category>Linux运维</category>
+        <category>容器化</category>
+        <category>docker</category>
+        <category>容器管理</category>
+      </categories>
+      <tags>
+        <tag>docker</tag>
+        <tag>portainer</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>使用cephadm方式部署ceph集群</title>
     <url>/yyg/89bdf9b5/</url>
     <content><![CDATA[<h2 id="任务目标"><a href="#任务目标" class="headerlink" title="任务目标"></a>任务目标</h2><ol>
@@ -1735,65 +1794,6 @@ Mastodon:  @Podman_io@fosstodon.org
       </tags>
   </entry>
   <entry>
-    <title>使用portainer管理容器</title>
-    <url>/yyg/c60df0d6/</url>
-    <content><![CDATA[<h2 id="基础环境"><a href="#基础环境" class="headerlink" title="基础环境"></a>基础环境</h2><p>系统环境：</p>
-<p>操作系统：CentOS 7.9</p>
-<p>软件环境：</p>
-<p>Docker-26.1.4、Docker Compose-2.27.1 、portainer-2.20.3</p>
-<p>配置阿里yum源 :</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">cd /etc/yum.repos.d</span><br><span class="line">mv CentOS-Base.repo CentOS-Base.repo.bak</span><br><span class="line">curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo</span><br></pre></td></tr></table></figure>
-<p>配置防火墙策略：</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">firewall-cmd --add-port=9443/tcp --permanent</span><br><span class="line">sudo firewall-cmd --reload</span><br><span class="line">sudo firewall-cmd --list-all</span><br></pre></td></tr></table></figure>
-<h2 id="安装Docker"><a href="#安装Docker" class="headerlink" title="安装Docker"></a>安装Docker</h2><p>（1）安装 yum-utils 软件包（提供 yum-config-manager 实用程序）并设置存储库。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">安装 yum-utils 软件包</span></span><br><span class="line">yum install -y yum-utils</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">设置docker-ce存储库</span></span><br><span class="line">yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo</span><br></pre></td></tr></table></figure>
-<p>（2）安装最新版docker和docker compose。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin</span><br></pre></td></tr></table></figure>
-<p>（3）修改Docker的数据目录为“/data/dockerData”,并修改docker镜像源。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">创建Docker守护进程配置文件,编辑配置文件/etc/docker/daemon.json，配置docker数据目录，并修改docker镜像源</span></span><br><span class="line">echo &#x27;&#123;</span><br><span class="line">  &quot;data-root&quot;: &quot;/data/dockerData&quot;,</span><br><span class="line">    &quot;registry-mirrors&quot;: [</span><br><span class="line">    &quot;https://registry.docker-cn.com&quot;,</span><br><span class="line">    &quot;http://hub-mirror.c.163.com&quot;,</span><br><span class="line">    &quot;https://dockerhub.azk8s.cn&quot;,</span><br><span class="line">    &quot;https://mirror.ccs.tencentyun.com&quot;,</span><br><span class="line">    &quot;https://registry.cn-hangzhou.aliyuncs.com&quot;,</span><br><span class="line">    &quot;https://docker.mirrors.ustc.edu.cn&quot;,</span><br><span class="line">    &quot;https://docker.m.daocloud.io&quot;,</span><br><span class="line">    &quot;https://noohub.ru&quot;,</span><br><span class="line">    &quot;https://huecker.io&quot;,</span><br><span class="line">    &quot;https://dockerhub.timeweb.cloud&quot;</span><br><span class="line">  ]</span><br><span class="line">&#125;&#x27; &gt; /etc/docker/daemon.json</span><br></pre></td></tr></table></figure>
-<p>（4）启动Docker服务，并设置为开机自启动。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">启动Docker服务</span></span><br><span class="line">systemctl start docker</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">设置Docker为开机自启动</span></span><br><span class="line">systemctl enable docker</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看Docker服务状态</span></span><br><span class="line">systemctl status docker</span><br></pre></td></tr></table></figure>
-<h2 id="安装portainer"><a href="#安装portainer" class="headerlink" title="安装portainer"></a>安装portainer</h2><p>（1）拉取portainer镜像并创建容器</p>
-<p>方式一：使用docker命令</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">docker run -d -p 9443:9443 --name portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v /data/portainer:/data portainer/portainer-ce:2.20.3</span><br></pre></td></tr></table></figure>
-<p>方式二：使用compose文件安装</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">vi portainer.yml</span><br><span class="line">--------------------------------------------------</span><br><span class="line">services:</span><br><span class="line">  portainer:</span><br><span class="line">    image: portainer/portainer-ce:2.20.3</span><br><span class="line">    container_name: portainer</span><br><span class="line">    restart: always</span><br><span class="line">    ports:</span><br><span class="line">      - &quot;9443:9443&quot;</span><br><span class="line">    volumes:</span><br><span class="line">      - /var/run/docker.sock:/var/run/docker.sock</span><br><span class="line">      - /data/portainer:/data</span><br><span class="line">    user: &quot;0&quot;</span><br><span class="line">    networks:</span><br><span class="line">      net:</span><br><span class="line">        ipv4_address: 172.20.110.10</span><br><span class="line"></span><br><span class="line">networks:</span><br><span class="line"> net:</span><br><span class="line">  driver: bridge</span><br><span class="line">  ipam:</span><br><span class="line">   config:</span><br><span class="line">    - subnet: 172.20.110.0/24</span><br><span class="line">--------------------------------------------------</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">运行安装</span></span><br><span class="line">docker compose -f portainer.yml up -d</span><br></pre></td></tr></table></figure>
-<p>（2）初始化portainer，设置admin用户的密码</p>
-<img src="/yyg/c60df0d6/1.png" class="" title="image-20240718163227768">
-<p>（3）进入系统后，点击“Get Started”，查看本机的容器，如下图。</p>
-<img src="/yyg/c60df0d6/2.png" class="" title="image-20240718164748722">
-<h2 id="多实例环境管理"><a href="#多实例环境管理" class="headerlink" title="多实例环境管理"></a>多实例环境管理</h2><p>Portainer可以管理多个环境，包括Docker Standalone、Docker Swarm、Kubernetes、ACI等。</p>
-<p>使用Portainer管理多Docker Standalone实例，有两种方式，分别是api和客户端容器。</p>
-<h3 id="方式一：使用docker-api-管理Docker-Standalone实例"><a href="#方式一：使用docker-api-管理Docker-Standalone实例" class="headerlink" title="方式一：使用docker api 管理Docker Standalone实例"></a>方式一：使用docker api 管理Docker Standalone实例</h3><p>（1）在其他实例环境上，修改docker服务的配置文件，让Docker守护进程通过TCP在的2375端口监听连接，并通过UNIX套接字在本地监听连接。</p>
-<p>即在ExecStart后添加-H tcp://0.0.0.0:2375 -H unix:///var/run/docker.sock参数。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">vi /usr/lib/systemd/system/docker.service</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">修改内容如下</span></span><br><span class="line">[Service]</span><br><span class="line">ExecStart=/usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock -H tcp://0.0.0.0:2375 -H unix:///var/run/docker.sock</span><br></pre></td></tr></table></figure>
-<p>（2）重新加载配置，使配置生效。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#重新加载配置</span><br><span class="line">systemctl daemon-reload</span><br><span class="line">#重启docker</span><br><span class="line">systemctl restart docker</span><br></pre></td></tr></table></figure>
-<p>（3）设置防火墙策略</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#只允许Portainer主机访问该主机的2375端口</span><br><span class="line">sudo firewall-cmd --permanent --add-rich-rule=&quot;rule family=&quot;ipv4&quot; source address=&quot;192.168.22.23/32&quot; port protocol=&quot;tcp&quot; port=&quot;2357&quot; accept&quot;</span><br></pre></td></tr></table></figure>
-<p>（4）点击Environment-related菜单中的Environments，点击Add environment按钮，添加Docker Standalone，如下图。</p>
-<img src="/yyg/c60df0d6/3.png" class="" title="image-20240723122531889">
-<p>（5）选择API，填写名称和Docker Standalone实例的ip和端口（2375），点击Connect，连接成功后，点击Close，如下图。</p>
-<img src="/yyg/c60df0d6/4.png" class="" title="image-20240723122857044">
-<h3 id="方式二：使用agent容器管理Docker-Standalone实例"><a href="#方式二：使用agent容器管理Docker-Standalone实例" class="headerlink" title="方式二：使用agent容器管理Docker Standalone实例"></a>方式二：使用agent容器管理Docker Standalone实例</h3><p>（1）在其他实例环境上，部署agent容器进行连接，具体命令如下：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">docker run -d \</span><br><span class="line">  -p 9001:9001 \</span><br><span class="line">  --name portainer_agent \</span><br><span class="line">  --restart=always \</span><br><span class="line">  -v /var/run/docker.sock:/var/run/docker.sock \</span><br><span class="line">  -v /var/lib/docker/volumes:/var/lib/docker/volumes \</span><br><span class="line">  portainer/agent:2.20.3</span><br></pre></td></tr></table></figure>
-<p>（2）设置防火墙策略</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#只允许Portainer主机访问该主机的9001端口</span><br><span class="line">sudo firewall-cmd --permanent --add-rich-rule=&quot;rule family=&quot;ipv4&quot; source address=&quot;192.168.22.23/9001&quot; port protocol=&quot;tcp&quot; port=&quot;9001&quot; accept&quot;</span><br></pre></td></tr></table></figure>
-<p>连接成功后，在Home界面查看两种方式连接的Docker Standalone实例</p>
-<img src="/yyg/c60df0d6/5.png" class="" title="image-20240723124359442">
-]]></content>
-      <categories>
-        <category>Linux运维</category>
-        <category>容器化</category>
-        <category>docker</category>
-        <category>容器管理</category>
-      </categories>
-      <tags>
-        <tag>docker</tag>
-        <tag>portainer</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>安装Winlogbeat日志采集器</title>
     <url>/yyg/f547e2a9/</url>
     <content><![CDATA[<ol>
@@ -1821,6 +1821,37 @@ Mastodon:  @Podman_io@fosstodon.org
         <tag>ELK</tag>
         <tag>日志采集器</tag>
         <tag>Winlogbeat</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>实现Nextcloud私有云盘</title>
+    <url>/yyg/f7b8055d/</url>
+    <content><![CDATA[<h2 id="任务目标"><a href="#任务目标" class="headerlink" title="任务目标"></a>任务目标</h2><ol>
+<li>完成Nextcloud私有云盘的搭建</li>
+</ol>
+<h2 id="部署指南"><a href="#部署指南" class="headerlink" title="部署指南"></a>部署指南</h2><h3 id="基础环境准备"><a href="#基础环境准备" class="headerlink" title="基础环境准备"></a>基础环境准备</h3><p>配置防火墙策略</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">firewall-cmd --zone=public --add-service=http --permanent</span><br><span class="line">firewall-cmd --reload</span><br></pre></td></tr></table></figure>
+<p>配置SELinux策略</p>
+<p>设置SELinux为permissive或disabled。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">修改</span></span><br><span class="line">setenforce 0</span><br><span class="line">sudo sed -i &#x27;s/^SELINUX=enforcing/SELINUX=disabled/&#x27; /etc/selinux/config</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">或</span></span><br><span class="line">setenforce 0</span><br><span class="line">sudo sed -i &#x27;s/^SELINUX=enforcing/SELINUX=permissive/&#x27; /etc/selinux/config</span><br></pre></td></tr></table></figure>
+<h3 id="安装Apache"><a href="#安装Apache" class="headerlink" title="安装Apache"></a>安装Apache</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum -y install httpd</span><br></pre></td></tr></table></figure>
+<h3 id="安装PHP"><a href="#安装PHP" class="headerlink" title="安装PHP"></a>安装PHP</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum -y install php</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装php模块依赖</span></span><br><span class="line">yum -y install php-zip php-dom php-xml php-mbstring php-pdo php-gd</span><br></pre></td></tr></table></figure>
+<h3 id="添加Nextcloud站点配置文件"><a href="#添加Nextcloud站点配置文件" class="headerlink" title="添加Nextcloud站点配置文件"></a>添加Nextcloud站点配置文件</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">mkdir /var/www/html/nextcloud/</span><br><span class="line">chmod 777 /var/www/html/nextcloud/</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">新建文件</span></span><br><span class="line">vi /etc/httpd/conf.d/nextcloud.conf</span><br><span class="line">&lt;VirtualHost *:80&gt;</span><br><span class="line">  DocumentRoot /var/www/html/nextcloud/</span><br><span class="line">  ServerName  your.server.com</span><br><span class="line"></span><br><span class="line">  &lt;Directory /var/www/html/nextcloud/&gt;</span><br><span class="line">    Require all granted</span><br><span class="line">    AllowOverride All</span><br><span class="line">    Options FollowSymLinks MultiViews</span><br><span class="line"></span><br><span class="line">    &lt;IfModule mod_dav.c&gt;</span><br><span class="line">      Dav off</span><br><span class="line">    &lt;/IfModule&gt;</span><br><span class="line"></span><br><span class="line">  &lt;/Directory&gt;</span><br><span class="line">&lt;/VirtualHost&gt;</span><br></pre></td></tr></table></figure>
+<h3 id="下载Nextcloud安装文件"><a href="#下载Nextcloud安装文件" class="headerlink" title="下载Nextcloud安装文件"></a>下载Nextcloud安装文件</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">wget -P /var/www/html/nextcloud/ https://download.nextcloud.com/server/installer/setup-nextcloud.php</span><br></pre></td></tr></table></figure>
+<h3 id="启动服务"><a href="#启动服务" class="headerlink" title="启动服务"></a>启动服务</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">systemctl start httpd</span><br><span class="line">systemctl enable httpd</span><br></pre></td></tr></table></figure>
+<h3 id="通过浏览器访问"><a href="#通过浏览器访问" class="headerlink" title="通过浏览器访问"></a>通过浏览器访问</h3><p>在浏览器中输入<code>http://172.20.1.51/setup-nextcloud.php</code>，按引导进行设置。如下图所示。</p>
+<img src="/yyg/f7b8055d/2.jpg" class="" title="img">
+<p>设置用户名和密码，安装数据库如下图所示。</p>
+<img src="/yyg/f7b8055d/4.png" class="" title="img">
+<p>成功进入内容界面，部署完成，如下图所示。</p>
+<img src="/yyg/f7b8055d/3.png" class="" title="img">]]></content>
+      <categories>
+        <category>Linux运维</category>
+      </categories>
+      <tags>
+        <tag>Linux</tag>
+        <tag>Nextcloud</tag>
+        <tag>私有云盘</tag>
       </tags>
   </entry>
   <entry>
@@ -1885,37 +1916,6 @@ Mastodon:  @Podman_io@fosstodon.org
       <tags>
         <tag>docker</tag>
         <tag>容器通信</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>实现Nextcloud私有云盘</title>
-    <url>/yyg/f7b8055d/</url>
-    <content><![CDATA[<h2 id="任务目标"><a href="#任务目标" class="headerlink" title="任务目标"></a>任务目标</h2><ol>
-<li>完成Nextcloud私有云盘的搭建</li>
-</ol>
-<h2 id="部署指南"><a href="#部署指南" class="headerlink" title="部署指南"></a>部署指南</h2><h3 id="基础环境准备"><a href="#基础环境准备" class="headerlink" title="基础环境准备"></a>基础环境准备</h3><p>配置防火墙策略</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">firewall-cmd --zone=public --add-service=http --permanent</span><br><span class="line">firewall-cmd --reload</span><br></pre></td></tr></table></figure>
-<p>配置SELinux策略</p>
-<p>设置SELinux为permissive或disabled。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">修改</span></span><br><span class="line">setenforce 0</span><br><span class="line">sudo sed -i &#x27;s/^SELINUX=enforcing/SELINUX=disabled/&#x27; /etc/selinux/config</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">或</span></span><br><span class="line">setenforce 0</span><br><span class="line">sudo sed -i &#x27;s/^SELINUX=enforcing/SELINUX=permissive/&#x27; /etc/selinux/config</span><br></pre></td></tr></table></figure>
-<h3 id="安装Apache"><a href="#安装Apache" class="headerlink" title="安装Apache"></a>安装Apache</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum -y install httpd</span><br></pre></td></tr></table></figure>
-<h3 id="安装PHP"><a href="#安装PHP" class="headerlink" title="安装PHP"></a>安装PHP</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum -y install php</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装php模块依赖</span></span><br><span class="line">yum -y install php-zip php-dom php-xml php-mbstring php-pdo php-gd</span><br></pre></td></tr></table></figure>
-<h3 id="添加Nextcloud站点配置文件"><a href="#添加Nextcloud站点配置文件" class="headerlink" title="添加Nextcloud站点配置文件"></a>添加Nextcloud站点配置文件</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">mkdir /var/www/html/nextcloud/</span><br><span class="line">chmod 777 /var/www/html/nextcloud/</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">新建文件</span></span><br><span class="line">vi /etc/httpd/conf.d/nextcloud.conf</span><br><span class="line">&lt;VirtualHost *:80&gt;</span><br><span class="line">  DocumentRoot /var/www/html/nextcloud/</span><br><span class="line">  ServerName  your.server.com</span><br><span class="line"></span><br><span class="line">  &lt;Directory /var/www/html/nextcloud/&gt;</span><br><span class="line">    Require all granted</span><br><span class="line">    AllowOverride All</span><br><span class="line">    Options FollowSymLinks MultiViews</span><br><span class="line"></span><br><span class="line">    &lt;IfModule mod_dav.c&gt;</span><br><span class="line">      Dav off</span><br><span class="line">    &lt;/IfModule&gt;</span><br><span class="line"></span><br><span class="line">  &lt;/Directory&gt;</span><br><span class="line">&lt;/VirtualHost&gt;</span><br></pre></td></tr></table></figure>
-<h3 id="下载Nextcloud安装文件"><a href="#下载Nextcloud安装文件" class="headerlink" title="下载Nextcloud安装文件"></a>下载Nextcloud安装文件</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">wget -P /var/www/html/nextcloud/ https://download.nextcloud.com/server/installer/setup-nextcloud.php</span><br></pre></td></tr></table></figure>
-<h3 id="启动服务"><a href="#启动服务" class="headerlink" title="启动服务"></a>启动服务</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">systemctl start httpd</span><br><span class="line">systemctl enable httpd</span><br></pre></td></tr></table></figure>
-<h3 id="通过浏览器访问"><a href="#通过浏览器访问" class="headerlink" title="通过浏览器访问"></a>通过浏览器访问</h3><p>在浏览器中输入<code>http://172.20.1.51/setup-nextcloud.php</code>，按引导进行设置。如下图所示。</p>
-<img src="/yyg/f7b8055d/2.jpg" class="" title="img">
-<p>设置用户名和密码，安装数据库如下图所示。</p>
-<img src="/yyg/f7b8055d/4.png" class="" title="img">
-<p>成功进入内容界面，部署完成，如下图所示。</p>
-<img src="/yyg/f7b8055d/3.png" class="" title="img">]]></content>
-      <categories>
-        <category>Linux运维</category>
-      </categories>
-      <tags>
-        <tag>Linux</tag>
-        <tag>Nextcloud</tag>
-        <tag>私有云盘</tag>
       </tags>
   </entry>
   <entry>
