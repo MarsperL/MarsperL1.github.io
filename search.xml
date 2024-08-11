@@ -72,6 +72,53 @@
       </tags>
   </entry>
   <entry>
+    <title>Docker Swarm集群部署</title>
+    <url>/yyg/71468332/</url>
+    <content><![CDATA[<p><strong>任务平台</strong></p>
+<p>3台虚拟机，一台作为manager 节点，另两台作为work节点。</p>
+<p><strong>部署指南</strong></p>
+<p>[TOC]</p>
+<h3 id="安装docker"><a href="#安装docker" class="headerlink" title="安装docker"></a>安装docker</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">下载并安装docker文件及依赖</span></span><br><span class="line">yum install -y yum-utils</span><br><span class="line">yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo</span><br><span class="line">yum install -y docker-ce docker-ce-cli containerd.io</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动docker并设置开机自启</span></span><br><span class="line">systemctl start docker  </span><br><span class="line">systemctl enable docker</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看版本</span></span><br><span class="line">docker -v</span><br></pre></td></tr></table></figure>
+<h3 id="配置防火墙开放端口"><a href="#配置防火墙开放端口" class="headerlink" title="配置防火墙开放端口"></a>配置防火墙开放端口</h3><p>TCP协议端口 2377 ：集群管理端口<br>TCP协议端口 7946 ：节点之间通讯端口（不开放则会负载均衡失效）<br>UDP协议端口 4789 ：overlay网络通讯端口</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">firewall-cmd --zone=public --add-port=2377/tcp --permanent</span><br><span class="line">firewall-cmd --zone=public --add-port=7946/tcp --permanent</span><br><span class="line">firewall-cmd --zone=public --add-port=7946/udp --permanent</span><br><span class="line">firewall-cmd --zone=public --add-port=4789/tcp --permanent</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重载防火墙</span></span><br><span class="line">firewall-cmd --reload</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看80端口是否开放</span></span><br><span class="line">firewall-cmd --query-port=80/tcp</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看所有放行的端口</span></span><br><span class="line">firewall-cmd --zone=public --list-ports</span><br></pre></td></tr></table></figure>
+<h3 id="在-manager-节点创建-Swarm-集群"><a href="#在-manager-节点创建-Swarm-集群" class="headerlink" title="在 manager 节点创建 Swarm 集群"></a>在 manager 节点创建 Swarm 集群</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker swarm init --advertise-addr=本机ip:2377 --listen-addr=本机ip:2377</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Swarm initialized: current node (608u180nsa654xbxdthdhl0f6) is now a manager.</p>
+<p>To add a worker to this swarm, run the following command:</p>
+<p>​    <code>docker swarm join --token SWMTKN-1-13dv43qm3tdux7243z3c0najcetizjpgly1urd4uchtcooxe87-4eh15dbayxttxipm34s5tod6t 172.20.1.51:2377</code></p>
+<p>To add a manager to this swarm, run ‘docker swarm join-token manager’ and follow the instructions.</p>
+</blockquote>
+<p>将执行后产生的命令（如上标红的），分别加入到其他主机中，执行后产生如下结果。即为成功加入。</p>
+<p>或者执行下面命令产生令牌，并且是定期轮换计划（推荐）</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker swarm join-token  --rotate worker</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>This node joined a swarm as a worker.</p>
+</blockquote>
+<p>（扩展）加入管理节点的命令</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker swarm join-token --rotate manager</span><br></pre></td></tr></table></figure>
+<p>在manager节点上输入<code>docker node ls</code> 可查看所有节点。</p>
+<img src="/yyg/71468332/image-20240323221029238-1711203035847-1.png" class="" title="image-20240323221029238">
+<h3 id="创建用于swarm服务的自定义的overlay网络"><a href="#创建用于swarm服务的自定义的overlay网络" class="headerlink" title="创建用于swarm服务的自定义的overlay网络"></a>创建用于swarm服务的自定义的overlay网络</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">方式一</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">--attachable选项表示该网络是可附加的，即其他容器可以连接到该网络</span>  </span><br><span class="line">docker network create -d overlay --attachable my-overlay</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">方式二</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">--subnet:子网 --gateway:网关</span></span><br><span class="line">docker network create --driver overlay --subnet 10.0.9.0/24 --gateway 10.0.9.99 my-overlay</span><br><span class="line">  </span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">查看docker网络</span></span><br><span class="line"> docker network ls</span><br></pre></td></tr></table></figure>
+<h3 id="测试跨主机容器通信"><a href="#测试跨主机容器通信" class="headerlink" title="测试跨主机容器通信"></a>测试跨主机容器通信</h3><ol>
+<li>在三台主机上各部署一个容器，进行相互ping，结果如下图。</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一</span></span><br><span class="line">docker run -it --name master --net=my-overlay ubuntu:latest</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二</span></span><br><span class="line">docker run -it --name node1 --net=my-overlay ubuntu:latest</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机三</span></span><br><span class="line">docker run -it --name node2 --net=my-overlay ubuntu:latest</span><br></pre></td></tr></table></figure>
+<ol>
+<li>安装测试工具</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">apt-get update</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ping工具</span></span><br><span class="line">apt-get install inetutils-ping -y</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ip查看工具</span></span><br><span class="line">apt-get install net-tools -y</span><br></pre></td></tr></table></figure>
+<img src="/yyg/71468332/image-20240323221151231-1711203113839-3.png" class="" title="image-20240323221151231">
+]]></content>
+      <categories>
+        <category>容器化</category>
+        <category>docker</category>
+      </categories>
+      <tags>
+        <tag>docker</tag>
+        <tag>docker Swarm</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Docker部署Matomo</title>
     <url>/yyg/a52e3ab6/</url>
     <content><![CDATA[<h2 id="基础环境"><a href="#基础环境" class="headerlink" title="基础环境"></a>基础环境</h2><p>系统环境：</p>
@@ -164,50 +211,36 @@
       </tags>
   </entry>
   <entry>
-    <title>Docker Swarm集群部署</title>
-    <url>/yyg/71468332/</url>
-    <content><![CDATA[<p><strong>任务平台</strong></p>
-<p>3台虚拟机，一台作为manager 节点，另两台作为work节点。</p>
-<p><strong>部署指南</strong></p>
-<p>[TOC]</p>
-<h3 id="安装docker"><a href="#安装docker" class="headerlink" title="安装docker"></a>安装docker</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">下载并安装docker文件及依赖</span></span><br><span class="line">yum install -y yum-utils</span><br><span class="line">yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo</span><br><span class="line">yum install -y docker-ce docker-ce-cli containerd.io</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动docker并设置开机自启</span></span><br><span class="line">systemctl start docker  </span><br><span class="line">systemctl enable docker</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看版本</span></span><br><span class="line">docker -v</span><br></pre></td></tr></table></figure>
-<h3 id="配置防火墙开放端口"><a href="#配置防火墙开放端口" class="headerlink" title="配置防火墙开放端口"></a>配置防火墙开放端口</h3><p>TCP协议端口 2377 ：集群管理端口<br>TCP协议端口 7946 ：节点之间通讯端口（不开放则会负载均衡失效）<br>UDP协议端口 4789 ：overlay网络通讯端口</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">firewall-cmd --zone=public --add-port=2377/tcp --permanent</span><br><span class="line">firewall-cmd --zone=public --add-port=7946/tcp --permanent</span><br><span class="line">firewall-cmd --zone=public --add-port=7946/udp --permanent</span><br><span class="line">firewall-cmd --zone=public --add-port=4789/tcp --permanent</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重载防火墙</span></span><br><span class="line">firewall-cmd --reload</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看80端口是否开放</span></span><br><span class="line">firewall-cmd --query-port=80/tcp</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看所有放行的端口</span></span><br><span class="line">firewall-cmd --zone=public --list-ports</span><br></pre></td></tr></table></figure>
-<h3 id="在-manager-节点创建-Swarm-集群"><a href="#在-manager-节点创建-Swarm-集群" class="headerlink" title="在 manager 节点创建 Swarm 集群"></a>在 manager 节点创建 Swarm 集群</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker swarm init --advertise-addr=本机ip:2377 --listen-addr=本机ip:2377</span><br></pre></td></tr></table></figure>
-<blockquote>
-<p>Swarm initialized: current node (608u180nsa654xbxdthdhl0f6) is now a manager.</p>
-<p>To add a worker to this swarm, run the following command:</p>
-<p>​    <code>docker swarm join --token SWMTKN-1-13dv43qm3tdux7243z3c0najcetizjpgly1urd4uchtcooxe87-4eh15dbayxttxipm34s5tod6t 172.20.1.51:2377</code></p>
-<p>To add a manager to this swarm, run ‘docker swarm join-token manager’ and follow the instructions.</p>
-</blockquote>
-<p>将执行后产生的命令（如上标红的），分别加入到其他主机中，执行后产生如下结果。即为成功加入。</p>
-<p>或者执行下面命令产生令牌，并且是定期轮换计划（推荐）</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker swarm join-token  --rotate worker</span><br></pre></td></tr></table></figure>
-<blockquote>
-<p>This node joined a swarm as a worker.</p>
-</blockquote>
-<p>（扩展）加入管理节点的命令</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker swarm join-token --rotate manager</span><br></pre></td></tr></table></figure>
-<p>在manager节点上输入<code>docker node ls</code> 可查看所有节点。</p>
-<img src="/yyg/71468332/image-20240323221029238-1711203035847-1.png" class="" title="image-20240323221029238">
-<h3 id="创建用于swarm服务的自定义的overlay网络"><a href="#创建用于swarm服务的自定义的overlay网络" class="headerlink" title="创建用于swarm服务的自定义的overlay网络"></a>创建用于swarm服务的自定义的overlay网络</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">方式一</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">--attachable选项表示该网络是可附加的，即其他容器可以连接到该网络</span>  </span><br><span class="line">docker network create -d overlay --attachable my-overlay</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">方式二</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">--subnet:子网 --gateway:网关</span></span><br><span class="line">docker network create --driver overlay --subnet 10.0.9.0/24 --gateway 10.0.9.99 my-overlay</span><br><span class="line">  </span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">查看docker网络</span></span><br><span class="line"> docker network ls</span><br></pre></td></tr></table></figure>
-<h3 id="测试跨主机容器通信"><a href="#测试跨主机容器通信" class="headerlink" title="测试跨主机容器通信"></a>测试跨主机容器通信</h3><ol>
-<li>在三台主机上各部署一个容器，进行相互ping，结果如下图。</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一</span></span><br><span class="line">docker run -it --name master --net=my-overlay ubuntu:latest</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二</span></span><br><span class="line">docker run -it --name node1 --net=my-overlay ubuntu:latest</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机三</span></span><br><span class="line">docker run -it --name node2 --net=my-overlay ubuntu:latest</span><br></pre></td></tr></table></figure>
-<ol>
-<li>安装测试工具</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">apt-get update</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ping工具</span></span><br><span class="line">apt-get install inetutils-ping -y</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ip查看工具</span></span><br><span class="line">apt-get install net-tools -y</span><br></pre></td></tr></table></figure>
-<img src="/yyg/71468332/image-20240323221151231-1711203113839-3.png" class="" title="image-20240323221151231">
+    <title>Hexo-Butterfly美化教程 | 繁沙</title>
+    <url>/yyg/ca46b09/</url>
+    <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>平时在工作和生活中，有一些很好用的软件、网站，就想着找一个地方都给记下来。在创建hexo博客时，看到了有在博客里添加网站导航的，感觉这样挺不错的，也就有了<code>繁沙</code>：一个搜录（个人）好用软件和网站的地方。样式借用了<a href="https://blog.leonus.cn/">Leonus </a>博主的<a href="https://blog.leonus.cn/2022/butterflyTag.html">作品推荐卡片—标签外挂 | Leonus</a>，做了一点修改适配：</p>
+<ul>
+<li><p><code>卡片盒子可一行放多个</code></p>
+</li>
+<li><p><code>盒内的提示文本内容转成了一个外部独立显示的提示框文本</code><br>（尚待优化，若有好的优化方式，请Q我一下），具体效果可以下面的按钮预览。</p>
+</li>
+</ul>
+<div class="hide-block"><button type="button" class="hide-button" style="background-color: #386768;color: color">点击预览效果
+    </button><div class="hide-content"><p><img src="/yyg/ca46b09/1.png" class="" title="image-20240810223933689"></p>
+</div></div>
+<h2 id="教程"><a href="#教程" class="headerlink" title="教程"></a>教程</h2><p>（1）在<code>博客根目录\themes\butterfly\scripts\tag</code>中创建<code>card.js</code> 并粘入以下代码：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * card</span></span><br><span class="line"><span class="comment"> * &#123;% card name,url,bg,star,text,icon,tag,w,h %&#125;</span></span><br><span class="line"><span class="comment"> * &#123;% card 标题,链接,背景,评分,评价,图标,标签,宽度,高度 %&#125;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">&#x27;use strict&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 分数转成星星</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">tostar</span>(<span class="params">num</span>) &#123;</span><br><span class="line">    <span class="keyword">let</span> tmp = <span class="string">&#x27;&#x27;</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; <span class="title class_">Math</span>.<span class="title function_">floor</span>(num); i++) &#123; tmp += <span class="string">&#x27;&lt;i class=&quot;fa-solid fa-star&quot;&gt;&lt;/i&gt;&#x27;</span> &#125; <span class="comment">// 整数部分加实心星星</span></span><br><span class="line">    <span class="keyword">if</span> (num - <span class="title class_">Math</span>.<span class="title function_">floor</span>(num) != <span class="number">0</span>) tmp += <span class="string">&#x27;&lt;i class=&quot;fa-solid fa-star-half-alt&quot;&gt;&lt;/i&gt;&#x27;</span> <span class="comment">// 小数部分转成半星</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; <span class="number">5</span> - <span class="title class_">Math</span>.<span class="title function_">ceil</span>(num); i++) &#123; tmp += <span class="string">&#x27;&lt;i class=&quot;fa-regular fa-star&quot;&gt;&lt;/i&gt;&#x27;</span> &#125; <span class="comment">// 不够5个补空心星星</span></span><br><span class="line">    <span class="keyword">return</span> tmp</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">card</span>(<span class="params">args</span>) &#123;</span><br><span class="line">    args = args.<span class="title function_">join</span>(<span class="string">&#x27; &#x27;</span>).<span class="title function_">split</span>(<span class="string">&#x27;,&#x27;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 获取参数</span></span><br><span class="line">    <span class="keyword">let</span> name = (args[<span class="number">0</span>] || <span class="string">&#x27;未知&#x27;</span>).<span class="title function_">trim</span>()</span><br><span class="line">    <span class="keyword">let</span> url = (args[<span class="number">1</span>] || <span class="string">&#x27;&#x27;</span>).<span class="title function_">trim</span>()</span><br><span class="line">    <span class="keyword">let</span> bg = (args[<span class="number">2</span>] ? <span class="string">`background-image: url(<span class="subst">$&#123;args[<span class="number">2</span>]&#125;</span>);`</span> : <span class="string">&#x27;background-color: #333;&#x27;</span>).<span class="title function_">trim</span>()</span><br><span class="line">    <span class="keyword">let</span> star = <span class="title function_">tostar</span>(<span class="title class_">Number</span>(args[<span class="number">3</span>]) || <span class="number">0</span>)</span><br><span class="line">    <span class="keyword">let</span> text = (args[<span class="number">4</span>] || <span class="string">&#x27;暂无说明&#x27;</span>).<span class="title function_">trim</span>()   </span><br><span class="line">    <span class="keyword">let</span> icon = (args[<span class="number">5</span>] || <span class="string">&#x27;&#x27;</span>).<span class="title function_">trim</span>()</span><br><span class="line">    <span class="keyword">let</span> tag = (args[<span class="number">6</span>] || <span class="string">&#x27;&#x27;</span>).<span class="title function_">trim</span>()</span><br><span class="line">    <span class="keyword">let</span> w = args[<span class="number">7</span>] || <span class="string">&#x27;200px&#x27;</span></span><br><span class="line">    <span class="keyword">let</span> h = args[<span class="number">8</span>] || <span class="string">&#x27;275px&#x27;</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="string">`&lt;div title=&quot;<span class="subst">$&#123;name&#125;</span>&quot; referrerPolicy=&quot;no-referrer&quot; class=&quot;card_box&quot; style=&quot;<span class="subst">$&#123;bg&#125;</span> width:<span class="subst">$&#123;w&#125;</span>; height:<span class="subst">$&#123;h&#125;</span>;&quot;&gt;</span></span><br><span class="line"><span class="string">    &lt;div class=&quot;card_mask&quot;&gt;</span></span><br><span class="line"><span class="string">      &lt;span class=&quot;tooltiptext&quot;&gt;<span class="subst">$&#123;text&#125;</span>&lt;/span&gt;  //此处新添加了tooltiptext类名，添加了新css样式</span></span><br><span class="line"><span class="string">      <span class="subst">$&#123;url?<span class="string">&#x27;&lt;a href=&quot;&#x27;</span>+url+<span class="string">&#x27;&quot;&gt;查看详情&lt;/a&gt;&#x27;</span>:<span class="string">&#x27;&#x27;</span>&#125;</span></span></span><br><span class="line"><span class="string">    &lt;/div&gt;</span></span><br><span class="line"><span class="string">    &lt;div class=&quot;card_top&quot;&gt;</span></span><br><span class="line"><span class="string">      &lt;i class=&quot;<span class="subst">$&#123;icon&#125;</span>&quot;&gt;&lt;/i&gt;</span></span><br><span class="line"><span class="string">      &lt;span&gt;<span class="subst">$&#123;tag&#125;</span>&lt;/span&gt;</span></span><br><span class="line"><span class="string">    &lt;/div&gt;</span></span><br><span class="line"><span class="string">    &lt;div class=&quot;card_content&quot;&gt;</span></span><br><span class="line"><span class="string">      &lt;span&gt;<span class="subst">$&#123;name&#125;</span>&lt;/span&gt;</span></span><br><span class="line"><span class="string">      &lt;div&gt;<span class="subst">$&#123;star&#125;</span>&lt;/div&gt;</span></span><br><span class="line"><span class="string">    &lt;/div&gt;</span></span><br><span class="line"><span class="string">  &lt;/div&gt;`</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">hexo.<span class="property">extend</span>.<span class="property">tag</span>.<span class="title function_">register</span>(<span class="string">&#x27;card&#x27;</span>, card, &#123; <span class="attr">ends</span>: <span class="literal">false</span> &#125;)</span><br></pre></td></tr></table></figure>
+<p>（2）在 <code>博客根目录\themes\butterfly\source\css\_tags</code> 中创建 <code>card.styl</code> 并粘入以下代码：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">.<span class="property">card_box</span></span><br><span class="line">  <span class="attr">display</span>: inline-flex       <span class="comment">//此处将flex改为inline-flex，使得card盒子可以一行放多个</span></span><br><span class="line">  justify-<span class="attr">content</span>: space-between</span><br><span class="line">  flex-<span class="attr">direction</span>: column</span><br><span class="line">  background-<span class="attr">position</span>: center</span><br><span class="line">  background-<span class="attr">size</span>: cover</span><br><span class="line">  border-<span class="attr">radius</span>: 12px</span><br><span class="line">  <span class="attr">position</span>: relative</span><br><span class="line">  <span class="attr">overflow</span>: hidden</span><br><span class="line">  <span class="attr">padding</span>: 10px</span><br><span class="line">  <span class="attr">color</span>: #fff !important</span><br><span class="line">  <span class="attr">margin</span>: 10px auto</span><br><span class="line">  &amp;::after</span><br><span class="line">    <span class="attr">content</span>: <span class="string">&#x27;&#x27;</span></span><br><span class="line">    <span class="attr">position</span>: absolute</span><br><span class="line">    <span class="attr">height</span>: <span class="number">100</span>%</span><br><span class="line">    <span class="attr">width</span>: <span class="number">100</span>%</span><br><span class="line">    <span class="attr">left</span>: <span class="number">0</span></span><br><span class="line">    <span class="attr">top</span>: <span class="number">0</span></span><br><span class="line">    <span class="attr">background</span>: <span class="title function_">rgba</span>(<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0.1</span>)</span><br><span class="line">    <span class="attr">transition</span>: .5s</span><br><span class="line">    z-<span class="attr">index</span>: <span class="number">0</span></span><br><span class="line">  &amp;:hover</span><br><span class="line">    .<span class="property">card_mask</span></span><br><span class="line">      <span class="attr">opacity</span>: <span class="number">1</span></span><br><span class="line">      pointer-<span class="attr">events</span>: auto</span><br><span class="line">  .<span class="property">card_top</span></span><br><span class="line">    <span class="attr">display</span>: flex</span><br><span class="line">    z-<span class="attr">index</span>: <span class="number">1</span></span><br><span class="line">    align-<span class="attr">items</span>: center</span><br><span class="line">    justify-<span class="attr">content</span>: space-between</span><br><span class="line">  .<span class="property">card_mask</span></span><br><span class="line">    <span class="attr">position</span>: absolute</span><br><span class="line">    pointer-<span class="attr">events</span>: none</span><br><span class="line">    z-<span class="attr">index</span>: <span class="number">2</span></span><br><span class="line">    <span class="attr">transition</span>: .5s</span><br><span class="line">    <span class="attr">opacity</span>: <span class="number">0</span></span><br><span class="line">    <span class="attr">width</span>: <span class="number">100</span>%</span><br><span class="line">    <span class="attr">height</span>: <span class="number">100</span>%</span><br><span class="line">    <span class="attr">left</span>: <span class="number">0</span></span><br><span class="line">    <span class="attr">top</span>: <span class="number">0</span></span><br><span class="line">    <span class="attr">padding</span>: 20px</span><br><span class="line">    <span class="attr">background</span>: #<span class="number">333</span></span><br><span class="line">    span</span><br><span class="line">      <span class="attr">display</span>: block</span><br><span class="line">      <span class="attr">height</span>: <span class="title function_">calc</span>(<span class="number">100</span>% - 40px)</span><br><span class="line">      <span class="attr">overflow</span>: auto</span><br><span class="line">    a</span><br><span class="line">      text-<span class="attr">align</span>: center</span><br><span class="line">      <span class="attr">background</span>: #fff</span><br><span class="line">      <span class="attr">color</span>: #<span class="number">333</span> !important</span><br><span class="line">      border-<span class="attr">radius</span>: 5px</span><br><span class="line">      <span class="attr">position</span>: absolute</span><br><span class="line">      <span class="attr">width</span>: <span class="title function_">calc</span>(<span class="number">100</span>% - 40px)</span><br><span class="line">      <span class="attr">bottom</span>: 20px</span><br><span class="line">      <span class="attr">left</span>: 20px</span><br><span class="line">      &amp;:hover</span><br><span class="line">        text-<span class="attr">decoration</span>: none !important</span><br><span class="line">        <span class="attr">color</span>: white !important</span><br><span class="line">        <span class="attr">background</span>: #49b1f5</span><br><span class="line"></span><br><span class="line">  .<span class="property">card_content</span></span><br><span class="line">    z-<span class="attr">index</span>: <span class="number">1</span></span><br><span class="line">    span</span><br><span class="line">      font-<span class="attr">size</span>: 18px</span><br><span class="line">      font-<span class="attr">weight</span>: bold</span><br><span class="line"></span><br><span class="line"><span class="comment">/* ##################这部分为新加样式代码################## */</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* card_mask 文本 */</span></span><br><span class="line">.<span class="property">card_mask</span> .<span class="property">tooltiptext</span> &#123;</span><br><span class="line">    <span class="attr">visibility</span>: hidden;</span><br><span class="line">    background-<span class="attr">color</span>: #f5f9fc;</span><br><span class="line">    <span class="attr">color</span>: #<span class="number">000</span>;</span><br><span class="line">    text-<span class="attr">align</span>: center;</span><br><span class="line">    <span class="attr">padding</span>: 5px <span class="number">0</span>;</span><br><span class="line">    border-<span class="attr">radius</span>: 6px;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 定位 */</span></span><br><span class="line">    <span class="attr">position</span>: fixed;</span><br><span class="line">    z-<span class="attr">index</span>: <span class="number">1</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 鼠标移动上去后显示提示框 */</span></span><br><span class="line">.<span class="property">card_mask</span>:hover .<span class="property">tooltiptext</span> &#123;</span><br><span class="line">     <span class="attr">visibility</span>: visible;</span><br><span class="line">     max-<span class="attr">width</span>: <span class="number">40</span>%;</span><br><span class="line">     word-<span class="attr">wrap</span>: <span class="keyword">break</span>-word;</span><br><span class="line">     text-<span class="attr">align</span>: center;</span><br><span class="line">     max-<span class="attr">height</span>: <span class="number">10</span>%;</span><br><span class="line">     <span class="attr">top</span>: <span class="number">10</span>%;</span><br><span class="line">     <span class="attr">padding</span>: 5px;</span><br><span class="line">     margin-<span class="attr">right</span>:<span class="number">20</span>%;    </span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/* ##################这部分为新加样式代码################## */</span></span><br><span class="line"></span><br><span class="line">[data-theme=<span class="string">&#x27;dark&#x27;</span>]</span><br><span class="line">  .<span class="property">card_box</span></span><br><span class="line">    <span class="attr">color</span>: #ddd !important</span><br><span class="line">    &amp;::after</span><br><span class="line">      <span class="attr">background</span>: <span class="title function_">rgba</span>(<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0.1</span>)</span><br></pre></td></tr></table></figure>
+<h2 id="应用"><a href="#应用" class="headerlink" title="应用"></a>应用</h2><p>应用参数格式：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;% card 标题,链接,背景,评分,评价,图标,标签,宽度,高度 %&#125;</span><br></pre></td></tr></table></figure>
+<p>具体应用的参数应用访问<code>Leonus | 作品推荐卡片—标签外挂</code>的原链接查看。链接如下：</p>
+<div class="tag link"><a class="link-card" title="Leonus | 作品推荐卡片—标签外挂" href="https://blog.leonus.cn/2022/butterflyTag.html"><div class="left"><img src="https://q1.qlogo.cn/g?b=qq&nk=990320751&s=5"/></div><div class="right"><p class="text">Leonus | 作品推荐卡片—标签外挂</p><p class="url">https://blog.leonus.cn/2022/butterflyTag.html</p></div></a></div>
 ]]></content>
       <categories>
-        <category>容器化</category>
-        <category>docker</category>
+        <category>博客教程</category>
+        <category>美化教程</category>
       </categories>
       <tags>
-        <tag>docker</tag>
-        <tag>docker Swarm</tag>
+        <tag>Hexo</tag>
+        <tag>Butterfly</tag>
+        <tag>博客教程</tag>
+        <tag>美化教程</tag>
       </tags>
   </entry>
   <entry>
@@ -300,39 +333,6 @@
         <tag>k8s</tag>
         <tag>Kubeadm</tag>
         <tag>k8s集群</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Hexo-Butterfly美化教程 | 繁沙</title>
-    <url>/yyg/ca46b09/</url>
-    <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>平时在工作和生活中，有一些很好用的软件、网站，就想着找一个地方都给记下来。在创建hexo博客时，看到了有在博客里添加网站导航的，感觉这样挺不错的，也就有了<code>繁沙</code>：一个搜录（个人）好用软件和网站的地方。样式借用了<a href="https://blog.leonus.cn/">Leonus </a>博主的<a href="https://blog.leonus.cn/2022/butterflyTag.html">作品推荐卡片—标签外挂 | Leonus</a>，做了一点修改适配：</p>
-<ul>
-<li><p><code>卡片盒子可一行放多个</code></p>
-</li>
-<li><p><code>盒内的提示文本内容转成了一个外部独立显示的提示框文本</code><br>（尚待优化，若有好的优化方式，请Q我一下），具体效果可以下面的按钮预览。</p>
-</li>
-</ul>
-<div class="hide-block"><button type="button" class="hide-button" style="background-color: #386768;color: color">点击预览效果
-    </button><div class="hide-content"><p><img src="/yyg/ca46b09/1.png" class="" title="image-20240810223933689"></p>
-</div></div>
-<h2 id="教程"><a href="#教程" class="headerlink" title="教程"></a>教程</h2><p>（1）在<code>博客根目录\themes\butterfly\scripts\tag</code>中创建<code>card.js</code> 并粘入以下代码：</p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * card</span></span><br><span class="line"><span class="comment"> * &#123;% card name,url,bg,star,text,icon,tag,w,h %&#125;</span></span><br><span class="line"><span class="comment"> * &#123;% card 标题,链接,背景,评分,评价,图标,标签,宽度,高度 %&#125;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">&#x27;use strict&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 分数转成星星</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">tostar</span>(<span class="params">num</span>) &#123;</span><br><span class="line">    <span class="keyword">let</span> tmp = <span class="string">&#x27;&#x27;</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; <span class="title class_">Math</span>.<span class="title function_">floor</span>(num); i++) &#123; tmp += <span class="string">&#x27;&lt;i class=&quot;fa-solid fa-star&quot;&gt;&lt;/i&gt;&#x27;</span> &#125; <span class="comment">// 整数部分加实心星星</span></span><br><span class="line">    <span class="keyword">if</span> (num - <span class="title class_">Math</span>.<span class="title function_">floor</span>(num) != <span class="number">0</span>) tmp += <span class="string">&#x27;&lt;i class=&quot;fa-solid fa-star-half-alt&quot;&gt;&lt;/i&gt;&#x27;</span> <span class="comment">// 小数部分转成半星</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; <span class="number">5</span> - <span class="title class_">Math</span>.<span class="title function_">ceil</span>(num); i++) &#123; tmp += <span class="string">&#x27;&lt;i class=&quot;fa-regular fa-star&quot;&gt;&lt;/i&gt;&#x27;</span> &#125; <span class="comment">// 不够5个补空心星星</span></span><br><span class="line">    <span class="keyword">return</span> tmp</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">card</span>(<span class="params">args</span>) &#123;</span><br><span class="line">    args = args.<span class="title function_">join</span>(<span class="string">&#x27; &#x27;</span>).<span class="title function_">split</span>(<span class="string">&#x27;,&#x27;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 获取参数</span></span><br><span class="line">    <span class="keyword">let</span> name = (args[<span class="number">0</span>] || <span class="string">&#x27;未知&#x27;</span>).<span class="title function_">trim</span>()</span><br><span class="line">    <span class="keyword">let</span> url = (args[<span class="number">1</span>] || <span class="string">&#x27;&#x27;</span>).<span class="title function_">trim</span>()</span><br><span class="line">    <span class="keyword">let</span> bg = (args[<span class="number">2</span>] ? <span class="string">`background-image: url(<span class="subst">$&#123;args[<span class="number">2</span>]&#125;</span>);`</span> : <span class="string">&#x27;background-color: #333;&#x27;</span>).<span class="title function_">trim</span>()</span><br><span class="line">    <span class="keyword">let</span> star = <span class="title function_">tostar</span>(<span class="title class_">Number</span>(args[<span class="number">3</span>]) || <span class="number">0</span>)</span><br><span class="line">    <span class="keyword">let</span> text = (args[<span class="number">4</span>] || <span class="string">&#x27;暂无说明&#x27;</span>).<span class="title function_">trim</span>()   </span><br><span class="line">    <span class="keyword">let</span> icon = (args[<span class="number">5</span>] || <span class="string">&#x27;&#x27;</span>).<span class="title function_">trim</span>()</span><br><span class="line">    <span class="keyword">let</span> tag = (args[<span class="number">6</span>] || <span class="string">&#x27;&#x27;</span>).<span class="title function_">trim</span>()</span><br><span class="line">    <span class="keyword">let</span> w = args[<span class="number">7</span>] || <span class="string">&#x27;200px&#x27;</span></span><br><span class="line">    <span class="keyword">let</span> h = args[<span class="number">8</span>] || <span class="string">&#x27;275px&#x27;</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="string">`&lt;div title=&quot;<span class="subst">$&#123;name&#125;</span>&quot; referrerPolicy=&quot;no-referrer&quot; class=&quot;card_box&quot; style=&quot;<span class="subst">$&#123;bg&#125;</span> width:<span class="subst">$&#123;w&#125;</span>; height:<span class="subst">$&#123;h&#125;</span>;&quot;&gt;</span></span><br><span class="line"><span class="string">    &lt;div class=&quot;card_mask&quot;&gt;</span></span><br><span class="line"><span class="string">      &lt;span class=&quot;tooltiptext&quot;&gt;<span class="subst">$&#123;text&#125;</span>&lt;/span&gt;  //此处新添加了tooltiptext类名，添加了新css样式</span></span><br><span class="line"><span class="string">      <span class="subst">$&#123;url?<span class="string">&#x27;&lt;a href=&quot;&#x27;</span>+url+<span class="string">&#x27;&quot;&gt;查看详情&lt;/a&gt;&#x27;</span>:<span class="string">&#x27;&#x27;</span>&#125;</span></span></span><br><span class="line"><span class="string">    &lt;/div&gt;</span></span><br><span class="line"><span class="string">    &lt;div class=&quot;card_top&quot;&gt;</span></span><br><span class="line"><span class="string">      &lt;i class=&quot;<span class="subst">$&#123;icon&#125;</span>&quot;&gt;&lt;/i&gt;</span></span><br><span class="line"><span class="string">      &lt;span&gt;<span class="subst">$&#123;tag&#125;</span>&lt;/span&gt;</span></span><br><span class="line"><span class="string">    &lt;/div&gt;</span></span><br><span class="line"><span class="string">    &lt;div class=&quot;card_content&quot;&gt;</span></span><br><span class="line"><span class="string">      &lt;span&gt;<span class="subst">$&#123;name&#125;</span>&lt;/span&gt;</span></span><br><span class="line"><span class="string">      &lt;div&gt;<span class="subst">$&#123;star&#125;</span>&lt;/div&gt;</span></span><br><span class="line"><span class="string">    &lt;/div&gt;</span></span><br><span class="line"><span class="string">  &lt;/div&gt;`</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">hexo.<span class="property">extend</span>.<span class="property">tag</span>.<span class="title function_">register</span>(<span class="string">&#x27;card&#x27;</span>, card, &#123; <span class="attr">ends</span>: <span class="literal">false</span> &#125;)</span><br></pre></td></tr></table></figure>
-<p>（2）在 <code>博客根目录\themes\butterfly\source\css\_tags</code> 中创建 <code>card.styl</code> 并粘入以下代码：</p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">.<span class="property">card_box</span></span><br><span class="line">  <span class="attr">display</span>: inline-flex       <span class="comment">//此处将flex改为inline-flex，使得card盒子可以一行放多个</span></span><br><span class="line">  justify-<span class="attr">content</span>: space-between</span><br><span class="line">  flex-<span class="attr">direction</span>: column</span><br><span class="line">  background-<span class="attr">position</span>: center</span><br><span class="line">  background-<span class="attr">size</span>: cover</span><br><span class="line">  border-<span class="attr">radius</span>: 12px</span><br><span class="line">  <span class="attr">position</span>: relative</span><br><span class="line">  <span class="attr">overflow</span>: hidden</span><br><span class="line">  <span class="attr">padding</span>: 10px</span><br><span class="line">  <span class="attr">color</span>: #fff !important</span><br><span class="line">  <span class="attr">margin</span>: 10px auto</span><br><span class="line">  &amp;::after</span><br><span class="line">    <span class="attr">content</span>: <span class="string">&#x27;&#x27;</span></span><br><span class="line">    <span class="attr">position</span>: absolute</span><br><span class="line">    <span class="attr">height</span>: <span class="number">100</span>%</span><br><span class="line">    <span class="attr">width</span>: <span class="number">100</span>%</span><br><span class="line">    <span class="attr">left</span>: <span class="number">0</span></span><br><span class="line">    <span class="attr">top</span>: <span class="number">0</span></span><br><span class="line">    <span class="attr">background</span>: <span class="title function_">rgba</span>(<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0.1</span>)</span><br><span class="line">    <span class="attr">transition</span>: .5s</span><br><span class="line">    z-<span class="attr">index</span>: <span class="number">0</span></span><br><span class="line">  &amp;:hover</span><br><span class="line">    .<span class="property">card_mask</span></span><br><span class="line">      <span class="attr">opacity</span>: <span class="number">1</span></span><br><span class="line">      pointer-<span class="attr">events</span>: auto</span><br><span class="line">  .<span class="property">card_top</span></span><br><span class="line">    <span class="attr">display</span>: flex</span><br><span class="line">    z-<span class="attr">index</span>: <span class="number">1</span></span><br><span class="line">    align-<span class="attr">items</span>: center</span><br><span class="line">    justify-<span class="attr">content</span>: space-between</span><br><span class="line">  .<span class="property">card_mask</span></span><br><span class="line">    <span class="attr">position</span>: absolute</span><br><span class="line">    pointer-<span class="attr">events</span>: none</span><br><span class="line">    z-<span class="attr">index</span>: <span class="number">2</span></span><br><span class="line">    <span class="attr">transition</span>: .5s</span><br><span class="line">    <span class="attr">opacity</span>: <span class="number">0</span></span><br><span class="line">    <span class="attr">width</span>: <span class="number">100</span>%</span><br><span class="line">    <span class="attr">height</span>: <span class="number">100</span>%</span><br><span class="line">    <span class="attr">left</span>: <span class="number">0</span></span><br><span class="line">    <span class="attr">top</span>: <span class="number">0</span></span><br><span class="line">    <span class="attr">padding</span>: 20px</span><br><span class="line">    <span class="attr">background</span>: #<span class="number">333</span></span><br><span class="line">    span</span><br><span class="line">      <span class="attr">display</span>: block</span><br><span class="line">      <span class="attr">height</span>: <span class="title function_">calc</span>(<span class="number">100</span>% - 40px)</span><br><span class="line">      <span class="attr">overflow</span>: auto</span><br><span class="line">    a</span><br><span class="line">      text-<span class="attr">align</span>: center</span><br><span class="line">      <span class="attr">background</span>: #fff</span><br><span class="line">      <span class="attr">color</span>: #<span class="number">333</span> !important</span><br><span class="line">      border-<span class="attr">radius</span>: 5px</span><br><span class="line">      <span class="attr">position</span>: absolute</span><br><span class="line">      <span class="attr">width</span>: <span class="title function_">calc</span>(<span class="number">100</span>% - 40px)</span><br><span class="line">      <span class="attr">bottom</span>: 20px</span><br><span class="line">      <span class="attr">left</span>: 20px</span><br><span class="line">      &amp;:hover</span><br><span class="line">        text-<span class="attr">decoration</span>: none !important</span><br><span class="line">        <span class="attr">color</span>: white !important</span><br><span class="line">        <span class="attr">background</span>: #49b1f5</span><br><span class="line"></span><br><span class="line">  .<span class="property">card_content</span></span><br><span class="line">    z-<span class="attr">index</span>: <span class="number">1</span></span><br><span class="line">    span</span><br><span class="line">      font-<span class="attr">size</span>: 18px</span><br><span class="line">      font-<span class="attr">weight</span>: bold</span><br><span class="line"></span><br><span class="line"><span class="comment">/* ##################这部分为新加样式代码################## */</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* card_mask 文本 */</span></span><br><span class="line">.<span class="property">card_mask</span> .<span class="property">tooltiptext</span> &#123;</span><br><span class="line">    <span class="attr">visibility</span>: hidden;</span><br><span class="line">    background-<span class="attr">color</span>: #f5f9fc;</span><br><span class="line">    <span class="attr">color</span>: #<span class="number">000</span>;</span><br><span class="line">    text-<span class="attr">align</span>: center;</span><br><span class="line">    <span class="attr">padding</span>: 5px <span class="number">0</span>;</span><br><span class="line">    border-<span class="attr">radius</span>: 6px;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 定位 */</span></span><br><span class="line">    <span class="attr">position</span>: fixed;</span><br><span class="line">    z-<span class="attr">index</span>: <span class="number">1</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 鼠标移动上去后显示提示框 */</span></span><br><span class="line">.<span class="property">card_mask</span>:hover .<span class="property">tooltiptext</span> &#123;</span><br><span class="line">     <span class="attr">visibility</span>: visible;</span><br><span class="line">     max-<span class="attr">width</span>: <span class="number">40</span>%;</span><br><span class="line">     word-<span class="attr">wrap</span>: <span class="keyword">break</span>-word;</span><br><span class="line">     text-<span class="attr">align</span>: center;</span><br><span class="line">     max-<span class="attr">height</span>: <span class="number">10</span>%;</span><br><span class="line">     <span class="attr">top</span>: <span class="number">10</span>%;</span><br><span class="line">     <span class="attr">padding</span>: 5px;</span><br><span class="line">     margin-<span class="attr">right</span>:<span class="number">20</span>%;    </span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/* ##################这部分为新加样式代码################## */</span></span><br><span class="line"></span><br><span class="line">[data-theme=<span class="string">&#x27;dark&#x27;</span>]</span><br><span class="line">  .<span class="property">card_box</span></span><br><span class="line">    <span class="attr">color</span>: #ddd !important</span><br><span class="line">    &amp;::after</span><br><span class="line">      <span class="attr">background</span>: <span class="title function_">rgba</span>(<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0.1</span>)</span><br></pre></td></tr></table></figure>
-<h2 id="应用"><a href="#应用" class="headerlink" title="应用"></a>应用</h2><p>应用参数格式：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;% card 标题,链接,背景,评分,评价,图标,标签,宽度,高度 %&#125;</span><br></pre></td></tr></table></figure>
-<p>具体应用的参数应用访问<code>Leonus | 作品推荐卡片—标签外挂</code>的原链接查看。链接如下：</p>
-<div class="tag link"><a class="link-card" title="Leonus | 作品推荐卡片—标签外挂" href="https://blog.leonus.cn/2022/butterflyTag.html"><div class="left"><img src="https://q1.qlogo.cn/g?b=qq&nk=990320751&s=5"/></div><div class="right"><p class="text">Leonus | 作品推荐卡片—标签外挂</p><p class="url">https://blog.leonus.cn/2022/butterflyTag.html</p></div></a></div>
-]]></content>
-      <categories>
-        <category>博客教程</category>
-        <category>美化教程</category>
-      </categories>
-      <tags>
-        <tag>Hexo</tag>
-        <tag>Butterfly</tag>
-        <tag>博客教程</tag>
-        <tag>美化教程</tag>
       </tags>
   </entry>
   <entry>
@@ -457,6 +457,77 @@
       </tags>
   </entry>
   <entry>
+    <title>LNMP部署</title>
+    <url>/yyg/776a1cd4/</url>
+    <content><![CDATA[<h2 id="基础环境"><a href="#基础环境" class="headerlink" title="基础环境"></a>基础环境</h2><p>系统环境：CentOS Stream 9</p>
+<p>软件环境：nginx-1.20.1、mysql-8.0.36（mariaDB）、php-8.0.30</p>
+<h2 id="部署过程"><a href="#部署过程" class="headerlink" title="部署过程"></a>部署过程</h2><h3 id="方案一：yum安装"><a href="#方案一：yum安装" class="headerlink" title="方案一：yum安装"></a>方案一：yum安装</h3><h4 id="步骤一：配置安全策略"><a href="#步骤一：配置安全策略" class="headerlink" title="步骤一：配置安全策略"></a>步骤一：配置安全策略</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 开放80端口</span><br><span class="line">firewall-cmd --add-port=80/tcp --permanent</span><br><span class="line">sudo firewall-cmd --reload &amp;&amp; sudo firewall-cmd --list-all</span><br><span class="line"># 关闭SELinux</span><br><span class="line">setenforce 0</span><br><span class="line">sed -i &quot;s/SELINUX=enforcing/SELINUX=disabled/g&quot; /etc/selinux/config</span><br></pre></td></tr></table></figure>
+<h4 id="步骤二：安装nginx"><a href="#步骤二：安装nginx" class="headerlink" title="步骤二：安装nginx"></a>步骤二：安装nginx</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">yum -y install nginx</span><br><span class="line"># 查看nginx版本</span><br><span class="line">nginx -v</span><br></pre></td></tr></table></figure>
+<h4 id="步骤三：安装并配置mysql"><a href="#步骤三：安装并配置mysql" class="headerlink" title="步骤三：安装并配置mysql"></a>步骤三：安装并配置mysql</h4><p>安装mysql</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">yum -y install mysql-server</span><br><span class="line">#查看mysql版本</span><br><span class="line">mysql -V</span><br><span class="line"># 启动并设置开机自启</span><br><span class="line">systemctl start mysqld</span><br><span class="line">systemctl enable mysqld</span><br></pre></td></tr></table></figure>
+<p>配置mysql</p>
+<p>（1）查看root用户的初始密码</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">grep &#x27;password&#x27; /var/log/mysql/mysqld.log</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>2024-05-08T09:37:31.765242Z 6 [Warning] [MY-010453] [Server] root@localhost is created with an empty password ! Please consider switching off the —initialize-insecure option.</p>
+</blockquote>
+<p>（2）配置MySQL的安全性</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mysql_secure_installation</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Securing the MySQL server deployment.</p>
+<p>Connecting to MySQL using a blank password.</p>
+<p>VALIDATE PASSWORD COMPONENT can be used to test passwords<br>and improve security. It checks the strength of password<br>and allows the users to set only those passwords which are<br>secure enough. Would you like to setup VALIDATE PASSWORD component?</p>
+<p><strong>设置MySQL的新密码</strong></p>
+<p>Press y|Y for Yes, any other key for No: y</p>
+<p>There are three levels of password validation policy:</p>
+<p>LOW Length &gt;= 8<br>MEDIUM Length &gt;= 8, numeric, mixed case, and special characters<br>STRONG Length &gt;= 8, numeric, mixed case, special characters and dictionary file</p>
+<p><strong>设置的密码强度</strong></p>
+<p>Please enter 0 = LOW, 1 = MEDIUM and 2 = STRONG: 0<br>Please set the password for root here.</p>
+<p>New password:</p>
+<p>Re-enter new password:</p>
+<p>Estimated strength of the password: 50<br>Do you wish to continue with the password provided?(Press y|Y for Yes, any other key for No) : y<br>By default, a MySQL installation has an anonymous user,<br>allowing anyone to log into MySQL without having to have<br>a user account created for them. This is intended only for<br>testing, and to make the installation go a bit smoother.<br>You should remove them before moving into a production<br>environment.</p>
+<p><strong>删除匿名用户</strong></p>
+<p>Remove anonymous users? (Press y|Y for Yes, any other key for No) : y<br>Success.</p>
+<p>Normally, root should only be allowed to connect from<br>‘localhost’. This ensures that someone cannot guess at<br>the root password from the network.</p>
+<p><strong>禁止使用root用户远程登录MySQL</strong></p>
+<p>Disallow root login remotely? (Press y|Y for Yes, any other key for No) : y<br>Success.</p>
+<p>By default, MySQL comes with a database named ‘test’ that<br>anyone can access. This is also intended only for testing,<br>and should be removed before moving into a production<br>environment.</p>
+<p><strong>删除test库以及用户对test库的访问权限</strong></p>
+<p>Remove test database and access to it? (Press y|Y for Yes, any other key for No) : y</p>
+<ul>
+<li>Dropping test database…<br>Success.</li>
+<li>Removing privileges on test database…<br>Success.</li>
+</ul>
+<p>Reloading the privilege tables will ensure that all changes<br>made so far will take effect immediately.</p>
+<p><strong>重新加载授权表</strong></p>
+<p>Reload privilege tables now? (Press y|Y for Yes, any other key for No) : y<br>Success.</p>
+<p>All done!</p>
+</blockquote>
+<h4 id="步骤四：安装php"><a href="#步骤四：安装php" class="headerlink" title="步骤四：安装php"></a>步骤四：安装php</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 下载php组件</span><br><span class="line"> yum install -y php php-cli php-fpm php-common php-mysqlnd php-gd php-mbstring</span><br><span class="line"># 查看php版本</span><br><span class="line"> php -v</span><br></pre></td></tr></table></figure>
+<p>修改nginx配置文件以启用php</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 备份Nginx配置文件</span><br><span class="line">cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak</span><br><span class="line"># 在Nginx配置文件中修改内容，在server部分添加内容</span><br><span class="line">vi /etc/nginx/nginx.conf</span><br><span class="line">**************************nginx.conf**************************</span><br><span class="line">    server &#123;</span><br><span class="line">        listen       80;</span><br><span class="line">        listen       [::]:80;</span><br><span class="line">        server_name  _;</span><br><span class="line">        root         /data; #网站根目录</span><br><span class="line"></span><br><span class="line">        # Load configuration files for the default server block.</span><br><span class="line">        include /etc/nginx/default.d/*.conf;</span><br><span class="line">        location / &#123; #添加</span><br><span class="line">            index index.php index.html index.htm;</span><br><span class="line">        &#125;</span><br><span class="line">        location ~ .php$ &#123;</span><br><span class="line">            root /data; #网站根目录</span><br><span class="line">            fastcgi_pass 127.0.0.1:9000; #Nginx通过本机的9000端口将PHP请求转发给PHP-FPM进行处理</span><br><span class="line">            fastcgi_index index.php;</span><br><span class="line">            fastcgi_param  SCRIPT_FILENAME  $document_root$fastcgi_script_name;</span><br><span class="line">            include fastcgi_params; #Nginx调用fastcgi接口处理PHP请求</span><br><span class="line">        &#125;</span><br><span class="line">        error_page 404 /404.html;</span><br><span class="line">        location = /404.html &#123;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        error_page 500 502 503 504 /50x.html;</span><br><span class="line">        location = /50x.html &#123;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">**************************nginx.conf**************************</span><br><span class="line"></span><br><span class="line"># 启动nginx，并设置开机自启</span><br><span class="line">systemctl start nginx</span><br><span class="line">systemctl enable nginx</span><br></pre></td></tr></table></figure>
+<p>配置并验证php</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 保证 nginx 进程的管理用户和 PHP 服务进程的管理用户保持一致</span><br><span class="line">vi /etc/php-fpm.d/www.conf</span><br><span class="line">user = nginx</span><br><span class="line">group = nginx</span><br><span class="line"># 重启nginx</span><br><span class="line">systemctl restart nginx</span><br><span class="line"></span><br><span class="line"># 创建网站根目录</span><br><span class="line">mkdir /data</span><br><span class="line"># 编写测试php界面</span><br><span class="line">echo &quot;&lt;?php echo phpinfo(); ?&gt;&quot; &gt;/data/index.php</span><br><span class="line"># 启动php-fpm，并设置开机自启</span><br><span class="line">systemctl start php-fpm</span><br><span class="line">systemctl enable php-fpm</span><br></pre></td></tr></table></figure>
+<h4 id="步骤五：访问测试"><a href="#步骤五：访问测试" class="headerlink" title="步骤五：访问测试"></a>步骤五：访问测试</h4><p>在浏览器中输入<code>http://本机ip/index.php</code>进行访问，如下图所示，表示LNMP环境部署成功。</p>
+<img src="/yyg/776a1cd4/1.png" class="" title="img">
+<h3 id="方案二：脚本一键安装"><a href="#方案二：脚本一键安装" class="headerlink" title="方案二：脚本一键安装"></a>方案二：脚本一键安装</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">yum install -y wget</span><br><span class="line"># 下载lnmp安装脚本</span><br><span class="line">wget https://soft.lnmp.com/lnmp/lnmp2.1beta.tar.gz</span><br><span class="line"># 解压</span><br><span class="line">tar -vzxf lnmp2.1beta.tar.gz</span><br><span class="line">cd lnmp2.1</span><br><span class="line"># 执行脚本</span><br><span class="line">./install.sh</span><br><span class="line"># 按引导进行安装即可</span><br></pre></td></tr></table></figure>
+<p>在浏览器<code>http://本机ip/</code>访问，出现以下界面，即为部署成功。</p>
+<img src="/yyg/776a1cd4/2.png" class="" title="img">
+<p>打开lnmp2.1/conf/nginx.conf文件，查看其网站根目录为/home/wwwroot/default，</p>
+<p>在其网站根目录/home/wwwroot/default中# 编写测试php界面，在浏览器中输入<code>http://本机ip/index.php</code>进行访问，结果如方案一中的《步骤五》中的图所示，即为成功。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">echo &quot;&lt;?php echo phpinfo(); ?&gt;&quot; &gt;/data/index.php</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Linux运维</category>
+        <category>Web服务架构部署</category>
+      </categories>
+      <tags>
+        <tag>Linux</tag>
+        <tag>Mysql</tag>
+        <tag>PHP</tag>
+        <tag>Nginx</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Watchtower自动更新docker容器</title>
     <url>/yyg/d3a49a0e/</url>
     <content><![CDATA[<h2 id="基础环境"><a href="#基础环境" class="headerlink" title="基础环境"></a>基础环境</h2><p>系统：openEuler 22.03 (LTS-SP4) X86</p>
@@ -534,77 +605,6 @@
         <tag>Linux</tag>
         <tag>Watchtower</tag>
         <tag>自动更新容器</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>LNMP部署</title>
-    <url>/yyg/776a1cd4/</url>
-    <content><![CDATA[<h2 id="基础环境"><a href="#基础环境" class="headerlink" title="基础环境"></a>基础环境</h2><p>系统环境：CentOS Stream 9</p>
-<p>软件环境：nginx-1.20.1、mysql-8.0.36（mariaDB）、php-8.0.30</p>
-<h2 id="部署过程"><a href="#部署过程" class="headerlink" title="部署过程"></a>部署过程</h2><h3 id="方案一：yum安装"><a href="#方案一：yum安装" class="headerlink" title="方案一：yum安装"></a>方案一：yum安装</h3><h4 id="步骤一：配置安全策略"><a href="#步骤一：配置安全策略" class="headerlink" title="步骤一：配置安全策略"></a>步骤一：配置安全策略</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 开放80端口</span><br><span class="line">firewall-cmd --add-port=80/tcp --permanent</span><br><span class="line">sudo firewall-cmd --reload &amp;&amp; sudo firewall-cmd --list-all</span><br><span class="line"># 关闭SELinux</span><br><span class="line">setenforce 0</span><br><span class="line">sed -i &quot;s/SELINUX=enforcing/SELINUX=disabled/g&quot; /etc/selinux/config</span><br></pre></td></tr></table></figure>
-<h4 id="步骤二：安装nginx"><a href="#步骤二：安装nginx" class="headerlink" title="步骤二：安装nginx"></a>步骤二：安装nginx</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">yum -y install nginx</span><br><span class="line"># 查看nginx版本</span><br><span class="line">nginx -v</span><br></pre></td></tr></table></figure>
-<h4 id="步骤三：安装并配置mysql"><a href="#步骤三：安装并配置mysql" class="headerlink" title="步骤三：安装并配置mysql"></a>步骤三：安装并配置mysql</h4><p>安装mysql</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">yum -y install mysql-server</span><br><span class="line">#查看mysql版本</span><br><span class="line">mysql -V</span><br><span class="line"># 启动并设置开机自启</span><br><span class="line">systemctl start mysqld</span><br><span class="line">systemctl enable mysqld</span><br></pre></td></tr></table></figure>
-<p>配置mysql</p>
-<p>（1）查看root用户的初始密码</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">grep &#x27;password&#x27; /var/log/mysql/mysqld.log</span><br></pre></td></tr></table></figure>
-<blockquote>
-<p>2024-05-08T09:37:31.765242Z 6 [Warning] [MY-010453] [Server] root@localhost is created with an empty password ! Please consider switching off the —initialize-insecure option.</p>
-</blockquote>
-<p>（2）配置MySQL的安全性</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mysql_secure_installation</span><br></pre></td></tr></table></figure>
-<blockquote>
-<p>Securing the MySQL server deployment.</p>
-<p>Connecting to MySQL using a blank password.</p>
-<p>VALIDATE PASSWORD COMPONENT can be used to test passwords<br>and improve security. It checks the strength of password<br>and allows the users to set only those passwords which are<br>secure enough. Would you like to setup VALIDATE PASSWORD component?</p>
-<p><strong>设置MySQL的新密码</strong></p>
-<p>Press y|Y for Yes, any other key for No: y</p>
-<p>There are three levels of password validation policy:</p>
-<p>LOW Length &gt;= 8<br>MEDIUM Length &gt;= 8, numeric, mixed case, and special characters<br>STRONG Length &gt;= 8, numeric, mixed case, special characters and dictionary file</p>
-<p><strong>设置的密码强度</strong></p>
-<p>Please enter 0 = LOW, 1 = MEDIUM and 2 = STRONG: 0<br>Please set the password for root here.</p>
-<p>New password:</p>
-<p>Re-enter new password:</p>
-<p>Estimated strength of the password: 50<br>Do you wish to continue with the password provided?(Press y|Y for Yes, any other key for No) : y<br>By default, a MySQL installation has an anonymous user,<br>allowing anyone to log into MySQL without having to have<br>a user account created for them. This is intended only for<br>testing, and to make the installation go a bit smoother.<br>You should remove them before moving into a production<br>environment.</p>
-<p><strong>删除匿名用户</strong></p>
-<p>Remove anonymous users? (Press y|Y for Yes, any other key for No) : y<br>Success.</p>
-<p>Normally, root should only be allowed to connect from<br>‘localhost’. This ensures that someone cannot guess at<br>the root password from the network.</p>
-<p><strong>禁止使用root用户远程登录MySQL</strong></p>
-<p>Disallow root login remotely? (Press y|Y for Yes, any other key for No) : y<br>Success.</p>
-<p>By default, MySQL comes with a database named ‘test’ that<br>anyone can access. This is also intended only for testing,<br>and should be removed before moving into a production<br>environment.</p>
-<p><strong>删除test库以及用户对test库的访问权限</strong></p>
-<p>Remove test database and access to it? (Press y|Y for Yes, any other key for No) : y</p>
-<ul>
-<li>Dropping test database…<br>Success.</li>
-<li>Removing privileges on test database…<br>Success.</li>
-</ul>
-<p>Reloading the privilege tables will ensure that all changes<br>made so far will take effect immediately.</p>
-<p><strong>重新加载授权表</strong></p>
-<p>Reload privilege tables now? (Press y|Y for Yes, any other key for No) : y<br>Success.</p>
-<p>All done!</p>
-</blockquote>
-<h4 id="步骤四：安装php"><a href="#步骤四：安装php" class="headerlink" title="步骤四：安装php"></a>步骤四：安装php</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 下载php组件</span><br><span class="line"> yum install -y php php-cli php-fpm php-common php-mysqlnd php-gd php-mbstring</span><br><span class="line"># 查看php版本</span><br><span class="line"> php -v</span><br></pre></td></tr></table></figure>
-<p>修改nginx配置文件以启用php</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 备份Nginx配置文件</span><br><span class="line">cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak</span><br><span class="line"># 在Nginx配置文件中修改内容，在server部分添加内容</span><br><span class="line">vi /etc/nginx/nginx.conf</span><br><span class="line">**************************nginx.conf**************************</span><br><span class="line">    server &#123;</span><br><span class="line">        listen       80;</span><br><span class="line">        listen       [::]:80;</span><br><span class="line">        server_name  _;</span><br><span class="line">        root         /data; #网站根目录</span><br><span class="line"></span><br><span class="line">        # Load configuration files for the default server block.</span><br><span class="line">        include /etc/nginx/default.d/*.conf;</span><br><span class="line">        location / &#123; #添加</span><br><span class="line">            index index.php index.html index.htm;</span><br><span class="line">        &#125;</span><br><span class="line">        location ~ .php$ &#123;</span><br><span class="line">            root /data; #网站根目录</span><br><span class="line">            fastcgi_pass 127.0.0.1:9000; #Nginx通过本机的9000端口将PHP请求转发给PHP-FPM进行处理</span><br><span class="line">            fastcgi_index index.php;</span><br><span class="line">            fastcgi_param  SCRIPT_FILENAME  $document_root$fastcgi_script_name;</span><br><span class="line">            include fastcgi_params; #Nginx调用fastcgi接口处理PHP请求</span><br><span class="line">        &#125;</span><br><span class="line">        error_page 404 /404.html;</span><br><span class="line">        location = /404.html &#123;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        error_page 500 502 503 504 /50x.html;</span><br><span class="line">        location = /50x.html &#123;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">**************************nginx.conf**************************</span><br><span class="line"></span><br><span class="line"># 启动nginx，并设置开机自启</span><br><span class="line">systemctl start nginx</span><br><span class="line">systemctl enable nginx</span><br></pre></td></tr></table></figure>
-<p>配置并验证php</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 保证 nginx 进程的管理用户和 PHP 服务进程的管理用户保持一致</span><br><span class="line">vi /etc/php-fpm.d/www.conf</span><br><span class="line">user = nginx</span><br><span class="line">group = nginx</span><br><span class="line"># 重启nginx</span><br><span class="line">systemctl restart nginx</span><br><span class="line"></span><br><span class="line"># 创建网站根目录</span><br><span class="line">mkdir /data</span><br><span class="line"># 编写测试php界面</span><br><span class="line">echo &quot;&lt;?php echo phpinfo(); ?&gt;&quot; &gt;/data/index.php</span><br><span class="line"># 启动php-fpm，并设置开机自启</span><br><span class="line">systemctl start php-fpm</span><br><span class="line">systemctl enable php-fpm</span><br></pre></td></tr></table></figure>
-<h4 id="步骤五：访问测试"><a href="#步骤五：访问测试" class="headerlink" title="步骤五：访问测试"></a>步骤五：访问测试</h4><p>在浏览器中输入<code>http://本机ip/index.php</code>进行访问，如下图所示，表示LNMP环境部署成功。</p>
-<img src="/yyg/776a1cd4/1.png" class="" title="img">
-<h3 id="方案二：脚本一键安装"><a href="#方案二：脚本一键安装" class="headerlink" title="方案二：脚本一键安装"></a>方案二：脚本一键安装</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">yum install -y wget</span><br><span class="line"># 下载lnmp安装脚本</span><br><span class="line">wget https://soft.lnmp.com/lnmp/lnmp2.1beta.tar.gz</span><br><span class="line"># 解压</span><br><span class="line">tar -vzxf lnmp2.1beta.tar.gz</span><br><span class="line">cd lnmp2.1</span><br><span class="line"># 执行脚本</span><br><span class="line">./install.sh</span><br><span class="line"># 按引导进行安装即可</span><br></pre></td></tr></table></figure>
-<p>在浏览器<code>http://本机ip/</code>访问，出现以下界面，即为部署成功。</p>
-<img src="/yyg/776a1cd4/2.png" class="" title="img">
-<p>打开lnmp2.1/conf/nginx.conf文件，查看其网站根目录为/home/wwwroot/default，</p>
-<p>在其网站根目录/home/wwwroot/default中# 编写测试php界面，在浏览器中输入<code>http://本机ip/index.php</code>进行访问，结果如方案一中的《步骤五》中的图所示，即为成功。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">echo &quot;&lt;?php echo phpinfo(); ?&gt;&quot; &gt;/data/index.php</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Linux运维</category>
-        <category>Web服务架构部署</category>
-      </categories>
-      <tags>
-        <tag>Linux</tag>
-        <tag>Mysql</tag>
-        <tag>PHP</tag>
-        <tag>Nginx</tag>
       </tags>
   </entry>
   <entry>
@@ -901,6 +901,45 @@
       </tags>
   </entry>
   <entry>
+    <title>docker安装mysql</title>
+    <url>/yyg/25ae9841/</url>
+    <content><![CDATA[<blockquote>
+<p><code>docker pull mysql</code> #拉取mysql镜像(最新版)</p>
+</blockquote>
+<p>若安装特定版本如6.0，则命令如下：</p>
+<p><code>docker pull mysql:6.0</code></p>
+<p>运行mysql，并分配3306端口，该命令如下：(<strong>注：下面的是一条命令</strong>)</p>
+<p>此命令中的<code>jiamian</code>为小编的liunx系统的用户名，用时需替换为自己的用户名</p>
+<p><code>MYSQL_ROOT_PASSWORD</code>后填的是mysql的密码，可自行替换</p>
+<p><code>--name</code>后填的mysql-1是运行的mysql容器的名称，也可自行替换</p>
+<blockquote>
+<p>docker run -d -p 3306:3306 —privileged=true -v /jiamian/mysql/log:/var/log/mysql</p>
+<p>-v /jiamian/mysql/data:/var/lib/mysql -v /jiamian/mysql/conf:/etc/mysql/conf.d </p>
+<p>-e MYSQL_ROOT_PASSWORD=123456 —name mysql-1 mysql</p>
+</blockquote>
+<p>此命令也可解决在删除mysql容器后，而出现的数据库数据丢失的问题。若要找回数据，则只需重新运行命令即可。</p>
+<img src="/yyg/25ae9841/image-20230410201124021.png" class="" title="image-20230410201124021">
+<p>运行<code>docker ps</code>命令，可查看到mysql正在运行</p>
+<img src="/yyg/25ae9841/image-20230410201052873.png" class="" title="image-20230410201052873">
+<h2 id="解决mysql插入中文乱码的情况"><a href="#解决mysql插入中文乱码的情况" class="headerlink" title="解决mysql插入中文乱码的情况"></a>解决mysql插入中文乱码的情况</h2><p>然后输入命令<code>cd /jiamian/mysql/conf</code>。进入该目录后，输入命令<code>vim my.cnf</code>，新建my.cnf文件，</p>
+<p>并输入以下代码</p>
+<blockquote>
+<p>[client]<br>default_character_set=utf8<br>[mysqld]<br>collation_server = utf8_general_ci<br>character_set_server = utf8</p>
+</blockquote>
+<p>保存退出后，输入 <code>docker restart mysql-1</code>，重启mysql。</p>
+<p>再输入<code>docker exec -it mysql-1 /bin/bash</code>进入mysql环境，此时汉字可正常显示</p>
+<img src="/yyg/25ae9841/image-20230410202120798.png" class="" title="image-20230410202120798">
+]]></content>
+      <categories>
+        <category>容器化</category>
+        <category>docker</category>
+      </categories>
+      <tags>
+        <tag>docker</tag>
+        <tag>mysql</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>docker容器日志配置管理</title>
     <url>/yyg/3b57c0c6/</url>
     <content><![CDATA[<p>运行的项目容器突然就停了，查看容器日志发现磁盘空间不足，导致容器没法运行了。</p>
@@ -942,45 +981,6 @@
         <tag>运维</tag>
         <tag>Linux</tag>
         <tag>知识梳理</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>docker安装mysql</title>
-    <url>/yyg/25ae9841/</url>
-    <content><![CDATA[<blockquote>
-<p><code>docker pull mysql</code> #拉取mysql镜像(最新版)</p>
-</blockquote>
-<p>若安装特定版本如6.0，则命令如下：</p>
-<p><code>docker pull mysql:6.0</code></p>
-<p>运行mysql，并分配3306端口，该命令如下：(<strong>注：下面的是一条命令</strong>)</p>
-<p>此命令中的<code>jiamian</code>为小编的liunx系统的用户名，用时需替换为自己的用户名</p>
-<p><code>MYSQL_ROOT_PASSWORD</code>后填的是mysql的密码，可自行替换</p>
-<p><code>--name</code>后填的mysql-1是运行的mysql容器的名称，也可自行替换</p>
-<blockquote>
-<p>docker run -d -p 3306:3306 —privileged=true -v /jiamian/mysql/log:/var/log/mysql</p>
-<p>-v /jiamian/mysql/data:/var/lib/mysql -v /jiamian/mysql/conf:/etc/mysql/conf.d </p>
-<p>-e MYSQL_ROOT_PASSWORD=123456 —name mysql-1 mysql</p>
-</blockquote>
-<p>此命令也可解决在删除mysql容器后，而出现的数据库数据丢失的问题。若要找回数据，则只需重新运行命令即可。</p>
-<img src="/yyg/25ae9841/image-20230410201124021.png" class="" title="image-20230410201124021">
-<p>运行<code>docker ps</code>命令，可查看到mysql正在运行</p>
-<img src="/yyg/25ae9841/image-20230410201052873.png" class="" title="image-20230410201052873">
-<h2 id="解决mysql插入中文乱码的情况"><a href="#解决mysql插入中文乱码的情况" class="headerlink" title="解决mysql插入中文乱码的情况"></a>解决mysql插入中文乱码的情况</h2><p>然后输入命令<code>cd /jiamian/mysql/conf</code>。进入该目录后，输入命令<code>vim my.cnf</code>，新建my.cnf文件，</p>
-<p>并输入以下代码</p>
-<blockquote>
-<p>[client]<br>default_character_set=utf8<br>[mysqld]<br>collation_server = utf8_general_ci<br>character_set_server = utf8</p>
-</blockquote>
-<p>保存退出后，输入 <code>docker restart mysql-1</code>，重启mysql。</p>
-<p>再输入<code>docker exec -it mysql-1 /bin/bash</code>进入mysql环境，此时汉字可正常显示</p>
-<img src="/yyg/25ae9841/image-20230410202120798.png" class="" title="image-20230410202120798">
-]]></content>
-      <categories>
-        <category>容器化</category>
-        <category>docker</category>
-      </categories>
-      <tags>
-        <tag>docker</tag>
-        <tag>mysql</tag>
       </tags>
   </entry>
   <entry>
@@ -1078,79 +1078,6 @@
       <tags>
         <tag>docker</tag>
         <tag>zabbix</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>k8s集群对接ceph集群部署指南</title>
-    <url>/yyg/57e2a956/</url>
-    <content><![CDATA[<h2 id="任务目标"><a href="#任务目标" class="headerlink" title="任务目标"></a>任务目标</h2><ol>
-<li>完成k8s集群对接ceph集群</li>
-</ol>
-<h2 id="任务平台"><a href="#任务平台" class="headerlink" title="任务平台"></a>任务平台</h2><ol>
-<li>物理设备—</li>
-<li>操作系统：openEuler 22.03 LTS SP2</li>
-</ol>
-<h2 id="部署指南"><a href="#部署指南" class="headerlink" title="部署指南"></a>部署指南</h2><p>集群拓扑图</p>
-<p>暂时无法在飞书文档外展示此内容</p>
-<p>采用动态挂载ceph RBD存储</p>
-<h3 id="任务一：安装ceph客户端（ceph-common）"><a href="#任务一：安装ceph客户端（ceph-common）" class="headerlink" title="任务一：安装ceph客户端（ceph-common）"></a>任务一：安装ceph客户端（ceph-common）</h3><p>在k8s集群的每个节点安装ceph-common</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum install ceph-common -y</span><br></pre></td></tr></table></figure>
-<h3 id="任务二：同步cpeh集群配置文件"><a href="#任务二：同步cpeh集群配置文件" class="headerlink" title="任务二：同步cpeh集群配置文件"></a>任务二：同步cpeh集群配置文件</h3><p>将 ceph 集群的 /etc/ceph/{ceph.conf,ceph.client.admin.keyring} 文件同步到 k8s 所有节点上</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">配置ssh免密</span></span><br><span class="line">ssh-keygen -t rsa</span><br><span class="line">ssh-copy-id 10.10.3.121</span><br><span class="line">ssh-copy-id 10.10.3.122</span><br><span class="line">ssh-copy-id 10.10.3.123</span><br><span class="line">ssh-copy-id 10.10.3.124</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">拷贝文件</span></span><br><span class="line">scp -r /etc/ceph/&#123;ceph.conf,ceph.client.admin.keyring&#125; 10.10.3.121:/etc/ceph</span><br><span class="line">scp -r /etc/ceph/&#123;ceph.conf,ceph.client.admin.keyring&#125; 10.10.3.122:/etc/ceph</span><br><span class="line">scp -r /etc/ceph/&#123;ceph.conf,ceph.client.admin.keyring&#125; 10.10.3.123:/etc/ceph</span><br><span class="line">scp -r /etc/ceph/&#123;ceph.conf,ceph.client.admin.keyring&#125; 10.10.3.124:/etc/ceph</span><br></pre></td></tr></table></figure>
-<h3 id="任务三：部署ceph-csi（使用rbd）"><a href="#任务三：部署ceph-csi（使用rbd）" class="headerlink" title="任务三：部署ceph-csi（使用rbd）"></a>任务三：部署ceph-csi（使用rbd）</h3><ol>
-<li>下载ceph-csi组件</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">下载文件</span></span><br><span class="line">wget https://github.com/ceph/ceph-csi/archive/refs/tags/v3.9.0.tar.gz</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">解压</span></span><br><span class="line">mv v3.9.0.tar.gz ceph-csi-v3.9.0.tar.gz</span><br><span class="line">tar -xzf ceph-csi-v3.9.0.tar.gz</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">进入目录</span></span><br><span class="line">cd  ceph-csi-3.9.0/deploy/rbd/kubernetes</span><br><span class="line">mkdir /data/cephfs/csi</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">拷进csi中，共6六个文件</span></span><br><span class="line">cp * /data/cephfs</span><br></pre></td></tr></table></figure>
-<ol>
-<li>拉取csi组件所需镜像</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看所需镜像</span></span><br><span class="line">grep image csi-rbdplugin-provisioner.yaml</span><br><span class="line">grep image csi-rbdplugin.yaml</span><br></pre></td></tr></table></figure>
-<p>在所有k8s节点上拉取所需的镜像</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">./pull-images.sh registry.k8s.io/sig-storage/csi-provisioner:v3.5.0</span><br><span class="line">./pull-images.sh registry.k8s.io/sig-storage/csi-resizer:v1.8.0</span><br><span class="line">./pull-images.sh registry.k8s.io/sig-storage/csi-snapshotter:v6.2.2</span><br><span class="line">docker pull quay.io/cephcsi/cephcsi:v3.9.0</span><br><span class="line">./pull-images.sh registry.k8s.io/sig-storage/csi-attacher:v4.3.0</span><br><span class="line">./pull-images.sh registry.k8s.io/sig-storage/csi-node-driver-registrar:v2.8.0</span><br></pre></td></tr></table></figure>
-<ol>
-<li>创建命名空间<code>cephfs</code></li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: Namespace</span><br><span class="line">metadata:</span><br><span class="line">  labels:</span><br><span class="line">    kubernetes.io/metadata.name: cephfs</span><br><span class="line">  name: cephfs</span><br><span class="line">  &#x27; &gt; ceph-namespace.yaml</span><br><span class="line">  </span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">执行</span></span><br><span class="line">  kubectl apply -f ceph-namespace.yaml </span><br></pre></td></tr></table></figure>
-<ol>
-<li>创建连接 ceph 集群的秘钥文件csi-rbd-secret.yaml</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: Secret</span><br><span class="line">metadata:</span><br><span class="line">  name: csi-rbd-secret</span><br><span class="line">  namespace: cephfs</span><br><span class="line">stringData:</span><br><span class="line">  adminID: admin  #管理员名称</span><br><span class="line">  adminKey: AQCNNDZlPKI5KxAA/3gXnOmhHgyLU2qPzTaZ3A==   #ceph集群密钥</span><br><span class="line">  userID: admin   #用户名称 </span><br><span class="line">  userKey: AQCNNDZlPKI5KxAA/3gXnOmhHgyLU2qPzTaZ3A==  #ceph集群密钥</span><br><span class="line">  &#x27; &gt; csi-rbd-secret.yaml</span><br><span class="line">  </span><br><span class="line"><span class="meta prompt_">   #</span><span class="language-bash">执行</span></span><br><span class="line">    kubectl apply -f csi-rbd-secret.yaml</span><br></pre></td></tr></table></figure>
-<ol>
-<li>创建ceph-config-map.yaml</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: ConfigMap</span><br><span class="line">data:</span><br><span class="line">  ceph.conf: |</span><br><span class="line">     [global]</span><br><span class="line">     fsid = 79fd2206-39ca-4ec4-9cd2-96e065c6361e     # 生成的FSID</span><br><span class="line">     mon initial members =future-ceph-node0,future-ceph-node1,future-ceph-node2,future-ceph-node3            # 主机名</span><br><span class="line">     mon host = 10.10.3.117,10.10.3.118,10.10.3.119,10.10.3.120                       # 对应的IP</span><br><span class="line">     public network = 10.10.3.0/24</span><br><span class="line">     auth cluster required = cephx</span><br><span class="line">     auth service required = cephx</span><br><span class="line">     auth client required = cephx</span><br><span class="line">     osd journal size = 1024</span><br><span class="line">     osd pool default size = 3</span><br><span class="line">     osd pool default min size = 2</span><br><span class="line">     osd pool default pg num = 333</span><br><span class="line">     osd pool default pgp num = 333</span><br><span class="line">     osd crush chooseleaf type = 1</span><br><span class="line">     [mon]</span><br><span class="line">     mon allow pool delete = true</span><br><span class="line"></span><br><span class="line">     [mds.future-ceph-node0]</span><br><span class="line">     host = future-ceph-node0</span><br><span class="line">  keyring: |</span><br><span class="line">metadata:</span><br><span class="line">  name: ceph-config</span><br><span class="line">  namespace: cephfs</span><br><span class="line">&#x27; &gt; ceph-config-map.yaml</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">执行</span></span><br><span class="line"> kubectl apply -f ceph-config-map.yaml  </span><br></pre></td></tr></table></figure>
-<ol>
-<li>修改csi-config-map.yaml，配置连接 ceph 集群的信息</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: ConfigMap</span><br><span class="line">metadata:</span><br><span class="line">  name: ceph-csi-config</span><br><span class="line">  namespace: cephfs</span><br><span class="line">  labels:</span><br><span class="line">    addonmanager.kubernetes.io/mode: Reconcile</span><br><span class="line">data:</span><br><span class="line">  config.json: |-</span><br><span class="line">    [&#123;&quot;clusterID&quot;:&quot;79fd2206-39ca-4ec4-9cd2-96e065c6361e&quot;,&quot;monitors&quot;:[&quot;10.10.3.117:6789&quot;,&quot;10.10.3.118:6789&quot;,&quot;10.10.3.119:6789&quot;,&quot;10.10.3.120:6789&quot;]&#125;]</span><br><span class="line">&#x27; &gt; csi-config-map.yaml</span><br></pre></td></tr></table></figure>
-<ol>
-<li><p>修改csi组件配置文件</p>
-<ol>
-<li><p>拷贝进<code>/data/cephfs/csi</code>目录中的所有yaml文件中的命名空间由<code>default</code>改为<code>cephfs</code></p>
-</li>
-<li><p>```Shell<br>cd /data/cephfs/csi<br>sed -i “s/namespace: default/namespace: cephfs/g” $(grep -rl “namespace: default” ./)<br>sed -i ‘/^kind: ServiceAccount/a\  namespace: cephfs’ $(grep -rl “^kind: ServiceAccount” ./)</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">   3. 将`csi-rbdplugin-provisioner.yaml` 和 `csi-rbdplugin.yaml` 中的 kms 部分配置注释掉</span><br><span class="line"></span><br><span class="line">   4. &gt;    \# - name: KMS_CONFIGMAP_NAME</span><br><span class="line">      &gt;</span><br><span class="line">      &gt; ​            \#   value: encryptionConfig</span><br><span class="line">      &gt;</span><br><span class="line">      &gt; </span><br><span class="line">      &gt;</span><br><span class="line">      &gt; \#- name: ceph-csi-encryption-kms-config</span><br><span class="line">      &gt;</span><br><span class="line">      &gt; ​        \#  configMap:</span><br><span class="line">      &gt;</span><br><span class="line">      &gt; ​        \#    name: ceph-csi-encryption-kms-config</span><br><span class="line">      &gt;</span><br><span class="line">      &gt; </span><br><span class="line"></span><br><span class="line">```Shell</span><br><span class="line"> #执行，安装csi组件</span><br><span class="line"> kubectl apply -f csi-config-map.yaml</span><br><span class="line"> kubectl apply -f csi-nodeplugin-rbac.yaml</span><br><span class="line"> kubectl apply -f csidriver.yaml</span><br><span class="line"> kubectl apply -f csi-provisioner-rbac.yaml</span><br><span class="line"> kubectl apply -f csi-rbdplugin-provisioner.yaml</span><br><span class="line"> kubectl apply -f csi-rbdplugin.yaml</span><br></pre></td></tr></table></figure>
-</li>
-</ol>
-</li>
-</ol>
-<h3 id="任务四：创建storageclass"><a href="#任务四：创建storageclass" class="headerlink" title="任务四：创建storageclass"></a>任务四：创建storageclass</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: storage.k8s.io/v1</span><br><span class="line">kind: StorageClass</span><br><span class="line">metadata:</span><br><span class="line">  annotations:</span><br><span class="line">    k8s.kuboard.cn/storageType: cephfs_provisioner</span><br><span class="line">  name: csi-rbd-sc</span><br><span class="line">provisioner: rbd.csi.ceph.com</span><br><span class="line">parameters:</span><br><span class="line"><span class="meta prompt_"> # </span><span class="language-bash">fsName: cephfs <span class="comment">#ceph集群cephfs文件系统名称</span></span></span><br><span class="line">  clusterID: 79fd2206-39ca-4ec4-9cd2-96e065c6361e #ceph集群的fsid </span><br><span class="line">  pool: rbd-k8s #ceph中创建的存储池</span><br><span class="line">  imageFeatures: layering</span><br><span class="line">  csi.storage.k8s.io/provisioner-secret-name: csi-rbd-secret</span><br><span class="line">  csi.storage.k8s.io/provisioner-secret-namespace: cephfs</span><br><span class="line">  csi.storage.k8s.io/controller-expand-secret-name: csi-rbd-secret</span><br><span class="line">  csi.storage.k8s.io/controller-expand-secret-namespace: cephfs</span><br><span class="line">  csi.storage.k8s.io/node-stage-secret-name: csi-rbd-secret</span><br><span class="line">  csi.storage.k8s.io/node-stage-secret-namespace: cephfs</span><br><span class="line">  csi.storage.k8s.io/fstype: xfs</span><br><span class="line">reclaimPolicy: Delete</span><br><span class="line">volumeBindingMode: Immediate</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">allowVolumeExpansion: <span class="literal">true</span></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">mountOptions:</span></span><br><span class="line"><span class="meta prompt_"> # </span><span class="language-bash">- discard</span></span><br><span class="line"> &#x27; &gt; storageclass.yaml</span><br><span class="line"><span class="meta prompt_"> </span></span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">执行</span></span><br><span class="line">  kubectl apply -f storageclass.yaml</span><br></pre></td></tr></table></figure>
-<h3 id="任务五：创建PVC"><a href="#任务五：创建PVC" class="headerlink" title="任务五：创建PVC"></a>任务五：创建PVC</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: PersistentVolumeClaim</span><br><span class="line">metadata:</span><br><span class="line">  name: rbd-pvc #PVC的名称</span><br><span class="line">  namespace: cephfs</span><br><span class="line">spec:</span><br><span class="line">  accessModes:</span><br><span class="line">    - ReadWriteOnce</span><br><span class="line">  resources:</span><br><span class="line">    requests:</span><br><span class="line">      storage: 1Gi  #设置容量</span><br><span class="line">  storageClassName: csi-rbd-sc</span><br><span class="line">  &#x27; &gt; pvc.yaml</span><br><span class="line"><span class="meta prompt_">  </span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">执行</span></span><br><span class="line"> kubectl apply -f pvc.yaml</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看PVC是否创建成功</span></span><br><span class="line">kubectl get pvc -n cephfs</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看PV是否创建成功</span></span><br><span class="line">kubectl get pv -n cephfs</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看ceph集群中的cephfs_data存储池中是否创建了image</span></span><br><span class="line"> rbd ls -p cephfs_data</span><br></pre></td></tr></table></figure>
-<h3 id="任务六：创建pod，进行测试验证"><a href="#任务六：创建pod，进行测试验证" class="headerlink" title="任务六：创建pod，进行测试验证"></a>任务六：创建pod，进行测试验证</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: Pod</span><br><span class="line">metadata:</span><br><span class="line">  name: csi-rbd-demo-pod</span><br><span class="line">  namespace: cephfs</span><br><span class="line">spec:</span><br><span class="line">  containers:</span><br><span class="line">    - name: web-server</span><br><span class="line">      image: nginx:latest</span><br><span class="line">      volumeMounts:</span><br><span class="line">        - name: mypvc</span><br><span class="line">          mountPath: /var/lib/www/html</span><br><span class="line">  volumes:</span><br><span class="line">    - name: mypvc</span><br><span class="line">      persistentVolumeClaim:</span><br><span class="line">        claimName: rbd-pvc  #对应的PVC名称</span><br><span class="line">        readOnly: false</span><br><span class="line">&#x27; &gt; pod.yaml</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">执行</span></span><br><span class="line"> kubectl apply -f pod.yaml</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">进入容器查看挂载信息</span></span><br><span class="line"> kubectl exec -it csi-rbd-demo-pod bash</span><br><span class="line"> lsblk -l|grep rbd</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>容器化</category>
-        <category>k8s</category>
-        <category>存储系统</category>
-        <category>ceph</category>
-      </categories>
-      <tags>
-        <tag>docker</tag>
-        <tag>k8s</tag>
-        <tag>ceph</tag>
-        <tag>共享存储</tag>
-        <tag>ceph集群</tag>
-        <tag>容器云</tag>
-        <tag>k8s对接ceph</tag>
       </tags>
   </entry>
   <entry>
@@ -1291,6 +1218,79 @@
       </tags>
   </entry>
   <entry>
+    <title>k8s集群对接ceph集群部署指南</title>
+    <url>/yyg/57e2a956/</url>
+    <content><![CDATA[<h2 id="任务目标"><a href="#任务目标" class="headerlink" title="任务目标"></a>任务目标</h2><ol>
+<li>完成k8s集群对接ceph集群</li>
+</ol>
+<h2 id="任务平台"><a href="#任务平台" class="headerlink" title="任务平台"></a>任务平台</h2><ol>
+<li>物理设备—</li>
+<li>操作系统：openEuler 22.03 LTS SP2</li>
+</ol>
+<h2 id="部署指南"><a href="#部署指南" class="headerlink" title="部署指南"></a>部署指南</h2><p>集群拓扑图</p>
+<p>暂时无法在飞书文档外展示此内容</p>
+<p>采用动态挂载ceph RBD存储</p>
+<h3 id="任务一：安装ceph客户端（ceph-common）"><a href="#任务一：安装ceph客户端（ceph-common）" class="headerlink" title="任务一：安装ceph客户端（ceph-common）"></a>任务一：安装ceph客户端（ceph-common）</h3><p>在k8s集群的每个节点安装ceph-common</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum install ceph-common -y</span><br></pre></td></tr></table></figure>
+<h3 id="任务二：同步cpeh集群配置文件"><a href="#任务二：同步cpeh集群配置文件" class="headerlink" title="任务二：同步cpeh集群配置文件"></a>任务二：同步cpeh集群配置文件</h3><p>将 ceph 集群的 /etc/ceph/{ceph.conf,ceph.client.admin.keyring} 文件同步到 k8s 所有节点上</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">配置ssh免密</span></span><br><span class="line">ssh-keygen -t rsa</span><br><span class="line">ssh-copy-id 10.10.3.121</span><br><span class="line">ssh-copy-id 10.10.3.122</span><br><span class="line">ssh-copy-id 10.10.3.123</span><br><span class="line">ssh-copy-id 10.10.3.124</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">拷贝文件</span></span><br><span class="line">scp -r /etc/ceph/&#123;ceph.conf,ceph.client.admin.keyring&#125; 10.10.3.121:/etc/ceph</span><br><span class="line">scp -r /etc/ceph/&#123;ceph.conf,ceph.client.admin.keyring&#125; 10.10.3.122:/etc/ceph</span><br><span class="line">scp -r /etc/ceph/&#123;ceph.conf,ceph.client.admin.keyring&#125; 10.10.3.123:/etc/ceph</span><br><span class="line">scp -r /etc/ceph/&#123;ceph.conf,ceph.client.admin.keyring&#125; 10.10.3.124:/etc/ceph</span><br></pre></td></tr></table></figure>
+<h3 id="任务三：部署ceph-csi（使用rbd）"><a href="#任务三：部署ceph-csi（使用rbd）" class="headerlink" title="任务三：部署ceph-csi（使用rbd）"></a>任务三：部署ceph-csi（使用rbd）</h3><ol>
+<li>下载ceph-csi组件</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">下载文件</span></span><br><span class="line">wget https://github.com/ceph/ceph-csi/archive/refs/tags/v3.9.0.tar.gz</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">解压</span></span><br><span class="line">mv v3.9.0.tar.gz ceph-csi-v3.9.0.tar.gz</span><br><span class="line">tar -xzf ceph-csi-v3.9.0.tar.gz</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">进入目录</span></span><br><span class="line">cd  ceph-csi-3.9.0/deploy/rbd/kubernetes</span><br><span class="line">mkdir /data/cephfs/csi</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">拷进csi中，共6六个文件</span></span><br><span class="line">cp * /data/cephfs</span><br></pre></td></tr></table></figure>
+<ol>
+<li>拉取csi组件所需镜像</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看所需镜像</span></span><br><span class="line">grep image csi-rbdplugin-provisioner.yaml</span><br><span class="line">grep image csi-rbdplugin.yaml</span><br></pre></td></tr></table></figure>
+<p>在所有k8s节点上拉取所需的镜像</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">./pull-images.sh registry.k8s.io/sig-storage/csi-provisioner:v3.5.0</span><br><span class="line">./pull-images.sh registry.k8s.io/sig-storage/csi-resizer:v1.8.0</span><br><span class="line">./pull-images.sh registry.k8s.io/sig-storage/csi-snapshotter:v6.2.2</span><br><span class="line">docker pull quay.io/cephcsi/cephcsi:v3.9.0</span><br><span class="line">./pull-images.sh registry.k8s.io/sig-storage/csi-attacher:v4.3.0</span><br><span class="line">./pull-images.sh registry.k8s.io/sig-storage/csi-node-driver-registrar:v2.8.0</span><br></pre></td></tr></table></figure>
+<ol>
+<li>创建命名空间<code>cephfs</code></li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: Namespace</span><br><span class="line">metadata:</span><br><span class="line">  labels:</span><br><span class="line">    kubernetes.io/metadata.name: cephfs</span><br><span class="line">  name: cephfs</span><br><span class="line">  &#x27; &gt; ceph-namespace.yaml</span><br><span class="line">  </span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">执行</span></span><br><span class="line">  kubectl apply -f ceph-namespace.yaml </span><br></pre></td></tr></table></figure>
+<ol>
+<li>创建连接 ceph 集群的秘钥文件csi-rbd-secret.yaml</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: Secret</span><br><span class="line">metadata:</span><br><span class="line">  name: csi-rbd-secret</span><br><span class="line">  namespace: cephfs</span><br><span class="line">stringData:</span><br><span class="line">  adminID: admin  #管理员名称</span><br><span class="line">  adminKey: AQCNNDZlPKI5KxAA/3gXnOmhHgyLU2qPzTaZ3A==   #ceph集群密钥</span><br><span class="line">  userID: admin   #用户名称 </span><br><span class="line">  userKey: AQCNNDZlPKI5KxAA/3gXnOmhHgyLU2qPzTaZ3A==  #ceph集群密钥</span><br><span class="line">  &#x27; &gt; csi-rbd-secret.yaml</span><br><span class="line">  </span><br><span class="line"><span class="meta prompt_">   #</span><span class="language-bash">执行</span></span><br><span class="line">    kubectl apply -f csi-rbd-secret.yaml</span><br></pre></td></tr></table></figure>
+<ol>
+<li>创建ceph-config-map.yaml</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: ConfigMap</span><br><span class="line">data:</span><br><span class="line">  ceph.conf: |</span><br><span class="line">     [global]</span><br><span class="line">     fsid = 79fd2206-39ca-4ec4-9cd2-96e065c6361e     # 生成的FSID</span><br><span class="line">     mon initial members =future-ceph-node0,future-ceph-node1,future-ceph-node2,future-ceph-node3            # 主机名</span><br><span class="line">     mon host = 10.10.3.117,10.10.3.118,10.10.3.119,10.10.3.120                       # 对应的IP</span><br><span class="line">     public network = 10.10.3.0/24</span><br><span class="line">     auth cluster required = cephx</span><br><span class="line">     auth service required = cephx</span><br><span class="line">     auth client required = cephx</span><br><span class="line">     osd journal size = 1024</span><br><span class="line">     osd pool default size = 3</span><br><span class="line">     osd pool default min size = 2</span><br><span class="line">     osd pool default pg num = 333</span><br><span class="line">     osd pool default pgp num = 333</span><br><span class="line">     osd crush chooseleaf type = 1</span><br><span class="line">     [mon]</span><br><span class="line">     mon allow pool delete = true</span><br><span class="line"></span><br><span class="line">     [mds.future-ceph-node0]</span><br><span class="line">     host = future-ceph-node0</span><br><span class="line">  keyring: |</span><br><span class="line">metadata:</span><br><span class="line">  name: ceph-config</span><br><span class="line">  namespace: cephfs</span><br><span class="line">&#x27; &gt; ceph-config-map.yaml</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">执行</span></span><br><span class="line"> kubectl apply -f ceph-config-map.yaml  </span><br></pre></td></tr></table></figure>
+<ol>
+<li>修改csi-config-map.yaml，配置连接 ceph 集群的信息</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: ConfigMap</span><br><span class="line">metadata:</span><br><span class="line">  name: ceph-csi-config</span><br><span class="line">  namespace: cephfs</span><br><span class="line">  labels:</span><br><span class="line">    addonmanager.kubernetes.io/mode: Reconcile</span><br><span class="line">data:</span><br><span class="line">  config.json: |-</span><br><span class="line">    [&#123;&quot;clusterID&quot;:&quot;79fd2206-39ca-4ec4-9cd2-96e065c6361e&quot;,&quot;monitors&quot;:[&quot;10.10.3.117:6789&quot;,&quot;10.10.3.118:6789&quot;,&quot;10.10.3.119:6789&quot;,&quot;10.10.3.120:6789&quot;]&#125;]</span><br><span class="line">&#x27; &gt; csi-config-map.yaml</span><br></pre></td></tr></table></figure>
+<ol>
+<li><p>修改csi组件配置文件</p>
+<ol>
+<li><p>拷贝进<code>/data/cephfs/csi</code>目录中的所有yaml文件中的命名空间由<code>default</code>改为<code>cephfs</code></p>
+</li>
+<li><p>```Shell<br>cd /data/cephfs/csi<br>sed -i “s/namespace: default/namespace: cephfs/g” $(grep -rl “namespace: default” ./)<br>sed -i ‘/^kind: ServiceAccount/a\  namespace: cephfs’ $(grep -rl “^kind: ServiceAccount” ./)</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">   3. 将`csi-rbdplugin-provisioner.yaml` 和 `csi-rbdplugin.yaml` 中的 kms 部分配置注释掉</span><br><span class="line"></span><br><span class="line">   4. &gt;    \# - name: KMS_CONFIGMAP_NAME</span><br><span class="line">      &gt;</span><br><span class="line">      &gt; ​            \#   value: encryptionConfig</span><br><span class="line">      &gt;</span><br><span class="line">      &gt; </span><br><span class="line">      &gt;</span><br><span class="line">      &gt; \#- name: ceph-csi-encryption-kms-config</span><br><span class="line">      &gt;</span><br><span class="line">      &gt; ​        \#  configMap:</span><br><span class="line">      &gt;</span><br><span class="line">      &gt; ​        \#    name: ceph-csi-encryption-kms-config</span><br><span class="line">      &gt;</span><br><span class="line">      &gt; </span><br><span class="line"></span><br><span class="line">```Shell</span><br><span class="line"> #执行，安装csi组件</span><br><span class="line"> kubectl apply -f csi-config-map.yaml</span><br><span class="line"> kubectl apply -f csi-nodeplugin-rbac.yaml</span><br><span class="line"> kubectl apply -f csidriver.yaml</span><br><span class="line"> kubectl apply -f csi-provisioner-rbac.yaml</span><br><span class="line"> kubectl apply -f csi-rbdplugin-provisioner.yaml</span><br><span class="line"> kubectl apply -f csi-rbdplugin.yaml</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+</li>
+</ol>
+<h3 id="任务四：创建storageclass"><a href="#任务四：创建storageclass" class="headerlink" title="任务四：创建storageclass"></a>任务四：创建storageclass</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: storage.k8s.io/v1</span><br><span class="line">kind: StorageClass</span><br><span class="line">metadata:</span><br><span class="line">  annotations:</span><br><span class="line">    k8s.kuboard.cn/storageType: cephfs_provisioner</span><br><span class="line">  name: csi-rbd-sc</span><br><span class="line">provisioner: rbd.csi.ceph.com</span><br><span class="line">parameters:</span><br><span class="line"><span class="meta prompt_"> # </span><span class="language-bash">fsName: cephfs <span class="comment">#ceph集群cephfs文件系统名称</span></span></span><br><span class="line">  clusterID: 79fd2206-39ca-4ec4-9cd2-96e065c6361e #ceph集群的fsid </span><br><span class="line">  pool: rbd-k8s #ceph中创建的存储池</span><br><span class="line">  imageFeatures: layering</span><br><span class="line">  csi.storage.k8s.io/provisioner-secret-name: csi-rbd-secret</span><br><span class="line">  csi.storage.k8s.io/provisioner-secret-namespace: cephfs</span><br><span class="line">  csi.storage.k8s.io/controller-expand-secret-name: csi-rbd-secret</span><br><span class="line">  csi.storage.k8s.io/controller-expand-secret-namespace: cephfs</span><br><span class="line">  csi.storage.k8s.io/node-stage-secret-name: csi-rbd-secret</span><br><span class="line">  csi.storage.k8s.io/node-stage-secret-namespace: cephfs</span><br><span class="line">  csi.storage.k8s.io/fstype: xfs</span><br><span class="line">reclaimPolicy: Delete</span><br><span class="line">volumeBindingMode: Immediate</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">allowVolumeExpansion: <span class="literal">true</span></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">mountOptions:</span></span><br><span class="line"><span class="meta prompt_"> # </span><span class="language-bash">- discard</span></span><br><span class="line"> &#x27; &gt; storageclass.yaml</span><br><span class="line"><span class="meta prompt_"> </span></span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">执行</span></span><br><span class="line">  kubectl apply -f storageclass.yaml</span><br></pre></td></tr></table></figure>
+<h3 id="任务五：创建PVC"><a href="#任务五：创建PVC" class="headerlink" title="任务五：创建PVC"></a>任务五：创建PVC</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: PersistentVolumeClaim</span><br><span class="line">metadata:</span><br><span class="line">  name: rbd-pvc #PVC的名称</span><br><span class="line">  namespace: cephfs</span><br><span class="line">spec:</span><br><span class="line">  accessModes:</span><br><span class="line">    - ReadWriteOnce</span><br><span class="line">  resources:</span><br><span class="line">    requests:</span><br><span class="line">      storage: 1Gi  #设置容量</span><br><span class="line">  storageClassName: csi-rbd-sc</span><br><span class="line">  &#x27; &gt; pvc.yaml</span><br><span class="line"><span class="meta prompt_">  </span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">执行</span></span><br><span class="line"> kubectl apply -f pvc.yaml</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看PVC是否创建成功</span></span><br><span class="line">kubectl get pvc -n cephfs</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看PV是否创建成功</span></span><br><span class="line">kubectl get pv -n cephfs</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看ceph集群中的cephfs_data存储池中是否创建了image</span></span><br><span class="line"> rbd ls -p cephfs_data</span><br></pre></td></tr></table></figure>
+<h3 id="任务六：创建pod，进行测试验证"><a href="#任务六：创建pod，进行测试验证" class="headerlink" title="任务六：创建pod，进行测试验证"></a>任务六：创建pod，进行测试验证</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: Pod</span><br><span class="line">metadata:</span><br><span class="line">  name: csi-rbd-demo-pod</span><br><span class="line">  namespace: cephfs</span><br><span class="line">spec:</span><br><span class="line">  containers:</span><br><span class="line">    - name: web-server</span><br><span class="line">      image: nginx:latest</span><br><span class="line">      volumeMounts:</span><br><span class="line">        - name: mypvc</span><br><span class="line">          mountPath: /var/lib/www/html</span><br><span class="line">  volumes:</span><br><span class="line">    - name: mypvc</span><br><span class="line">      persistentVolumeClaim:</span><br><span class="line">        claimName: rbd-pvc  #对应的PVC名称</span><br><span class="line">        readOnly: false</span><br><span class="line">&#x27; &gt; pod.yaml</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">执行</span></span><br><span class="line"> kubectl apply -f pod.yaml</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">进入容器查看挂载信息</span></span><br><span class="line"> kubectl exec -it csi-rbd-demo-pod bash</span><br><span class="line"> lsblk -l|grep rbd</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>容器化</category>
+        <category>k8s</category>
+        <category>存储系统</category>
+        <category>ceph</category>
+      </categories>
+      <tags>
+        <tag>docker</tag>
+        <tag>k8s</tag>
+        <tag>ceph</tag>
+        <tag>共享存储</tag>
+        <tag>ceph集群</tag>
+        <tag>容器云</tag>
+        <tag>k8s对接ceph</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>podman-5.1.2 部署</title>
     <url>/yyg/c10999ab/</url>
     <content><![CDATA[<h2 id="基础环境"><a href="#基础环境" class="headerlink" title="基础环境"></a>基础环境</h2><p>系统：openEuler 22.03 (LTS-SP4) X86</p>
@@ -1395,6 +1395,54 @@ Mastodon:  @Podman_io@fosstodon.org
         <tag>总结</tag>
         <tag>脚本</tag>
         <tag>shell</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>x86服务器构建ARM架构docker镜像</title>
+    <url>/yyg/4451cec/</url>
+    <content><![CDATA[<h2 id="基础环境"><a href="#基础环境" class="headerlink" title="基础环境"></a>基础环境</h2><p>操作系统：openEuler 22.03 (LTS-SP2)</p>
+<p>软件：Docker-26.1.2 、Docker Compose-v2.27.0</p>
+<h2 id="安装Docker"><a href="#安装Docker" class="headerlink" title="安装Docker"></a>安装Docker</h2><p>（1）配置yum源下载docker。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo</span><br><span class="line">sed -i &#x27;s/\$releasever/7/g&#x27; /etc/yum.repos.d/docker-ce.repo</span><br></pre></td></tr></table></figure>
+<p>（2）安装最新版docker和docker compose。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">下载依赖及docker、docker compose</span></span><br><span class="line">yum install -container-selinux</span><br><span class="line">yum install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin </span><br></pre></td></tr></table></figure>
+<p>（3）修改Docker的数据目录为“/data/dockerData”，并配置docker镜像源。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;&#123;</span><br><span class="line">  &quot;data-root&quot;: &quot;/data/dockerData&quot;,</span><br><span class="line"> &quot;registry-mirrors&quot;: [&quot;https://dockerhub.icu&quot;]</span><br><span class="line">&#125;&#x27; &gt; /etc/docker/daemon.json</span><br></pre></td></tr></table></figure>
+<p>（4）启动Docker服务，并设置为开机自启动。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">systemctl start docker</span><br><span class="line">systemctl enable docker</span><br></pre></td></tr></table></figure>
+<h2 id="使用-register-注册可支持的架构解析器"><a href="#使用-register-注册可支持的架构解析器" class="headerlink" title="使用 register 注册可支持的架构解析器"></a>使用 <code>register</code> 注册可支持的架构解析器</h2><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker run --rm --privileged multiarch/qemu-user-static:register --reset</span><br></pre></td></tr></table></figure>
+<p>查看二进制格式的解释器是否启用，显示<code>enabled</code>，即为启用。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">ls  /proc/sys/fs/binfmt_misc/ </span><br><span class="line">cat /proc/sys/fs/binfmt_misc/qemu-aarch64</span><br></pre></td></tr></table></figure>
+<h2 id="拉取基础arm镜像"><a href="#拉取基础arm镜像" class="headerlink" title="拉取基础arm镜像"></a>拉取基础arm镜像</h2><p>此处以httpd镜像为例，在x86服务器上拉取arm64架构的httpd镜像，其中<code>--platform=arm64</code>指定拉取的镜像架构位arm64，<code>--platform=amd64</code>则是拉取x86架构的镜像。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker pull --platform=arm64 httpd:latest</span><br></pre></td></tr></table></figure>
+<h2 id="定义Dockerfile，创建新镜像"><a href="#定义Dockerfile，创建新镜像" class="headerlink" title="定义Dockerfile，创建新镜像"></a>定义Dockerfile，创建新镜像</h2><p>通过使用Dockerfile创建新arm镜像的方式有两种，一种是直接下载<code>qemu-aarch64-static</code>程序，在构建镜像时直接拷贝进镜像中；另一种是拉取<code>multiarch/qemu-user-static:x86_64-aarch64</code>镜像，通过多阶段构建，从<code>multiarch/qemu-user-static:x86_64-aarch64</code>镜像中复制 <code>qemu-aarch64-static</code>程序 到 <code>httpd</code> 镜像中。</p>
+<h3 id="方式一：下载程序，直接复制"><a href="#方式一：下载程序，直接复制" class="headerlink" title="方式一：下载程序，直接复制"></a>方式一：下载程序，直接复制</h3><p>（1）在下载<code>qemu-aarch64-static</code>程序时，可直接下载该程序，也可先下载其压缩包，再解压。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">直接下载程序（推荐）</span></span><br><span class="line">wget https://github.com/multiarch/qemu-user-static/releases/download/v7.2.0-1/qemu-aarch64-static</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">先下载其压缩包，再解压</span></span><br><span class="line">wget https://github.com/multiarch/qemu-user-static/releases/download/v7.2.0-1/qemu-aarch64-static.tar.gz</span><br><span class="line">tar -vzxf qemu-aarch64-static.tar.gz</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">赋予可执行权限</span></span><br><span class="line">chmod +x /usr/bin/qemu-aarch64-static</span><br></pre></td></tr></table></figure>
+<p>（2）创建Dockerfile文件，在httpd镜像的基础上构建新镜像，<code>qemu-aarch64-static</code><mark>程序必须和Dockerfile文件在同一目录下</mark>。Dockerfile文件的具体内容如下：</p>
+<figure class="highlight dockerfile"><table><tr><td class="code"><pre><span class="line"><span class="keyword">FROM</span> httpd:latest</span><br><span class="line"><span class="comment"># 将qemu-aarch64-static程序拷贝进镜像的/usr/bin/目录</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> ./qemu-aarch64-static /usr/bin/qemu-aarch64-static</span></span><br><span class="line"><span class="comment"># 将测试的html文件拷贝到镜像的相关目录</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> ./index.html  /usr/local/apache2/htdocs/</span></span><br></pre></td></tr></table></figure>
+<p>（3）指定构建的架构，执行命令开始构建新镜像，构建完成后，查看新镜像的架构并导出为tar文件，在arm服务器上进行验证。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">构建镜像</span></span><br><span class="line">docker build --platform arm64 -t httpd:1.00 .</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看新镜像的架构</span></span><br><span class="line"> docker inspect httpd:1.00 | grep Architecture</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">导出镜像为tar文件</span></span><br><span class="line">docker save -o httpd.tar httpd:1.00</span><br></pre></td></tr></table></figure>
+<h3 id="方式二：通过镜像多重构建复制"><a href="#方式二：通过镜像多重构建复制" class="headerlink" title="方式二：通过镜像多重构建复制"></a>方式二：通过镜像多重构建复制</h3><p>（1）创建Dockerfile文件，分两个阶段构建新镜像，第一阶段从 <code>multiarch/qemu-user-static</code> 镜像中获取<code>qemu-aarch64-static</code>程序，第二阶段在httpd镜像的基础上构建新镜像，Dockerfile文件的具体内容如下：</p>
+<figure class="highlight dockerfile"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 第一阶段：从multiarch/qemu-user-static镜像中获取qemu-aarch64-static程序  </span></span><br><span class="line"><span class="keyword">FROM</span> multiarch/qemu-<span class="keyword">user</span>-static:x86_64-aarch64 as qemu</span><br><span class="line"><span class="comment"># 第二阶段：在httpd镜像的基础上构建新镜像</span></span><br><span class="line"><span class="keyword">FROM</span> httpd:latest</span><br><span class="line"><span class="comment"># 将qemu-aarch64-static程序拷贝进镜像的/usr/bin/目录</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> --from=qemu /usr/bin/qemu-aarch64-static /usr/bin/</span></span><br><span class="line"><span class="comment"># 将测试的html文件拷贝到镜像的相关目录</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> ./index.html  /usr/local/apache2/htdocs/</span></span><br></pre></td></tr></table></figure>
+<p>（2）指定构建的架构，执行命令开始构建新镜像，构建完成后，查看新镜像的架构并导出为tar文件，在arm服务器上进行验证。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">构建镜像</span></span><br><span class="line">docker build --platform arm64 -t httpd:1.00 .</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看新镜像的架构</span></span><br><span class="line"> docker inspect httpd:1.00 | grep Architecture</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">导出镜像为tar文件</span></span><br><span class="line">docker save -o httpd.tar httpd:1.00</span><br></pre></td></tr></table></figure>
+<p><mark>扩展：通过镜像多重构建复制也可用该docker命令直接替代。</mark></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker build --rm --platform arm64 -t &quot;httpd:1.00&quot; -&lt;&lt;EOF</span><br><span class="line">FROM multiarch/qemu-user-static:x86_64-aarch64 as qemu</span><br><span class="line">FROM httpd:latest</span><br><span class="line">COPY --from=qemu /usr/bin/qemu-aarch64-static /usr/bin</span><br><span class="line">COPY ./index.html  /usr/local/apache2/htdocs/</span><br><span class="line">EOF</span><br></pre></td></tr></table></figure>
+<h2 id="在arm服务器上验证"><a href="#在arm服务器上验证" class="headerlink" title="在arm服务器上验证"></a>在arm服务器上验证</h2><p>将新的镜像tar文件导入到arm服务器上，创建新容器验证镜像是否可用及镜像中的html文件是否生效。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">导入新镜像</span></span><br><span class="line">docker load -i httpd.tar</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看新镜像的架构</span></span><br><span class="line">docker inspect httpd:1.00 | grep Architecture</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">运行新容器</span></span><br><span class="line">docker run -itd --name test httpd:1.00</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看运行状态</span></span><br><span class="line">docker ps</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看容器IP</span></span><br><span class="line">docker inspect test | grep IPAddress</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">访问测试上传的html文件是否生效</span></span><br><span class="line">curl 172.17.0.2</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>Linux运维</category>
+        <category>容器化</category>
+        <category>docker</category>
+        <category>容器管理</category>
+      </categories>
+      <tags>
+        <tag>运维</tag>
+        <tag>Linux</tag>
+        <tag>docker镜像</tag>
+        <tag>跨架构镜像</tag>
+        <tag>x86-ARM</tag>
       </tags>
   </entry>
   <entry>
@@ -1589,54 +1637,6 @@ Mastodon:  @Podman_io@fosstodon.org
         <tag>Elasticsearch</tag>
         <tag>Kibana</tag>
         <tag>Logstash</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>x86服务器构建ARM架构docker镜像</title>
-    <url>/yyg/4451cec/</url>
-    <content><![CDATA[<h2 id="基础环境"><a href="#基础环境" class="headerlink" title="基础环境"></a>基础环境</h2><p>操作系统：openEuler 22.03 (LTS-SP2)</p>
-<p>软件：Docker-26.1.2 、Docker Compose-v2.27.0</p>
-<h2 id="安装Docker"><a href="#安装Docker" class="headerlink" title="安装Docker"></a>安装Docker</h2><p>（1）配置yum源下载docker。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo</span><br><span class="line">sed -i &#x27;s/\$releasever/7/g&#x27; /etc/yum.repos.d/docker-ce.repo</span><br></pre></td></tr></table></figure>
-<p>（2）安装最新版docker和docker compose。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">下载依赖及docker、docker compose</span></span><br><span class="line">yum install -container-selinux</span><br><span class="line">yum install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin </span><br></pre></td></tr></table></figure>
-<p>（3）修改Docker的数据目录为“/data/dockerData”，并配置docker镜像源。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;&#123;</span><br><span class="line">  &quot;data-root&quot;: &quot;/data/dockerData&quot;,</span><br><span class="line"> &quot;registry-mirrors&quot;: [&quot;https://dockerhub.icu&quot;]</span><br><span class="line">&#125;&#x27; &gt; /etc/docker/daemon.json</span><br></pre></td></tr></table></figure>
-<p>（4）启动Docker服务，并设置为开机自启动。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">systemctl start docker</span><br><span class="line">systemctl enable docker</span><br></pre></td></tr></table></figure>
-<h2 id="使用-register-注册可支持的架构解析器"><a href="#使用-register-注册可支持的架构解析器" class="headerlink" title="使用 register 注册可支持的架构解析器"></a>使用 <code>register</code> 注册可支持的架构解析器</h2><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker run --rm --privileged multiarch/qemu-user-static:register --reset</span><br></pre></td></tr></table></figure>
-<p>查看二进制格式的解释器是否启用，显示<code>enabled</code>，即为启用。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">ls  /proc/sys/fs/binfmt_misc/ </span><br><span class="line">cat /proc/sys/fs/binfmt_misc/qemu-aarch64</span><br></pre></td></tr></table></figure>
-<h2 id="拉取基础arm镜像"><a href="#拉取基础arm镜像" class="headerlink" title="拉取基础arm镜像"></a>拉取基础arm镜像</h2><p>此处以httpd镜像为例，在x86服务器上拉取arm64架构的httpd镜像，其中<code>--platform=arm64</code>指定拉取的镜像架构位arm64，<code>--platform=amd64</code>则是拉取x86架构的镜像。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker pull --platform=arm64 httpd:latest</span><br></pre></td></tr></table></figure>
-<h2 id="定义Dockerfile，创建新镜像"><a href="#定义Dockerfile，创建新镜像" class="headerlink" title="定义Dockerfile，创建新镜像"></a>定义Dockerfile，创建新镜像</h2><p>通过使用Dockerfile创建新arm镜像的方式有两种，一种是直接下载<code>qemu-aarch64-static</code>程序，在构建镜像时直接拷贝进镜像中；另一种是拉取<code>multiarch/qemu-user-static:x86_64-aarch64</code>镜像，通过多阶段构建，从<code>multiarch/qemu-user-static:x86_64-aarch64</code>镜像中复制 <code>qemu-aarch64-static</code>程序 到 <code>httpd</code> 镜像中。</p>
-<h3 id="方式一：下载程序，直接复制"><a href="#方式一：下载程序，直接复制" class="headerlink" title="方式一：下载程序，直接复制"></a>方式一：下载程序，直接复制</h3><p>（1）在下载<code>qemu-aarch64-static</code>程序时，可直接下载该程序，也可先下载其压缩包，再解压。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">直接下载程序（推荐）</span></span><br><span class="line">wget https://github.com/multiarch/qemu-user-static/releases/download/v7.2.0-1/qemu-aarch64-static</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">先下载其压缩包，再解压</span></span><br><span class="line">wget https://github.com/multiarch/qemu-user-static/releases/download/v7.2.0-1/qemu-aarch64-static.tar.gz</span><br><span class="line">tar -vzxf qemu-aarch64-static.tar.gz</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">赋予可执行权限</span></span><br><span class="line">chmod +x /usr/bin/qemu-aarch64-static</span><br></pre></td></tr></table></figure>
-<p>（2）创建Dockerfile文件，在httpd镜像的基础上构建新镜像，<code>qemu-aarch64-static</code><mark>程序必须和Dockerfile文件在同一目录下</mark>。Dockerfile文件的具体内容如下：</p>
-<figure class="highlight dockerfile"><table><tr><td class="code"><pre><span class="line"><span class="keyword">FROM</span> httpd:latest</span><br><span class="line"><span class="comment"># 将qemu-aarch64-static程序拷贝进镜像的/usr/bin/目录</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> ./qemu-aarch64-static /usr/bin/qemu-aarch64-static</span></span><br><span class="line"><span class="comment"># 将测试的html文件拷贝到镜像的相关目录</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> ./index.html  /usr/local/apache2/htdocs/</span></span><br></pre></td></tr></table></figure>
-<p>（3）指定构建的架构，执行命令开始构建新镜像，构建完成后，查看新镜像的架构并导出为tar文件，在arm服务器上进行验证。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">构建镜像</span></span><br><span class="line">docker build --platform arm64 -t httpd:1.00 .</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看新镜像的架构</span></span><br><span class="line"> docker inspect httpd:1.00 | grep Architecture</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">导出镜像为tar文件</span></span><br><span class="line">docker save -o httpd.tar httpd:1.00</span><br></pre></td></tr></table></figure>
-<h3 id="方式二：通过镜像多重构建复制"><a href="#方式二：通过镜像多重构建复制" class="headerlink" title="方式二：通过镜像多重构建复制"></a>方式二：通过镜像多重构建复制</h3><p>（1）创建Dockerfile文件，分两个阶段构建新镜像，第一阶段从 <code>multiarch/qemu-user-static</code> 镜像中获取<code>qemu-aarch64-static</code>程序，第二阶段在httpd镜像的基础上构建新镜像，Dockerfile文件的具体内容如下：</p>
-<figure class="highlight dockerfile"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 第一阶段：从multiarch/qemu-user-static镜像中获取qemu-aarch64-static程序  </span></span><br><span class="line"><span class="keyword">FROM</span> multiarch/qemu-<span class="keyword">user</span>-static:x86_64-aarch64 as qemu</span><br><span class="line"><span class="comment"># 第二阶段：在httpd镜像的基础上构建新镜像</span></span><br><span class="line"><span class="keyword">FROM</span> httpd:latest</span><br><span class="line"><span class="comment"># 将qemu-aarch64-static程序拷贝进镜像的/usr/bin/目录</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> --from=qemu /usr/bin/qemu-aarch64-static /usr/bin/</span></span><br><span class="line"><span class="comment"># 将测试的html文件拷贝到镜像的相关目录</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> ./index.html  /usr/local/apache2/htdocs/</span></span><br></pre></td></tr></table></figure>
-<p>（2）指定构建的架构，执行命令开始构建新镜像，构建完成后，查看新镜像的架构并导出为tar文件，在arm服务器上进行验证。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">构建镜像</span></span><br><span class="line">docker build --platform arm64 -t httpd:1.00 .</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看新镜像的架构</span></span><br><span class="line"> docker inspect httpd:1.00 | grep Architecture</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">导出镜像为tar文件</span></span><br><span class="line">docker save -o httpd.tar httpd:1.00</span><br></pre></td></tr></table></figure>
-<p><mark>扩展：通过镜像多重构建复制也可用该docker命令直接替代。</mark></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker build --rm --platform arm64 -t &quot;httpd:1.00&quot; -&lt;&lt;EOF</span><br><span class="line">FROM multiarch/qemu-user-static:x86_64-aarch64 as qemu</span><br><span class="line">FROM httpd:latest</span><br><span class="line">COPY --from=qemu /usr/bin/qemu-aarch64-static /usr/bin</span><br><span class="line">COPY ./index.html  /usr/local/apache2/htdocs/</span><br><span class="line">EOF</span><br></pre></td></tr></table></figure>
-<h2 id="在arm服务器上验证"><a href="#在arm服务器上验证" class="headerlink" title="在arm服务器上验证"></a>在arm服务器上验证</h2><p>将新的镜像tar文件导入到arm服务器上，创建新容器验证镜像是否可用及镜像中的html文件是否生效。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">导入新镜像</span></span><br><span class="line">docker load -i httpd.tar</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看新镜像的架构</span></span><br><span class="line">docker inspect httpd:1.00 | grep Architecture</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">运行新容器</span></span><br><span class="line">docker run -itd --name test httpd:1.00</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看运行状态</span></span><br><span class="line">docker ps</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看容器IP</span></span><br><span class="line">docker inspect test | grep IPAddress</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">访问测试上传的html文件是否生效</span></span><br><span class="line">curl 172.17.0.2</span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>Linux运维</category>
-        <category>容器化</category>
-        <category>docker</category>
-        <category>容器管理</category>
-      </categories>
-      <tags>
-        <tag>运维</tag>
-        <tag>Linux</tag>
-        <tag>docker镜像</tag>
-        <tag>跨架构镜像</tag>
-        <tag>x86-ARM</tag>
       </tags>
   </entry>
   <entry>
