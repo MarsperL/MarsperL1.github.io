@@ -149,9 +149,9 @@
       
       <categories>
           
-          <category> Linux运维 </category>
-          
           <category> 容器化 </category>
+          
+          <category> Linux运维 </category>
           
           <category> docker </category>
           
@@ -217,9 +217,9 @@
       
       <categories>
           
-          <category> Linux运维 </category>
-          
           <category> 容器化 </category>
+          
+          <category> Linux运维 </category>
           
           <category> docker </category>
           
@@ -353,9 +353,9 @@
       
       <categories>
           
-          <category> Linux运维 </category>
-          
           <category> 容器化 </category>
+          
+          <category> Linux运维 </category>
           
           <category> docker </category>
           
@@ -744,11 +744,11 @@
       
         <tags>
             
+            <tag> k8s </tag>
+            
             <tag> 运维 </tag>
             
             <tag> Linux </tag>
-            
-            <tag> k8s </tag>
             
             <tag> 总结 </tag>
             
@@ -846,9 +846,9 @@
       
       <categories>
           
-          <category> Linux运维 </category>
-          
           <category> 容器化 </category>
+          
+          <category> Linux运维 </category>
           
           <category> docker </category>
           
@@ -1102,9 +1102,9 @@
       
       <categories>
           
-          <category> Linux运维 </category>
-          
           <category> 容器化 </category>
+          
+          <category> Linux运维 </category>
           
           <category> docker </category>
           
