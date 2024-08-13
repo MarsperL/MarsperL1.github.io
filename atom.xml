@@ -280,11 +280,11 @@
     
     <category term="Linux" scheme="https://marsperl.github.io/tags/Linux/"/>
     
-    <category term="Apache" scheme="https://marsperl.github.io/tags/Apache/"/>
-    
     <category term="Mysql" scheme="https://marsperl.github.io/tags/Mysql/"/>
     
     <category term="PHP" scheme="https://marsperl.github.io/tags/PHP/"/>
+    
+    <category term="Apache" scheme="https://marsperl.github.io/tags/Apache/"/>
     
   </entry>
   
@@ -313,11 +313,11 @@
     
     <category term="Linux" scheme="https://marsperl.github.io/tags/Linux/"/>
     
+    <category term="Nginx" scheme="https://marsperl.github.io/tags/Nginx/"/>
+    
     <category term="Mysql" scheme="https://marsperl.github.io/tags/Mysql/"/>
     
     <category term="PHP" scheme="https://marsperl.github.io/tags/PHP/"/>
-    
-    <category term="Nginx" scheme="https://marsperl.github.io/tags/Nginx/"/>
     
   </entry>
   
