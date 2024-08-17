@@ -603,9 +603,9 @@
     
     <category term="容器化" scheme="https://marsperl.github.io/categories/%E5%AE%B9%E5%99%A8%E5%8C%96/"/>
     
-    <category term="k8s" scheme="https://marsperl.github.io/categories/%E5%AE%B9%E5%99%A8%E5%8C%96/k8s/"/>
-    
     <category term="存储系统" scheme="https://marsperl.github.io/categories/%E5%AD%98%E5%82%A8%E7%B3%BB%E7%BB%9F/"/>
+    
+    <category term="k8s" scheme="https://marsperl.github.io/categories/%E5%AE%B9%E5%99%A8%E5%8C%96/k8s/"/>
     
     <category term="ceph" scheme="https://marsperl.github.io/categories/%E5%AD%98%E5%82%A8%E7%B3%BB%E7%BB%9F/ceph/"/>
     
