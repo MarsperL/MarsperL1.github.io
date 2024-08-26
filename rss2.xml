@@ -15,13 +15,13 @@
     <atom:link href="https://marsperl.github.io/rss2.xml" rel="self" type="application/rss+xml"/>
     
     <description>闲云野鹤，八方逍遥</description>
-    <pubDate>Fri, 23 Aug 2024 15:21:16 GMT</pubDate>
+    <pubDate>Mon, 26 Aug 2024 15:55:33 GMT</pubDate>
     <generator>http://hexo.io/</generator>
     
     <item>
-      <title></title>
-      <link>https://marsperl.github.io/yyg/0/</link>
-      <guid>https://marsperl.github.io/yyg/0/</guid>
+      <title>在Github上使用OsmosFeed搭建在线RSS阅读器（无需服务器）</title>
+      <link>https://marsperl.github.io/yyg/5ea27f40/</link>
+      <guid>https://marsperl.github.io/yyg/5ea27f40/</guid>
       <pubDate>Fri, 23 Aug 2024 15:09:38 GMT</pubDate>
       
         
@@ -35,9 +35,21 @@
       
       
       
+      <category domain="https://MarsperL.github.io/categories/%E5%8D%9A%E5%AE%A2%E6%95%99%E7%A8%8B/">博客教程</category>
+      
+      <category domain="https://MarsperL.github.io/categories/%E5%8D%9A%E5%AE%A2%E6%95%99%E7%A8%8B/rss%E9%98%85%E8%AF%BB%E5%99%A8/">rss阅读器</category>
       
       
-      <comments>https://marsperl.github.io/yyg/0/#disqus_thread</comments>
+      <category domain="https://MarsperL.github.io/tags/%E5%8D%9A%E5%AE%A2/">博客</category>
+      
+      <category domain="https://MarsperL.github.io/tags/%E9%AD%94%E6%94%B9/">魔改</category>
+      
+      <category domain="https://MarsperL.github.io/tags/%E5%9C%A8%E7%BA%BFrss%E9%98%85%E8%AF%BB%E5%99%A8/">在线rss阅读器</category>
+      
+      <category domain="https://MarsperL.github.io/tags/GitHub-Pages/">GitHub Pages</category>
+      
+      
+      <comments>https://marsperl.github.io/yyg/5ea27f40/#disqus_thread</comments>
       
     </item>
     
