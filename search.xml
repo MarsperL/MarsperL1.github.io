@@ -528,33 +528,6 @@
       </tags>
   </entry>
   <entry>
-    <title>docker 安装 redis</title>
-    <url>/yyg/6fffbcc4/</url>
-    <content><![CDATA[<p>首先输入命令<code>docker pull redis</code> ，将最新版redis安装到本地</p>
-<p>输入以下命令,后台启动redis(注：<strong>该命令是一条命令</strong>)</p>
-<p>其中<code>--name</code>后面的是redis容器的名称，可自行更改</p>
-<blockquote>
-<p>docker run -p 6379:6379 —name mars1 —privileged=true</p>
-<p> -v /app/redis/redis.conf:/etc/redis/redis.conf </p>
-<p>-v /app/redis/data:/data </p>
-<p>-d redis:latest redis-server /etc/redis/redis.conf</p>
-</blockquote>
-<p>此命令也可解决在删除redis容器后，而出现的数据丢失的问题。若要找回数据，则只需重新运行命令即可。</p>
-
-<p>运行<code>docker ps</code>命令，可查看到redis正在运行</p>
-
-<p>然后执行<code>docker exec -it mars1 /bin/bash</code>命令，redis成功运行</p>
-]]></content>
-      <categories>
-        <category>容器化</category>
-        <category>docker</category>
-      </categories>
-      <tags>
-        <tag>docker</tag>
-        <tag>redis</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Watchtower自动更新docker容器</title>
     <url>/yyg/d3a49a0e/</url>
     <content><![CDATA[<h2 id="基础环境"><a href="#基础环境" class="headerlink" title="基础环境"></a>基础环境</h2><p>系统：openEuler 22.03 (LTS-SP4) X86</p>
@@ -632,6 +605,33 @@
         <tag>Linux</tag>
         <tag>Watchtower</tag>
         <tag>自动更新容器</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>docker 安装 redis</title>
+    <url>/yyg/6fffbcc4/</url>
+    <content><![CDATA[<p>首先输入命令<code>docker pull redis</code> ，将最新版redis安装到本地</p>
+<p>输入以下命令,后台启动redis(注：<strong>该命令是一条命令</strong>)</p>
+<p>其中<code>--name</code>后面的是redis容器的名称，可自行更改</p>
+<blockquote>
+<p>docker run -p 6379:6379 —name mars1 —privileged=true</p>
+<p> -v /app/redis/redis.conf:/etc/redis/redis.conf </p>
+<p>-v /app/redis/data:/data </p>
+<p>-d redis:latest redis-server /etc/redis/redis.conf</p>
+</blockquote>
+<p>此命令也可解决在删除redis容器后，而出现的数据丢失的问题。若要找回数据，则只需重新运行命令即可。</p>
+
+<p>运行<code>docker ps</code>命令，可查看到redis正在运行</p>
+
+<p>然后执行<code>docker exec -it mars1 /bin/bash</code>命令，redis成功运行</p>
+]]></content>
+      <categories>
+        <category>容器化</category>
+        <category>docker</category>
+      </categories>
+      <tags>
+        <tag>docker</tag>
+        <tag>redis</tag>
       </tags>
   </entry>
   <entry>
@@ -901,45 +901,6 @@
       </tags>
   </entry>
   <entry>
-    <title>docker安装mysql</title>
-    <url>/yyg/25ae9841/</url>
-    <content><![CDATA[<blockquote>
-<p><code>docker pull mysql</code> #拉取mysql镜像(最新版)</p>
-</blockquote>
-<p>若安装特定版本如6.0，则命令如下：</p>
-<p><code>docker pull mysql:6.0</code></p>
-<p>运行mysql，并分配3306端口，该命令如下：(<strong>注：下面的是一条命令</strong>)</p>
-<p>此命令中的<code>jiamian</code>为小编的liunx系统的用户名，用时需替换为自己的用户名</p>
-<p><code>MYSQL_ROOT_PASSWORD</code>后填的是mysql的密码，可自行替换</p>
-<p><code>--name</code>后填的mysql-1是运行的mysql容器的名称，也可自行替换</p>
-<blockquote>
-<p>docker run -d -p 3306:3306 —privileged=true -v /jiamian/mysql/log:/var/log/mysql</p>
-<p>-v /jiamian/mysql/data:/var/lib/mysql -v /jiamian/mysql/conf:/etc/mysql/conf.d </p>
-<p>-e MYSQL_ROOT_PASSWORD=123456 —name mysql-1 mysql</p>
-</blockquote>
-<p>此命令也可解决在删除mysql容器后，而出现的数据库数据丢失的问题。若要找回数据，则只需重新运行命令即可。</p>
-<img src="/yyg/25ae9841/image-20230410201124021.png" class="" title="image-20230410201124021">
-<p>运行<code>docker ps</code>命令，可查看到mysql正在运行</p>
-<img src="/yyg/25ae9841/image-20230410201052873.png" class="" title="image-20230410201052873">
-<h2 id="解决mysql插入中文乱码的情况"><a href="#解决mysql插入中文乱码的情况" class="headerlink" title="解决mysql插入中文乱码的情况"></a>解决mysql插入中文乱码的情况</h2><p>然后输入命令<code>cd /jiamian/mysql/conf</code>。进入该目录后，输入命令<code>vim my.cnf</code>，新建my.cnf文件，</p>
-<p>并输入以下代码</p>
-<blockquote>
-<p>[client]<br>default_character_set=utf8<br>[mysqld]<br>collation_server = utf8_general_ci<br>character_set_server = utf8</p>
-</blockquote>
-<p>保存退出后，输入 <code>docker restart mysql-1</code>，重启mysql。</p>
-<p>再输入<code>docker exec -it mysql-1 /bin/bash</code>进入mysql环境，此时汉字可正常显示</p>
-<img src="/yyg/25ae9841/image-20230410202120798.png" class="" title="image-20230410202120798">
-]]></content>
-      <categories>
-        <category>容器化</category>
-        <category>docker</category>
-      </categories>
-      <tags>
-        <tag>docker</tag>
-        <tag>mysql</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>docker容器日志配置管理</title>
     <url>/yyg/3b57c0c6/</url>
     <content><![CDATA[<p>运行的项目容器突然就停了，查看容器日志发现磁盘空间不足，导致容器没法运行了。</p>
@@ -984,6 +945,45 @@
       </tags>
   </entry>
   <entry>
+    <title>docker安装mysql</title>
+    <url>/yyg/25ae9841/</url>
+    <content><![CDATA[<blockquote>
+<p><code>docker pull mysql</code> #拉取mysql镜像(最新版)</p>
+</blockquote>
+<p>若安装特定版本如6.0，则命令如下：</p>
+<p><code>docker pull mysql:6.0</code></p>
+<p>运行mysql，并分配3306端口，该命令如下：(<strong>注：下面的是一条命令</strong>)</p>
+<p>此命令中的<code>jiamian</code>为小编的liunx系统的用户名，用时需替换为自己的用户名</p>
+<p><code>MYSQL_ROOT_PASSWORD</code>后填的是mysql的密码，可自行替换</p>
+<p><code>--name</code>后填的mysql-1是运行的mysql容器的名称，也可自行替换</p>
+<blockquote>
+<p>docker run -d -p 3306:3306 —privileged=true -v /jiamian/mysql/log:/var/log/mysql</p>
+<p>-v /jiamian/mysql/data:/var/lib/mysql -v /jiamian/mysql/conf:/etc/mysql/conf.d </p>
+<p>-e MYSQL_ROOT_PASSWORD=123456 —name mysql-1 mysql</p>
+</blockquote>
+<p>此命令也可解决在删除mysql容器后，而出现的数据库数据丢失的问题。若要找回数据，则只需重新运行命令即可。</p>
+<img src="/yyg/25ae9841/image-20230410201124021.png" class="" title="image-20230410201124021">
+<p>运行<code>docker ps</code>命令，可查看到mysql正在运行</p>
+<img src="/yyg/25ae9841/image-20230410201052873.png" class="" title="image-20230410201052873">
+<h2 id="解决mysql插入中文乱码的情况"><a href="#解决mysql插入中文乱码的情况" class="headerlink" title="解决mysql插入中文乱码的情况"></a>解决mysql插入中文乱码的情况</h2><p>然后输入命令<code>cd /jiamian/mysql/conf</code>。进入该目录后，输入命令<code>vim my.cnf</code>，新建my.cnf文件，</p>
+<p>并输入以下代码</p>
+<blockquote>
+<p>[client]<br>default_character_set=utf8<br>[mysqld]<br>collation_server = utf8_general_ci<br>character_set_server = utf8</p>
+</blockquote>
+<p>保存退出后，输入 <code>docker restart mysql-1</code>，重启mysql。</p>
+<p>再输入<code>docker exec -it mysql-1 /bin/bash</code>进入mysql环境，此时汉字可正常显示</p>
+<img src="/yyg/25ae9841/image-20230410202120798.png" class="" title="image-20230410202120798">
+]]></content>
+      <categories>
+        <category>容器化</category>
+        <category>docker</category>
+      </categories>
+      <tags>
+        <tag>docker</tag>
+        <tag>mysql</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>docker知识梳理</title>
     <url>/yyg/5c56de6f/</url>
     <content><![CDATA[<div class="hbe hbe-container" id="hexo-blog-encrypt" data-wpm="抱歉, 这个密码看着不太对, 请再试试." data-whm="抱歉, 这个文章不能被校验, 不过您还是能看看解密后的内容.">
@@ -1010,6 +1010,74 @@
         <tag>Linux</tag>
         <tag>总结</tag>
         <tag>知识梳理</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>docker部署zabbix6.4指南</title>
+    <url>/yyg/6d91d852/</url>
+    <content><![CDATA[<h2 id="任务目标"><a href="#任务目标" class="headerlink" title="任务目标"></a>任务目标</h2><ol>
+<li>在主机一上完成docker部署zabbix6.4</li>
+<li>在主机二上安装zabbix-agent2</li>
+<li>使用主机一上的zabbix容器监控主机二的容器等业务</li>
+</ol>
+<h2 id="任务平台"><a href="#任务平台" class="headerlink" title="任务平台"></a>任务平台</h2><ol>
+<li>物理设备—</li>
+<li>操作系统：CentOS 7</li>
+</ol>
+<h2 id="部署指南"><a href="#部署指南" class="headerlink" title="部署指南"></a>部署指南</h2><h3 id="任务-一"><a href="#任务-一" class="headerlink" title="任务 一"></a>任务 一</h3><ol>
+<li>安装docker（最新版）</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">下载并安装docker文件及依赖</span></span><br><span class="line">yum install -y yum-utils</span><br><span class="line">yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo</span><br><span class="line">yum install -y docker-ce docker-ce-cli containerd.io</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动docker并设置开机自启</span></span><br><span class="line">systemctl start docker  </span><br><span class="line">systemctl enable docker</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看版本</span></span><br><span class="line">docker -v</span><br></pre></td></tr></table></figure>
+<ol>
+<li>配置防火墙所需的开放端口</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">放行nginx端口</span></span><br><span class="line">firewall-cmd --zone=public --add-port=80/tcp --permanent</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">放行zabbix agent端口</span></span><br><span class="line">firewall-cmd --zone=public --add-port=10050/tcp --permanent</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">放行zabbix server端口</span></span><br><span class="line">firewall-cmd --zone=public --add-port=10051/tcp --permanent</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">放行zabbix java gateway端口</span></span><br><span class="line">firewall-cmd --zone=public --add-port=10052/tcp --permanent</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">放行mysql端口</span></span><br><span class="line">firewall-cmd --zone=public --add-port=3306/tcp --permanent</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">放行snmptraps端口</span></span><br><span class="line">firewall-cmd --zone=public --add-port=162/udp --permanent</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">重载防火墙</span></span><br><span class="line">firewall-cmd --reload</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看80端口是否开放</span></span><br><span class="line">firewall-cmd --query-port=80/tcp</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看所有放行的端口</span></span><br><span class="line">firewall-cmd --zone=public --list-ports</span><br></pre></td></tr></table></figure>
+<ol>
+<li>拉取zabbix所需镜像文件</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">拉取安装zabbix需要的docker镜像</span></span><br><span class="line">docker pull mysql:8.0</span><br><span class="line">docker pull zabbix/zabbix-java-gateway:alpine-6.4-latest</span><br><span class="line">docker pull zabbix/zabbix-server-mysql:alpine-6.4-latest</span><br><span class="line">docker pull zabbix/zabbix-web-nginx-mysql:alpine-6.4-latest</span><br></pre></td></tr></table></figure>
+<ol>
+<li>创建专用于Zabbix组件容器网络与所需容器</li>
+</ol>
+<h4 id="方案一："><a href="#方案一：" class="headerlink" title="方案一："></a>方案一：</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">创建专用于Zabbix组件容器的网络</span></span><br><span class="line">docker network create --subnet 172.20.0.0/16 --ip-range 172.20.240.0/20 zabbix-net</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动空的MySQ服务器实例</span></span><br><span class="line">docker run --name mysql-server -t \</span><br><span class="line">      -e MYSQL_DATABASE=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_USER=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      -e MYSQL_ROOT_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      --network=zabbix-net \</span><br><span class="line">      --restart=always \</span><br><span class="line">      -d mysql:8.0 \</span><br><span class="line">      --character-set-server=UTF8MB4 --collation-server=UTF8MB4_bin \</span><br><span class="line">      --authentication_policy=mysql_native_password</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动Zabbix Java网关实例</span>      </span><br><span class="line">docker run --name zabbix-java-gateway -t \</span><br><span class="line">      --network=zabbix-net \</span><br><span class="line">      --restart unless-stopped \</span><br><span class="line">      -d zabbix/zabbix-java-gateway:alpine-6.4-latest</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动Zabbix服务器实例并将实例与创建的MySQL服务器实例链接</span>      </span><br><span class="line">docker run --name zabbix-server-mysql -t \</span><br><span class="line">      -e DB_SERVER_HOST=&quot;mysql-server&quot; \</span><br><span class="line">      -e MYSQL_DATABASE=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_USER=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      -e MYSQL_ROOT_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      -e ZBX_JAVAGATEWAY=&quot;zabbix-java-gateway&quot; \</span><br><span class="line">      --network=zabbix-net \</span><br><span class="line">      -p 10051:10051 \</span><br><span class="line">      --restart unless-stopped \</span><br><span class="line">      -d zabbix/zabbix-server-mysql:alpine-6.4-latest</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动Zabbix Web界面，并将实例与创建的MySQL服务器和Zabbix服务器实例链接</span></span><br><span class="line">docker run --name zabbix-web-nginx-mysql -t \</span><br><span class="line">      -e ZBX_SERVER_HOST=&quot;zabbix-server-mysql&quot; \</span><br><span class="line">      -e DB_SERVER_HOST=&quot;mysql-server&quot; \</span><br><span class="line">      -e MYSQL_DATABASE=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_USER=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      -e MYSQL_ROOT_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      --network=zabbix-net \</span><br><span class="line">      -p 80:8080 \</span><br><span class="line">      --restart unless-stopped \</span><br><span class="line">      -d zabbix/zabbix-web-nginx-mysql:alpine-6.4-latest</span><br></pre></td></tr></table></figure>
+<h4 id="方案二：（推荐使用）"><a href="#方案二：（推荐使用）" class="headerlink" title="方案二：（推荐使用）"></a>方案二：（推荐使用）</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动空的MySQ服务器实例</span></span><br><span class="line">docker run --name mysql-server -t \</span><br><span class="line">      -e MYSQL_DATABASE=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_USER=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      -e MYSQL_ROOT_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      --restart=always \</span><br><span class="line">      -d mysql:8.0 \</span><br><span class="line">      --character-set-server=UTF8MB4 --collation-server=UTF8MB4_bin \</span><br><span class="line">      --authentication_policy=mysql_native_password</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动Zabbix Java网关实例</span>      </span><br><span class="line">docker run --name zabbix-java-gateway -t \</span><br><span class="line">      --restart unless-stopped \</span><br><span class="line">      -d zabbix/zabbix-java-gateway:alpine-6.4-latest</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动Zabbix服务器实例并将实例与创建的MySQL服务器实例链接</span>      </span><br><span class="line">docker run --name zabbix-server-mysql -t \</span><br><span class="line">      -e DB_SERVER_HOST=&quot;mysql-server&quot; \</span><br><span class="line">      -e MYSQL_DATABASE=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_USER=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      -e MYSQL_ROOT_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      -e ZBX_JAVAGATEWAY=&quot;zabbix-java-gateway&quot; \</span><br><span class="line">      --link mysql-server:mysql \</span><br><span class="line">      --link zabbix-java-gateway:zabbix-java-gateway \</span><br><span class="line">      -p 10051:10051 \</span><br><span class="line">      --restart unless-stopped \</span><br><span class="line">      -d zabbix/zabbix-server-mysql:alpine-6.4-latest</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动Zabbix Web界面，并将实例与创建的MySQL服务器和Zabbix服务器实例链接</span></span><br><span class="line">docker run --name zabbix-web-nginx-mysql -t \</span><br><span class="line">      -e ZBX_SERVER_HOST=&quot;zabbix-server-mysql&quot; \</span><br><span class="line">      -e DB_SERVER_HOST=&quot;mysql-server&quot; \</span><br><span class="line">      -e MYSQL_DATABASE=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_USER=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      -e MYSQL_ROOT_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      --link mysql-server:mysql \</span><br><span class="line">      --link zabbix-server-mysql:zabbix-server \</span><br><span class="line">      -p 80:8080 \</span><br><span class="line">      --restart unless-stopped \</span><br><span class="line">      -d zabbix/zabbix-web-nginx-mysql:alpine-6.4-latest</span><br></pre></td></tr></table></figure>
+<ol>
+<li>在其中一台的主机的/etc/docker/daemon.json文件中，加入如下内容：</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">打开daemon.json文件</span></span><br><span class="line">vi /etc/docker/daemon.json</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">添加的内容</span></span><br><span class="line">&#123;</span><br><span class="line"> &quot;bip&quot;: &quot;172.16.200.1/24&quot;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重启docker服务</span></span><br><span class="line">systemctl restart docker </span><br></pre></td></tr></table></figure>
+<h3 id="任务二"><a href="#任务二" class="headerlink" title="任务二"></a>任务二</h3><p>在主机二上安装zabbix-agent2</p>
+<p>在要监控的主机上安装zabbix agent2</p>
+<p>步骤1：Zabbix agent2下载</p>
+<div class="tag link"><a class="link-card" title="Zabbix agent2下载" href="https://www.zabbix.com/documentation/6.4/manual/installation/install_from_packages"><div class="left"><img src="https://cdn.pixabay.com/photo/2022/07/08/10/37/books-7309019_960_720.png"/></div><div class="right"><p class="text">Zabbix agent2下载</p><p class="url">https://www.zabbix.com/documentation/6.4/manual/installation/install_from_packages</p></div></a></div>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">rpm -Uvh https://repo.zabbix.com/zabbix/6.4/rhel/7/x86_64/zabbix-release-6.4-1.el7.noarch.rpm</span><br><span class="line">yum clean all</span><br></pre></td></tr></table></figure>
+<p>步骤2：b. 下载Zabbix agent2</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum install zabbix-agent2 zabbix-agent2-plugin-* -y</span><br></pre></td></tr></table></figure>
+<p>步骤3：启动Zabbix agent2</p>
+<p>Start Zabbix agent2 process and make it start at system boot.</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">systemctl restart zabbix-agent2</span><br><span class="line">systemctl enable zabbix-agent2</span><br></pre></td></tr></table></figure>
+<p>运行成功界面如下</p>
+<img src="/yyg/6d91d852/1711208128881-1.png" class="" title="img">
+<img src="/yyg/6d91d852/1711208138487-4-1711208142767-7.png" class="" title="img">
+<h3 id="安装报错总结"><a href="#安装报错总结" class="headerlink" title="安装报错总结"></a>安装报错总结</h3><ol>
+<li><img src="/yyg/6d91d852/1711208157423-9.png" class="" title="img">
+</li>
+</ol>
+<p>进入mysql容器，输入以下命令.</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">进入sql界面</span></span><br><span class="line">mysql -u root -p</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">输入该命令，解决问题</span></span><br><span class="line">create database zabbix character set utf8 collate utf8_bin;</span><br><span class="line">SET GLOBAL log_bin_trust_function_creators = 1;</span><br></pre></td></tr></table></figure>
+<ol>
+<li>安装zabbix出现下图情况解决方法</li>
+</ol>
+<img src="/yyg/6d91d852/1711208164924-12.png" class="" title="img">
+<div class="tag link"><a class="link-card" title="故障处理" href="https://blog.csdn.net/ly4983/article/details/111029506"><div class="left"><img src="https://cdn.pixabay.com/photo/2022/07/08/10/37/books-7309019_960_720.png"/></div><div class="right"><p class="text">故障处理</p><p class="url">https://blog.csdn.net/ly4983/article/details/111029506</p></div></a></div>]]></content>
+      <categories>
+        <category>Linux运维</category>
+        <category>容器化</category>
+        <category>docker</category>
+        <category>监控</category>
+      </categories>
+      <tags>
+        <tag>docker</tag>
+        <tag>zabbix</tag>
       </tags>
   </entry>
   <entry>
@@ -1153,74 +1221,6 @@
         <tag>docker</tag>
         <tag>Harbor</tag>
         <tag>容器镜像仓库</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>docker部署zabbix6.4指南</title>
-    <url>/yyg/6d91d852/</url>
-    <content><![CDATA[<h2 id="任务目标"><a href="#任务目标" class="headerlink" title="任务目标"></a>任务目标</h2><ol>
-<li>在主机一上完成docker部署zabbix6.4</li>
-<li>在主机二上安装zabbix-agent2</li>
-<li>使用主机一上的zabbix容器监控主机二的容器等业务</li>
-</ol>
-<h2 id="任务平台"><a href="#任务平台" class="headerlink" title="任务平台"></a>任务平台</h2><ol>
-<li>物理设备—</li>
-<li>操作系统：CentOS 7</li>
-</ol>
-<h2 id="部署指南"><a href="#部署指南" class="headerlink" title="部署指南"></a>部署指南</h2><h3 id="任务-一"><a href="#任务-一" class="headerlink" title="任务 一"></a>任务 一</h3><ol>
-<li>安装docker（最新版）</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">下载并安装docker文件及依赖</span></span><br><span class="line">yum install -y yum-utils</span><br><span class="line">yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo</span><br><span class="line">yum install -y docker-ce docker-ce-cli containerd.io</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动docker并设置开机自启</span></span><br><span class="line">systemctl start docker  </span><br><span class="line">systemctl enable docker</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看版本</span></span><br><span class="line">docker -v</span><br></pre></td></tr></table></figure>
-<ol>
-<li>配置防火墙所需的开放端口</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">放行nginx端口</span></span><br><span class="line">firewall-cmd --zone=public --add-port=80/tcp --permanent</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">放行zabbix agent端口</span></span><br><span class="line">firewall-cmd --zone=public --add-port=10050/tcp --permanent</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">放行zabbix server端口</span></span><br><span class="line">firewall-cmd --zone=public --add-port=10051/tcp --permanent</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">放行zabbix java gateway端口</span></span><br><span class="line">firewall-cmd --zone=public --add-port=10052/tcp --permanent</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">放行mysql端口</span></span><br><span class="line">firewall-cmd --zone=public --add-port=3306/tcp --permanent</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">放行snmptraps端口</span></span><br><span class="line">firewall-cmd --zone=public --add-port=162/udp --permanent</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">重载防火墙</span></span><br><span class="line">firewall-cmd --reload</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看80端口是否开放</span></span><br><span class="line">firewall-cmd --query-port=80/tcp</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看所有放行的端口</span></span><br><span class="line">firewall-cmd --zone=public --list-ports</span><br></pre></td></tr></table></figure>
-<ol>
-<li>拉取zabbix所需镜像文件</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">拉取安装zabbix需要的docker镜像</span></span><br><span class="line">docker pull mysql:8.0</span><br><span class="line">docker pull zabbix/zabbix-java-gateway:alpine-6.4-latest</span><br><span class="line">docker pull zabbix/zabbix-server-mysql:alpine-6.4-latest</span><br><span class="line">docker pull zabbix/zabbix-web-nginx-mysql:alpine-6.4-latest</span><br></pre></td></tr></table></figure>
-<ol>
-<li>创建专用于Zabbix组件容器网络与所需容器</li>
-</ol>
-<h4 id="方案一："><a href="#方案一：" class="headerlink" title="方案一："></a>方案一：</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">创建专用于Zabbix组件容器的网络</span></span><br><span class="line">docker network create --subnet 172.20.0.0/16 --ip-range 172.20.240.0/20 zabbix-net</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动空的MySQ服务器实例</span></span><br><span class="line">docker run --name mysql-server -t \</span><br><span class="line">      -e MYSQL_DATABASE=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_USER=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      -e MYSQL_ROOT_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      --network=zabbix-net \</span><br><span class="line">      --restart=always \</span><br><span class="line">      -d mysql:8.0 \</span><br><span class="line">      --character-set-server=UTF8MB4 --collation-server=UTF8MB4_bin \</span><br><span class="line">      --authentication_policy=mysql_native_password</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动Zabbix Java网关实例</span>      </span><br><span class="line">docker run --name zabbix-java-gateway -t \</span><br><span class="line">      --network=zabbix-net \</span><br><span class="line">      --restart unless-stopped \</span><br><span class="line">      -d zabbix/zabbix-java-gateway:alpine-6.4-latest</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动Zabbix服务器实例并将实例与创建的MySQL服务器实例链接</span>      </span><br><span class="line">docker run --name zabbix-server-mysql -t \</span><br><span class="line">      -e DB_SERVER_HOST=&quot;mysql-server&quot; \</span><br><span class="line">      -e MYSQL_DATABASE=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_USER=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      -e MYSQL_ROOT_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      -e ZBX_JAVAGATEWAY=&quot;zabbix-java-gateway&quot; \</span><br><span class="line">      --network=zabbix-net \</span><br><span class="line">      -p 10051:10051 \</span><br><span class="line">      --restart unless-stopped \</span><br><span class="line">      -d zabbix/zabbix-server-mysql:alpine-6.4-latest</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动Zabbix Web界面，并将实例与创建的MySQL服务器和Zabbix服务器实例链接</span></span><br><span class="line">docker run --name zabbix-web-nginx-mysql -t \</span><br><span class="line">      -e ZBX_SERVER_HOST=&quot;zabbix-server-mysql&quot; \</span><br><span class="line">      -e DB_SERVER_HOST=&quot;mysql-server&quot; \</span><br><span class="line">      -e MYSQL_DATABASE=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_USER=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      -e MYSQL_ROOT_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      --network=zabbix-net \</span><br><span class="line">      -p 80:8080 \</span><br><span class="line">      --restart unless-stopped \</span><br><span class="line">      -d zabbix/zabbix-web-nginx-mysql:alpine-6.4-latest</span><br></pre></td></tr></table></figure>
-<h4 id="方案二：（推荐使用）"><a href="#方案二：（推荐使用）" class="headerlink" title="方案二：（推荐使用）"></a>方案二：（推荐使用）</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动空的MySQ服务器实例</span></span><br><span class="line">docker run --name mysql-server -t \</span><br><span class="line">      -e MYSQL_DATABASE=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_USER=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      -e MYSQL_ROOT_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      --restart=always \</span><br><span class="line">      -d mysql:8.0 \</span><br><span class="line">      --character-set-server=UTF8MB4 --collation-server=UTF8MB4_bin \</span><br><span class="line">      --authentication_policy=mysql_native_password</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动Zabbix Java网关实例</span>      </span><br><span class="line">docker run --name zabbix-java-gateway -t \</span><br><span class="line">      --restart unless-stopped \</span><br><span class="line">      -d zabbix/zabbix-java-gateway:alpine-6.4-latest</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动Zabbix服务器实例并将实例与创建的MySQL服务器实例链接</span>      </span><br><span class="line">docker run --name zabbix-server-mysql -t \</span><br><span class="line">      -e DB_SERVER_HOST=&quot;mysql-server&quot; \</span><br><span class="line">      -e MYSQL_DATABASE=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_USER=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      -e MYSQL_ROOT_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      -e ZBX_JAVAGATEWAY=&quot;zabbix-java-gateway&quot; \</span><br><span class="line">      --link mysql-server:mysql \</span><br><span class="line">      --link zabbix-java-gateway:zabbix-java-gateway \</span><br><span class="line">      -p 10051:10051 \</span><br><span class="line">      --restart unless-stopped \</span><br><span class="line">      -d zabbix/zabbix-server-mysql:alpine-6.4-latest</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动Zabbix Web界面，并将实例与创建的MySQL服务器和Zabbix服务器实例链接</span></span><br><span class="line">docker run --name zabbix-web-nginx-mysql -t \</span><br><span class="line">      -e ZBX_SERVER_HOST=&quot;zabbix-server-mysql&quot; \</span><br><span class="line">      -e DB_SERVER_HOST=&quot;mysql-server&quot; \</span><br><span class="line">      -e MYSQL_DATABASE=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_USER=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      -e MYSQL_ROOT_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      --link mysql-server:mysql \</span><br><span class="line">      --link zabbix-server-mysql:zabbix-server \</span><br><span class="line">      -p 80:8080 \</span><br><span class="line">      --restart unless-stopped \</span><br><span class="line">      -d zabbix/zabbix-web-nginx-mysql:alpine-6.4-latest</span><br></pre></td></tr></table></figure>
-<ol>
-<li>在其中一台的主机的/etc/docker/daemon.json文件中，加入如下内容：</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">打开daemon.json文件</span></span><br><span class="line">vi /etc/docker/daemon.json</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">添加的内容</span></span><br><span class="line">&#123;</span><br><span class="line"> &quot;bip&quot;: &quot;172.16.200.1/24&quot;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重启docker服务</span></span><br><span class="line">systemctl restart docker </span><br></pre></td></tr></table></figure>
-<h3 id="任务二"><a href="#任务二" class="headerlink" title="任务二"></a>任务二</h3><p>在主机二上安装zabbix-agent2</p>
-<p>在要监控的主机上安装zabbix agent2</p>
-<p>步骤1：Zabbix agent2下载</p>
-<div class="tag link"><a class="link-card" title="Zabbix agent2下载" href="https://www.zabbix.com/documentation/6.4/manual/installation/install_from_packages"><div class="left"><img src="https://cdn.pixabay.com/photo/2022/07/08/10/37/books-7309019_960_720.png"/></div><div class="right"><p class="text">Zabbix agent2下载</p><p class="url">https://www.zabbix.com/documentation/6.4/manual/installation/install_from_packages</p></div></a></div>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">rpm -Uvh https://repo.zabbix.com/zabbix/6.4/rhel/7/x86_64/zabbix-release-6.4-1.el7.noarch.rpm</span><br><span class="line">yum clean all</span><br></pre></td></tr></table></figure>
-<p>步骤2：b. 下载Zabbix agent2</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum install zabbix-agent2 zabbix-agent2-plugin-* -y</span><br></pre></td></tr></table></figure>
-<p>步骤3：启动Zabbix agent2</p>
-<p>Start Zabbix agent2 process and make it start at system boot.</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">systemctl restart zabbix-agent2</span><br><span class="line">systemctl enable zabbix-agent2</span><br></pre></td></tr></table></figure>
-<p>运行成功界面如下</p>
-<img src="/yyg/6d91d852/1711208128881-1.png" class="" title="img">
-<img src="/yyg/6d91d852/1711208138487-4-1711208142767-7.png" class="" title="img">
-<h3 id="安装报错总结"><a href="#安装报错总结" class="headerlink" title="安装报错总结"></a>安装报错总结</h3><ol>
-<li><img src="/yyg/6d91d852/1711208157423-9.png" class="" title="img">
-</li>
-</ol>
-<p>进入mysql容器，输入以下命令.</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">进入sql界面</span></span><br><span class="line">mysql -u root -p</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">输入该命令，解决问题</span></span><br><span class="line">create database zabbix character set utf8 collate utf8_bin;</span><br><span class="line">SET GLOBAL log_bin_trust_function_creators = 1;</span><br></pre></td></tr></table></figure>
-<ol>
-<li>安装zabbix出现下图情况解决方法</li>
-</ol>
-<img src="/yyg/6d91d852/1711208164924-12.png" class="" title="img">
-<div class="tag link"><a class="link-card" title="故障处理" href="https://blog.csdn.net/ly4983/article/details/111029506"><div class="left"><img src="https://cdn.pixabay.com/photo/2022/07/08/10/37/books-7309019_960_720.png"/></div><div class="right"><p class="text">故障处理</p><p class="url">https://blog.csdn.net/ly4983/article/details/111029506</p></div></a></div>]]></content>
-      <categories>
-        <category>Linux运维</category>
-        <category>容器化</category>
-        <category>docker</category>
-        <category>监控</category>
-      </categories>
-      <tags>
-        <tag>docker</tag>
-        <tag>zabbix</tag>
       </tags>
   </entry>
   <entry>
@@ -1409,6 +1409,54 @@ Mastodon:  @Podman_io@fosstodon.org
       </tags>
   </entry>
   <entry>
+    <title>x86服务器构建ARM架构docker镜像</title>
+    <url>/yyg/4451cec/</url>
+    <content><![CDATA[<h2 id="基础环境"><a href="#基础环境" class="headerlink" title="基础环境"></a>基础环境</h2><p>操作系统：openEuler 22.03 (LTS-SP2)</p>
+<p>软件：Docker-26.1.2 、Docker Compose-v2.27.0</p>
+<h2 id="安装Docker"><a href="#安装Docker" class="headerlink" title="安装Docker"></a>安装Docker</h2><p>（1）配置yum源下载docker。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo</span><br><span class="line">sed -i &#x27;s/\$releasever/7/g&#x27; /etc/yum.repos.d/docker-ce.repo</span><br></pre></td></tr></table></figure>
+<p>（2）安装最新版docker和docker compose。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">下载依赖及docker、docker compose</span></span><br><span class="line">yum install -container-selinux</span><br><span class="line">yum install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin </span><br></pre></td></tr></table></figure>
+<p>（3）修改Docker的数据目录为“/data/dockerData”，并配置docker镜像源。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;&#123;</span><br><span class="line">  &quot;data-root&quot;: &quot;/data/dockerData&quot;,</span><br><span class="line"> &quot;registry-mirrors&quot;: [&quot;https://dockerhub.icu&quot;]</span><br><span class="line">&#125;&#x27; &gt; /etc/docker/daemon.json</span><br></pre></td></tr></table></figure>
+<p>（4）启动Docker服务，并设置为开机自启动。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">systemctl start docker</span><br><span class="line">systemctl enable docker</span><br></pre></td></tr></table></figure>
+<h2 id="使用-register-注册可支持的架构解析器"><a href="#使用-register-注册可支持的架构解析器" class="headerlink" title="使用 register 注册可支持的架构解析器"></a>使用 <code>register</code> 注册可支持的架构解析器</h2><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker run --rm --privileged multiarch/qemu-user-static:register --reset</span><br></pre></td></tr></table></figure>
+<p>查看二进制格式的解释器是否启用，显示<code>enabled</code>，即为启用。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">ls  /proc/sys/fs/binfmt_misc/ </span><br><span class="line">cat /proc/sys/fs/binfmt_misc/qemu-aarch64</span><br></pre></td></tr></table></figure>
+<h2 id="拉取基础arm镜像"><a href="#拉取基础arm镜像" class="headerlink" title="拉取基础arm镜像"></a>拉取基础arm镜像</h2><p>此处以httpd镜像为例，在x86服务器上拉取arm64架构的httpd镜像，其中<code>--platform=arm64</code>指定拉取的镜像架构位arm64，<code>--platform=amd64</code>则是拉取x86架构的镜像。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker pull --platform=arm64 httpd:latest</span><br></pre></td></tr></table></figure>
+<h2 id="定义Dockerfile，创建新镜像"><a href="#定义Dockerfile，创建新镜像" class="headerlink" title="定义Dockerfile，创建新镜像"></a>定义Dockerfile，创建新镜像</h2><p>通过使用Dockerfile创建新arm镜像的方式有两种，一种是直接下载<code>qemu-aarch64-static</code>程序，在构建镜像时直接拷贝进镜像中；另一种是拉取<code>multiarch/qemu-user-static:x86_64-aarch64</code>镜像，通过多阶段构建，从<code>multiarch/qemu-user-static:x86_64-aarch64</code>镜像中复制 <code>qemu-aarch64-static</code>程序 到 <code>httpd</code> 镜像中。</p>
+<h3 id="方式一：下载程序，直接复制"><a href="#方式一：下载程序，直接复制" class="headerlink" title="方式一：下载程序，直接复制"></a>方式一：下载程序，直接复制</h3><p>（1）在下载<code>qemu-aarch64-static</code>程序时，可直接下载该程序，也可先下载其压缩包，再解压。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">直接下载程序（推荐）</span></span><br><span class="line">wget https://github.com/multiarch/qemu-user-static/releases/download/v7.2.0-1/qemu-aarch64-static</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">先下载其压缩包，再解压</span></span><br><span class="line">wget https://github.com/multiarch/qemu-user-static/releases/download/v7.2.0-1/qemu-aarch64-static.tar.gz</span><br><span class="line">tar -vzxf qemu-aarch64-static.tar.gz</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">赋予可执行权限</span></span><br><span class="line">chmod +x /usr/bin/qemu-aarch64-static</span><br></pre></td></tr></table></figure>
+<p>（2）创建Dockerfile文件，在httpd镜像的基础上构建新镜像，<code>qemu-aarch64-static</code><mark>程序必须和Dockerfile文件在同一目录下</mark>。Dockerfile文件的具体内容如下：</p>
+<figure class="highlight dockerfile"><table><tr><td class="code"><pre><span class="line"><span class="keyword">FROM</span> httpd:latest</span><br><span class="line"><span class="comment"># 将qemu-aarch64-static程序拷贝进镜像的/usr/bin/目录</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> ./qemu-aarch64-static /usr/bin/qemu-aarch64-static</span></span><br><span class="line"><span class="comment"># 将测试的html文件拷贝到镜像的相关目录</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> ./index.html  /usr/local/apache2/htdocs/</span></span><br></pre></td></tr></table></figure>
+<p>（3）指定构建的架构，执行命令开始构建新镜像，构建完成后，查看新镜像的架构并导出为tar文件，在arm服务器上进行验证。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">构建镜像</span></span><br><span class="line">docker build --platform arm64 -t httpd:1.00 .</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看新镜像的架构</span></span><br><span class="line"> docker inspect httpd:1.00 | grep Architecture</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">导出镜像为tar文件</span></span><br><span class="line">docker save -o httpd.tar httpd:1.00</span><br></pre></td></tr></table></figure>
+<h3 id="方式二：通过镜像多重构建复制"><a href="#方式二：通过镜像多重构建复制" class="headerlink" title="方式二：通过镜像多重构建复制"></a>方式二：通过镜像多重构建复制</h3><p>（1）创建Dockerfile文件，分两个阶段构建新镜像，第一阶段从 <code>multiarch/qemu-user-static</code> 镜像中获取<code>qemu-aarch64-static</code>程序，第二阶段在httpd镜像的基础上构建新镜像，Dockerfile文件的具体内容如下：</p>
+<figure class="highlight dockerfile"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 第一阶段：从multiarch/qemu-user-static镜像中获取qemu-aarch64-static程序  </span></span><br><span class="line"><span class="keyword">FROM</span> multiarch/qemu-<span class="keyword">user</span>-static:x86_64-aarch64 as qemu</span><br><span class="line"><span class="comment"># 第二阶段：在httpd镜像的基础上构建新镜像</span></span><br><span class="line"><span class="keyword">FROM</span> httpd:latest</span><br><span class="line"><span class="comment"># 将qemu-aarch64-static程序拷贝进镜像的/usr/bin/目录</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> --from=qemu /usr/bin/qemu-aarch64-static /usr/bin/</span></span><br><span class="line"><span class="comment"># 将测试的html文件拷贝到镜像的相关目录</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> ./index.html  /usr/local/apache2/htdocs/</span></span><br></pre></td></tr></table></figure>
+<p>（2）指定构建的架构，执行命令开始构建新镜像，构建完成后，查看新镜像的架构并导出为tar文件，在arm服务器上进行验证。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">构建镜像</span></span><br><span class="line">docker build --platform arm64 -t httpd:1.00 .</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看新镜像的架构</span></span><br><span class="line"> docker inspect httpd:1.00 | grep Architecture</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">导出镜像为tar文件</span></span><br><span class="line">docker save -o httpd.tar httpd:1.00</span><br></pre></td></tr></table></figure>
+<p><mark>扩展：通过镜像多重构建复制也可用该docker命令直接替代。</mark></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker build --rm --platform arm64 -t &quot;httpd:1.00&quot; -&lt;&lt;EOF</span><br><span class="line">FROM multiarch/qemu-user-static:x86_64-aarch64 as qemu</span><br><span class="line">FROM httpd:latest</span><br><span class="line">COPY --from=qemu /usr/bin/qemu-aarch64-static /usr/bin</span><br><span class="line">COPY ./index.html  /usr/local/apache2/htdocs/</span><br><span class="line">EOF</span><br></pre></td></tr></table></figure>
+<h2 id="在arm服务器上验证"><a href="#在arm服务器上验证" class="headerlink" title="在arm服务器上验证"></a>在arm服务器上验证</h2><p>将新的镜像tar文件导入到arm服务器上，创建新容器验证镜像是否可用及镜像中的html文件是否生效。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">导入新镜像</span></span><br><span class="line">docker load -i httpd.tar</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看新镜像的架构</span></span><br><span class="line">docker inspect httpd:1.00 | grep Architecture</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">运行新容器</span></span><br><span class="line">docker run -itd --name test httpd:1.00</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看运行状态</span></span><br><span class="line">docker ps</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看容器IP</span></span><br><span class="line">docker inspect test | grep IPAddress</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">访问测试上传的html文件是否生效</span></span><br><span class="line">curl 172.17.0.2</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>Linux运维</category>
+        <category>容器化</category>
+        <category>docker</category>
+        <category>容器管理</category>
+      </categories>
+      <tags>
+        <tag>运维</tag>
+        <tag>Linux</tag>
+        <tag>docker镜像</tag>
+        <tag>跨架构镜像</tag>
+        <tag>x86-ARM</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>一些免费的gpt网站</title>
     <url>/yyg/30035ff1/</url>
     <content><![CDATA[<div title="CodeNews" referrerPolicy="no-referrer" class="card_box" style="background-color: #333; width:96px; height:80px;">
@@ -1517,54 +1565,6 @@ Mastodon:  @Podman_io@fosstodon.org
       <tags>
         <tag>人工智能助手</tag>
         <tag>免费gpt</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>x86服务器构建ARM架构docker镜像</title>
-    <url>/yyg/4451cec/</url>
-    <content><![CDATA[<h2 id="基础环境"><a href="#基础环境" class="headerlink" title="基础环境"></a>基础环境</h2><p>操作系统：openEuler 22.03 (LTS-SP2)</p>
-<p>软件：Docker-26.1.2 、Docker Compose-v2.27.0</p>
-<h2 id="安装Docker"><a href="#安装Docker" class="headerlink" title="安装Docker"></a>安装Docker</h2><p>（1）配置yum源下载docker。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo</span><br><span class="line">sed -i &#x27;s/\$releasever/7/g&#x27; /etc/yum.repos.d/docker-ce.repo</span><br></pre></td></tr></table></figure>
-<p>（2）安装最新版docker和docker compose。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">下载依赖及docker、docker compose</span></span><br><span class="line">yum install -container-selinux</span><br><span class="line">yum install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin </span><br></pre></td></tr></table></figure>
-<p>（3）修改Docker的数据目录为“/data/dockerData”，并配置docker镜像源。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;&#123;</span><br><span class="line">  &quot;data-root&quot;: &quot;/data/dockerData&quot;,</span><br><span class="line"> &quot;registry-mirrors&quot;: [&quot;https://dockerhub.icu&quot;]</span><br><span class="line">&#125;&#x27; &gt; /etc/docker/daemon.json</span><br></pre></td></tr></table></figure>
-<p>（4）启动Docker服务，并设置为开机自启动。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">systemctl start docker</span><br><span class="line">systemctl enable docker</span><br></pre></td></tr></table></figure>
-<h2 id="使用-register-注册可支持的架构解析器"><a href="#使用-register-注册可支持的架构解析器" class="headerlink" title="使用 register 注册可支持的架构解析器"></a>使用 <code>register</code> 注册可支持的架构解析器</h2><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker run --rm --privileged multiarch/qemu-user-static:register --reset</span><br></pre></td></tr></table></figure>
-<p>查看二进制格式的解释器是否启用，显示<code>enabled</code>，即为启用。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">ls  /proc/sys/fs/binfmt_misc/ </span><br><span class="line">cat /proc/sys/fs/binfmt_misc/qemu-aarch64</span><br></pre></td></tr></table></figure>
-<h2 id="拉取基础arm镜像"><a href="#拉取基础arm镜像" class="headerlink" title="拉取基础arm镜像"></a>拉取基础arm镜像</h2><p>此处以httpd镜像为例，在x86服务器上拉取arm64架构的httpd镜像，其中<code>--platform=arm64</code>指定拉取的镜像架构位arm64，<code>--platform=amd64</code>则是拉取x86架构的镜像。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker pull --platform=arm64 httpd:latest</span><br></pre></td></tr></table></figure>
-<h2 id="定义Dockerfile，创建新镜像"><a href="#定义Dockerfile，创建新镜像" class="headerlink" title="定义Dockerfile，创建新镜像"></a>定义Dockerfile，创建新镜像</h2><p>通过使用Dockerfile创建新arm镜像的方式有两种，一种是直接下载<code>qemu-aarch64-static</code>程序，在构建镜像时直接拷贝进镜像中；另一种是拉取<code>multiarch/qemu-user-static:x86_64-aarch64</code>镜像，通过多阶段构建，从<code>multiarch/qemu-user-static:x86_64-aarch64</code>镜像中复制 <code>qemu-aarch64-static</code>程序 到 <code>httpd</code> 镜像中。</p>
-<h3 id="方式一：下载程序，直接复制"><a href="#方式一：下载程序，直接复制" class="headerlink" title="方式一：下载程序，直接复制"></a>方式一：下载程序，直接复制</h3><p>（1）在下载<code>qemu-aarch64-static</code>程序时，可直接下载该程序，也可先下载其压缩包，再解压。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">直接下载程序（推荐）</span></span><br><span class="line">wget https://github.com/multiarch/qemu-user-static/releases/download/v7.2.0-1/qemu-aarch64-static</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">先下载其压缩包，再解压</span></span><br><span class="line">wget https://github.com/multiarch/qemu-user-static/releases/download/v7.2.0-1/qemu-aarch64-static.tar.gz</span><br><span class="line">tar -vzxf qemu-aarch64-static.tar.gz</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">赋予可执行权限</span></span><br><span class="line">chmod +x /usr/bin/qemu-aarch64-static</span><br></pre></td></tr></table></figure>
-<p>（2）创建Dockerfile文件，在httpd镜像的基础上构建新镜像，<code>qemu-aarch64-static</code><mark>程序必须和Dockerfile文件在同一目录下</mark>。Dockerfile文件的具体内容如下：</p>
-<figure class="highlight dockerfile"><table><tr><td class="code"><pre><span class="line"><span class="keyword">FROM</span> httpd:latest</span><br><span class="line"><span class="comment"># 将qemu-aarch64-static程序拷贝进镜像的/usr/bin/目录</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> ./qemu-aarch64-static /usr/bin/qemu-aarch64-static</span></span><br><span class="line"><span class="comment"># 将测试的html文件拷贝到镜像的相关目录</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> ./index.html  /usr/local/apache2/htdocs/</span></span><br></pre></td></tr></table></figure>
-<p>（3）指定构建的架构，执行命令开始构建新镜像，构建完成后，查看新镜像的架构并导出为tar文件，在arm服务器上进行验证。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">构建镜像</span></span><br><span class="line">docker build --platform arm64 -t httpd:1.00 .</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看新镜像的架构</span></span><br><span class="line"> docker inspect httpd:1.00 | grep Architecture</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">导出镜像为tar文件</span></span><br><span class="line">docker save -o httpd.tar httpd:1.00</span><br></pre></td></tr></table></figure>
-<h3 id="方式二：通过镜像多重构建复制"><a href="#方式二：通过镜像多重构建复制" class="headerlink" title="方式二：通过镜像多重构建复制"></a>方式二：通过镜像多重构建复制</h3><p>（1）创建Dockerfile文件，分两个阶段构建新镜像，第一阶段从 <code>multiarch/qemu-user-static</code> 镜像中获取<code>qemu-aarch64-static</code>程序，第二阶段在httpd镜像的基础上构建新镜像，Dockerfile文件的具体内容如下：</p>
-<figure class="highlight dockerfile"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 第一阶段：从multiarch/qemu-user-static镜像中获取qemu-aarch64-static程序  </span></span><br><span class="line"><span class="keyword">FROM</span> multiarch/qemu-<span class="keyword">user</span>-static:x86_64-aarch64 as qemu</span><br><span class="line"><span class="comment"># 第二阶段：在httpd镜像的基础上构建新镜像</span></span><br><span class="line"><span class="keyword">FROM</span> httpd:latest</span><br><span class="line"><span class="comment"># 将qemu-aarch64-static程序拷贝进镜像的/usr/bin/目录</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> --from=qemu /usr/bin/qemu-aarch64-static /usr/bin/</span></span><br><span class="line"><span class="comment"># 将测试的html文件拷贝到镜像的相关目录</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> ./index.html  /usr/local/apache2/htdocs/</span></span><br></pre></td></tr></table></figure>
-<p>（2）指定构建的架构，执行命令开始构建新镜像，构建完成后，查看新镜像的架构并导出为tar文件，在arm服务器上进行验证。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">构建镜像</span></span><br><span class="line">docker build --platform arm64 -t httpd:1.00 .</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看新镜像的架构</span></span><br><span class="line"> docker inspect httpd:1.00 | grep Architecture</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">导出镜像为tar文件</span></span><br><span class="line">docker save -o httpd.tar httpd:1.00</span><br></pre></td></tr></table></figure>
-<p><mark>扩展：通过镜像多重构建复制也可用该docker命令直接替代。</mark></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker build --rm --platform arm64 -t &quot;httpd:1.00&quot; -&lt;&lt;EOF</span><br><span class="line">FROM multiarch/qemu-user-static:x86_64-aarch64 as qemu</span><br><span class="line">FROM httpd:latest</span><br><span class="line">COPY --from=qemu /usr/bin/qemu-aarch64-static /usr/bin</span><br><span class="line">COPY ./index.html  /usr/local/apache2/htdocs/</span><br><span class="line">EOF</span><br></pre></td></tr></table></figure>
-<h2 id="在arm服务器上验证"><a href="#在arm服务器上验证" class="headerlink" title="在arm服务器上验证"></a>在arm服务器上验证</h2><p>将新的镜像tar文件导入到arm服务器上，创建新容器验证镜像是否可用及镜像中的html文件是否生效。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">导入新镜像</span></span><br><span class="line">docker load -i httpd.tar</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看新镜像的架构</span></span><br><span class="line">docker inspect httpd:1.00 | grep Architecture</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">运行新容器</span></span><br><span class="line">docker run -itd --name test httpd:1.00</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看运行状态</span></span><br><span class="line">docker ps</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看容器IP</span></span><br><span class="line">docker inspect test | grep IPAddress</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">访问测试上传的html文件是否生效</span></span><br><span class="line">curl 172.17.0.2</span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>Linux运维</category>
-        <category>容器化</category>
-        <category>docker</category>
-        <category>容器管理</category>
-      </categories>
-      <tags>
-        <tag>运维</tag>
-        <tag>Linux</tag>
-        <tag>docker镜像</tag>
-        <tag>跨架构镜像</tag>
-        <tag>x86-ARM</tag>
       </tags>
   </entry>
   <entry>
@@ -1877,37 +1877,6 @@ Mastodon:  @Podman_io@fosstodon.org
       </tags>
   </entry>
   <entry>
-    <title>实现Nextcloud私有云盘</title>
-    <url>/yyg/f7b8055d/</url>
-    <content><![CDATA[<h2 id="任务目标"><a href="#任务目标" class="headerlink" title="任务目标"></a>任务目标</h2><ol>
-<li>完成Nextcloud私有云盘的搭建</li>
-</ol>
-<h2 id="部署指南"><a href="#部署指南" class="headerlink" title="部署指南"></a>部署指南</h2><h3 id="基础环境准备"><a href="#基础环境准备" class="headerlink" title="基础环境准备"></a>基础环境准备</h3><p>配置防火墙策略</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">firewall-cmd --zone=public --add-service=http --permanent</span><br><span class="line">firewall-cmd --reload</span><br></pre></td></tr></table></figure>
-<p>配置SELinux策略</p>
-<p>设置SELinux为permissive或disabled。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">修改</span></span><br><span class="line">setenforce 0</span><br><span class="line">sudo sed -i &#x27;s/^SELINUX=enforcing/SELINUX=disabled/&#x27; /etc/selinux/config</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">或</span></span><br><span class="line">setenforce 0</span><br><span class="line">sudo sed -i &#x27;s/^SELINUX=enforcing/SELINUX=permissive/&#x27; /etc/selinux/config</span><br></pre></td></tr></table></figure>
-<h3 id="安装Apache"><a href="#安装Apache" class="headerlink" title="安装Apache"></a>安装Apache</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum -y install httpd</span><br></pre></td></tr></table></figure>
-<h3 id="安装PHP"><a href="#安装PHP" class="headerlink" title="安装PHP"></a>安装PHP</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum -y install php</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装php模块依赖</span></span><br><span class="line">yum -y install php-zip php-dom php-xml php-mbstring php-pdo php-gd</span><br></pre></td></tr></table></figure>
-<h3 id="添加Nextcloud站点配置文件"><a href="#添加Nextcloud站点配置文件" class="headerlink" title="添加Nextcloud站点配置文件"></a>添加Nextcloud站点配置文件</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">mkdir /var/www/html/nextcloud/</span><br><span class="line">chmod 777 /var/www/html/nextcloud/</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">新建文件</span></span><br><span class="line">vi /etc/httpd/conf.d/nextcloud.conf</span><br><span class="line">&lt;VirtualHost *:80&gt;</span><br><span class="line">  DocumentRoot /var/www/html/nextcloud/</span><br><span class="line">  ServerName  your.server.com</span><br><span class="line"></span><br><span class="line">  &lt;Directory /var/www/html/nextcloud/&gt;</span><br><span class="line">    Require all granted</span><br><span class="line">    AllowOverride All</span><br><span class="line">    Options FollowSymLinks MultiViews</span><br><span class="line"></span><br><span class="line">    &lt;IfModule mod_dav.c&gt;</span><br><span class="line">      Dav off</span><br><span class="line">    &lt;/IfModule&gt;</span><br><span class="line"></span><br><span class="line">  &lt;/Directory&gt;</span><br><span class="line">&lt;/VirtualHost&gt;</span><br></pre></td></tr></table></figure>
-<h3 id="下载Nextcloud安装文件"><a href="#下载Nextcloud安装文件" class="headerlink" title="下载Nextcloud安装文件"></a>下载Nextcloud安装文件</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">wget -P /var/www/html/nextcloud/ https://download.nextcloud.com/server/installer/setup-nextcloud.php</span><br></pre></td></tr></table></figure>
-<h3 id="启动服务"><a href="#启动服务" class="headerlink" title="启动服务"></a>启动服务</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">systemctl start httpd</span><br><span class="line">systemctl enable httpd</span><br></pre></td></tr></table></figure>
-<h3 id="通过浏览器访问"><a href="#通过浏览器访问" class="headerlink" title="通过浏览器访问"></a>通过浏览器访问</h3><p>在浏览器中输入<code>http://172.20.1.51/setup-nextcloud.php</code>，按引导进行设置。如下图所示。</p>
-<img src="/yyg/f7b8055d/2.jpg" class="" title="img">
-<p>设置用户名和密码，安装数据库如下图所示。</p>
-<img src="/yyg/f7b8055d/4.png" class="" title="img">
-<p>成功进入内容界面，部署完成，如下图所示。</p>
-<img src="/yyg/f7b8055d/3.png" class="" title="img">]]></content>
-      <categories>
-        <category>Linux运维</category>
-      </categories>
-      <tags>
-        <tag>Linux</tag>
-        <tag>Nextcloud</tag>
-        <tag>私有云盘</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>实现Docker 容器跨主机通讯</title>
     <url>/yyg/60ed202a/</url>
     <content><![CDATA[<p>[TOC]</p>
@@ -1969,6 +1938,37 @@ Mastodon:  @Podman_io@fosstodon.org
       <tags>
         <tag>docker</tag>
         <tag>容器通信</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>实现Nextcloud私有云盘</title>
+    <url>/yyg/f7b8055d/</url>
+    <content><![CDATA[<h2 id="任务目标"><a href="#任务目标" class="headerlink" title="任务目标"></a>任务目标</h2><ol>
+<li>完成Nextcloud私有云盘的搭建</li>
+</ol>
+<h2 id="部署指南"><a href="#部署指南" class="headerlink" title="部署指南"></a>部署指南</h2><h3 id="基础环境准备"><a href="#基础环境准备" class="headerlink" title="基础环境准备"></a>基础环境准备</h3><p>配置防火墙策略</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">firewall-cmd --zone=public --add-service=http --permanent</span><br><span class="line">firewall-cmd --reload</span><br></pre></td></tr></table></figure>
+<p>配置SELinux策略</p>
+<p>设置SELinux为permissive或disabled。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">修改</span></span><br><span class="line">setenforce 0</span><br><span class="line">sudo sed -i &#x27;s/^SELINUX=enforcing/SELINUX=disabled/&#x27; /etc/selinux/config</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">或</span></span><br><span class="line">setenforce 0</span><br><span class="line">sudo sed -i &#x27;s/^SELINUX=enforcing/SELINUX=permissive/&#x27; /etc/selinux/config</span><br></pre></td></tr></table></figure>
+<h3 id="安装Apache"><a href="#安装Apache" class="headerlink" title="安装Apache"></a>安装Apache</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum -y install httpd</span><br></pre></td></tr></table></figure>
+<h3 id="安装PHP"><a href="#安装PHP" class="headerlink" title="安装PHP"></a>安装PHP</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum -y install php</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装php模块依赖</span></span><br><span class="line">yum -y install php-zip php-dom php-xml php-mbstring php-pdo php-gd</span><br></pre></td></tr></table></figure>
+<h3 id="添加Nextcloud站点配置文件"><a href="#添加Nextcloud站点配置文件" class="headerlink" title="添加Nextcloud站点配置文件"></a>添加Nextcloud站点配置文件</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">mkdir /var/www/html/nextcloud/</span><br><span class="line">chmod 777 /var/www/html/nextcloud/</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">新建文件</span></span><br><span class="line">vi /etc/httpd/conf.d/nextcloud.conf</span><br><span class="line">&lt;VirtualHost *:80&gt;</span><br><span class="line">  DocumentRoot /var/www/html/nextcloud/</span><br><span class="line">  ServerName  your.server.com</span><br><span class="line"></span><br><span class="line">  &lt;Directory /var/www/html/nextcloud/&gt;</span><br><span class="line">    Require all granted</span><br><span class="line">    AllowOverride All</span><br><span class="line">    Options FollowSymLinks MultiViews</span><br><span class="line"></span><br><span class="line">    &lt;IfModule mod_dav.c&gt;</span><br><span class="line">      Dav off</span><br><span class="line">    &lt;/IfModule&gt;</span><br><span class="line"></span><br><span class="line">  &lt;/Directory&gt;</span><br><span class="line">&lt;/VirtualHost&gt;</span><br></pre></td></tr></table></figure>
+<h3 id="下载Nextcloud安装文件"><a href="#下载Nextcloud安装文件" class="headerlink" title="下载Nextcloud安装文件"></a>下载Nextcloud安装文件</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">wget -P /var/www/html/nextcloud/ https://download.nextcloud.com/server/installer/setup-nextcloud.php</span><br></pre></td></tr></table></figure>
+<h3 id="启动服务"><a href="#启动服务" class="headerlink" title="启动服务"></a>启动服务</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">systemctl start httpd</span><br><span class="line">systemctl enable httpd</span><br></pre></td></tr></table></figure>
+<h3 id="通过浏览器访问"><a href="#通过浏览器访问" class="headerlink" title="通过浏览器访问"></a>通过浏览器访问</h3><p>在浏览器中输入<code>http://172.20.1.51/setup-nextcloud.php</code>，按引导进行设置。如下图所示。</p>
+<img src="/yyg/f7b8055d/2.jpg" class="" title="img">
+<p>设置用户名和密码，安装数据库如下图所示。</p>
+<img src="/yyg/f7b8055d/4.png" class="" title="img">
+<p>成功进入内容界面，部署完成，如下图所示。</p>
+<img src="/yyg/f7b8055d/3.png" class="" title="img">]]></content>
+      <categories>
+        <category>Linux运维</category>
+      </categories>
+      <tags>
+        <tag>Linux</tag>
+        <tag>Nextcloud</tag>
+        <tag>私有云盘</tag>
       </tags>
   </entry>
   <entry>
