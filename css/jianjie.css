@@ -242,6 +242,16 @@ div#category {
 }
 
 
+/*外挂标签tab*/
+#article-container .tabs {
+    position: relative;
+    margin: 0 0 20px;
+    border-radius: 5px;
+    border-right: 1px solid var(--tab-border-color);
+    border-bottom: 1px solid var(--tab-border-color);
+    border-left: 1px solid var(--tab-border-color);
+}
+
 #article-container .tabs > .nav-tabs > .tab {
   -webkit-box-flex: 1;
   -moz-box-flex: 1;
@@ -261,4 +271,29 @@ div#category {
   -o-transition: all 0.4s;
   -ms-transition: all 0.4s;
   transition: all 0.4s;
+}
+[data-theme="dark"] #article-container .tabs > .nav-tabs > .tab {
+  -webkit-box-flex: 1;
+  -moz-box-flex: 1;
+  -o-box-flex: 1;
+  -ms-box-flex: 1;
+  box-flex: 1;
+  -webkit-flex-grow: 1;
+  flex-grow: 1;
+  border-radius: 5px;
+  padding: 8px 18px;
+  border-top: 2px solid rgba(0,0,0,0);
+  background: rgba(0,0,0,0);
+  color: var(--tab-botton-color);
+  line-height: 2;
+  -webkit-transition: all 0.4s;
+  -moz-transition: all 0.4s;
+  -o-transition: all 0.4s;
+  -ms-transition: all 0.4s;
+  transition: all 0.4s;
+}
+[data-theme="dark"] #article-container .tabs > .nav-tabs > .tab.active {
+    border-top: 2px solid #49b1f5;
+    background: var(--tab-button-active-bg);
+    cursor: default;
 }
