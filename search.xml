@@ -806,33 +806,6 @@
       </tags>
   </entry>
   <entry>
-    <title>docker 安装 redis</title>
-    <url>/yyg/6fffbcc4/</url>
-    <content><![CDATA[<p>首先输入命令<code>docker pull redis</code> ，将最新版redis安装到本地</p>
-<p>输入以下命令,后台启动redis(注：<strong>该命令是一条命令</strong>)</p>
-<p>其中<code>--name</code>后面的是redis容器的名称，可自行更改</p>
-<blockquote>
-<p>docker run -p 6379:6379 —name mars1 —privileged=true</p>
-<p> -v /app/redis/redis.conf:/etc/redis/redis.conf </p>
-<p>-v /app/redis/data:/data </p>
-<p>-d redis:latest redis-server /etc/redis/redis.conf</p>
-</blockquote>
-<p>此命令也可解决在删除redis容器后，而出现的数据丢失的问题。若要找回数据，则只需重新运行命令即可。</p>
-
-<p>运行<code>docker ps</code>命令，可查看到redis正在运行</p>
-
-<p>然后执行<code>docker exec -it mars1 /bin/bash</code>命令，redis成功运行</p>
-]]></content>
-      <categories>
-        <category>容器化</category>
-        <category>docker</category>
-      </categories>
-      <tags>
-        <tag>docker</tag>
-        <tag>redis</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>docker基础知识</title>
     <url>/yyg/7b36b89c/</url>
     <content><![CDATA[<p><code>docker search 镜像</code> #搜索要下载的镜像</p>
@@ -898,6 +871,33 @@
       <tags>
         <tag>docker</tag>
         <tag>docker基础</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>docker 安装 redis</title>
+    <url>/yyg/6fffbcc4/</url>
+    <content><![CDATA[<p>首先输入命令<code>docker pull redis</code> ，将最新版redis安装到本地</p>
+<p>输入以下命令,后台启动redis(注：<strong>该命令是一条命令</strong>)</p>
+<p>其中<code>--name</code>后面的是redis容器的名称，可自行更改</p>
+<blockquote>
+<p>docker run -p 6379:6379 —name mars1 —privileged=true</p>
+<p> -v /app/redis/redis.conf:/etc/redis/redis.conf </p>
+<p>-v /app/redis/data:/data </p>
+<p>-d redis:latest redis-server /etc/redis/redis.conf</p>
+</blockquote>
+<p>此命令也可解决在删除redis容器后，而出现的数据丢失的问题。若要找回数据，则只需重新运行命令即可。</p>
+
+<p>运行<code>docker ps</code>命令，可查看到redis正在运行</p>
+
+<p>然后执行<code>docker exec -it mars1 /bin/bash</code>命令，redis成功运行</p>
+]]></content>
+      <categories>
+        <category>容器化</category>
+        <category>docker</category>
+      </categories>
+      <tags>
+        <tag>docker</tag>
+        <tag>redis</tag>
       </tags>
   </entry>
   <entry>
