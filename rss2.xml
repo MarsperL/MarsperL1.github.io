@@ -28,7 +28,7 @@
         
           
           
-      <description>&lt;h1 id=&quot;在Github上使用OsmosFeed搭建在线RSS阅读器（无需服务器）&quot;&gt;&lt;a href=&quot;#在Github上使用OsmosFeed搭建在线RSS阅读器（无需服务器）&quot; class=&quot;headerlink&quot;</description>
+      <description>&lt;h1 id=&quot;在Github上使用OsmosFeed搭建在线RSS阅读器（无需服务器）&quot;&gt;&lt;a href=&quot;#在Github上使用OsmosFeed搭建在线RSS阅读器（无需服务器）&quot; class=&quot;headerlink&quot; title=&quot;在Github上使用OsmosFeed搭建在线RSS阅读器（无需服务器）&quot;&gt;&lt;/a&gt;在Github上使用OsmosFeed搭建在线RSS阅读器（无需服务器）&lt;/h1&gt;&lt;h2 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot;</description>
           
         
       
@@ -64,7 +64,8 @@
           
           
       <description>&lt;h2 id=&quot;基础环境&quot;&gt;&lt;a href=&quot;#基础环境&quot; class=&quot;headerlink&quot; title=&quot;基础环境&quot;&gt;&lt;/a&gt;基础环境&lt;/h2&gt;&lt;p&gt;系统：openEuler 22.03 (LTS-SP4) X86&lt;/p&gt;
-&lt;p&gt;软件：docker-26.1.3、</description>
+&lt;p&gt;软件：docker-26.1.3、 docker compose-2.27.0&lt;/p&gt;
+&lt;h2 id=&quot;关于Watchtower&quot;&gt;&lt;a href=&quot;#关于Watchtower&quot; class=&quot;headerlink&quot; title=&quot;关于Watchtower&quot;&gt;&lt;/a&gt;关于Watchtower&lt;/h2&gt;&lt;p&gt;Watchtower 是一个应用程序，监控正在运行的</description>
           
         
       
@@ -78,9 +79,9 @@
       
       <category domain="https://MarsperL.github.io/tags/docker/">docker</category>
       
-      <category domain="https://MarsperL.github.io/tags/Linux/">Linux</category>
-      
       <category domain="https://MarsperL.github.io/tags/%E8%BF%90%E7%BB%B4/">运维</category>
+      
+      <category domain="https://MarsperL.github.io/tags/Linux/">Linux</category>
       
       <category domain="https://MarsperL.github.io/tags/Watchtower/">Watchtower</category>
       
@@ -103,7 +104,9 @@
           
       <description>&lt;p&gt;运行的项目容器突然就停了，查看容器日志发现磁盘空间不足，导致容器没法运行了。&lt;/p&gt;
 &lt;blockquote&gt;
-&lt;p&gt;Error response from daemon: Cannot restart container docker-p: mkdir</description>
+&lt;p&gt;Error response from daemon: Cannot restart container docker-p: mkdir /home/dockerData/overlay2/7bef1e2fa4788ab4d5db7e2e850d7ceeed09185b55c175f20c1500d28a0cc874d: &lt;mark&gt;no space left on device&lt;/mark&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;先使用&lt;code&gt;df</description>
           
         
       
@@ -121,9 +124,9 @@
       
       <category domain="https://MarsperL.github.io/tags/docker/">docker</category>
       
-      <category domain="https://MarsperL.github.io/tags/Linux/">Linux</category>
-      
       <category domain="https://MarsperL.github.io/tags/%E8%BF%90%E7%BB%B4/">运维</category>
+      
+      <category domain="https://MarsperL.github.io/tags/Linux/">Linux</category>
       
       <category domain="https://MarsperL.github.io/tags/%E7%9F%A5%E8%AF%86%E6%A2%B3%E7%90%86/">知识梳理</category>
       
@@ -142,7 +145,7 @@
         
           
           
-      <description>&lt;h2 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot;</description>
+      <description>&lt;h2 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h2&gt;&lt;p&gt;平时在工作和生活中，有一些很好用的软件、网站，就想着找一个地方都给记下来。在创建hexo博客时，看到了有在博客里添加网站导航的，感觉这样挺不错的，也就有了&lt;code&gt;繁沙&lt;/code&gt;：一个搜录（个人）好用软件和网站的地方。样式借用了&lt;a href=&quot;https://blog.leonus.cn/&quot;&gt;Leonus &lt;/a&gt;博主的&lt;a</description>
           
         
       
@@ -177,7 +180,9 @@
         
           
           
-      <description>&lt;h2 id=&quot;基础环境&quot;&gt;&lt;a href=&quot;#基础环境&quot; class=&quot;headerlink&quot; title=&quot;基础环境&quot;&gt;&lt;/a&gt;基础环境&lt;/h2&gt;&lt;p&gt;系统：openEuler 22.03 (LTS-SP4)</description>
+      <description>&lt;h2 id=&quot;基础环境&quot;&gt;&lt;a href=&quot;#基础环境&quot; class=&quot;headerlink&quot; title=&quot;基础环境&quot;&gt;&lt;/a&gt;基础环境&lt;/h2&gt;&lt;p&gt;系统：openEuler 22.03 (LTS-SP4) X86&lt;/p&gt;
+&lt;p&gt;软件：podman-5.1.2、podman-compose-1.2.0&lt;/p&gt;
+&lt;h2 id=&quot;配置yum源&quot;&gt;&lt;a href=&quot;#配置yum源&quot; class=&quot;headerlink&quot; title=&quot;配置yum源&quot;&gt;&lt;/a&gt;配置yum源&lt;/h2&gt;&lt;figure class=&quot;highlight shell&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td</description>
           
         
       
@@ -189,9 +194,9 @@
       <category domain="https://MarsperL.github.io/categories/%E5%AE%B9%E5%99%A8%E5%8C%96/podman/">podman</category>
       
       
-      <category domain="https://MarsperL.github.io/tags/Linux/">Linux</category>
-      
       <category domain="https://MarsperL.github.io/tags/%E8%BF%90%E7%BB%B4/">运维</category>
+      
+      <category domain="https://MarsperL.github.io/tags/Linux/">Linux</category>
       
       <category domain="https://MarsperL.github.io/tags/podman/">podman</category>
       
@@ -211,7 +216,9 @@
           
           
       <description>&lt;h2 id=&quot;基础环境&quot;&gt;&lt;a href=&quot;#基础环境&quot; class=&quot;headerlink&quot; title=&quot;基础环境&quot;&gt;&lt;/a&gt;基础环境&lt;/h2&gt;&lt;p&gt;操作系统：openEuler 22.03 (LTS-SP2)&lt;/p&gt;
-&lt;p&gt;软件：Docker-26.1.2</description>
+&lt;p&gt;软件：Docker-26.1.2 、Docker Compose-v2.27.0&lt;/p&gt;
+&lt;h2 id=&quot;安装Docker&quot;&gt;&lt;a href=&quot;#安装Docker&quot; class=&quot;headerlink&quot; title=&quot;安装Docker&quot;&gt;&lt;/a&gt;安装Docker&lt;/h2&gt;&lt;p&gt;（1）配置yum源下载docker。&lt;/p&gt;
+&lt;figure</description>
           
         
       
@@ -227,9 +234,9 @@
       <category domain="https://MarsperL.github.io/categories/Linux%E8%BF%90%E7%BB%B4/%E5%AE%B9%E5%99%A8%E7%AE%A1%E7%90%86/">容器管理</category>
       
       
-      <category domain="https://MarsperL.github.io/tags/Linux/">Linux</category>
-      
       <category domain="https://MarsperL.github.io/tags/%E8%BF%90%E7%BB%B4/">运维</category>
+      
+      <category domain="https://MarsperL.github.io/tags/Linux/">Linux</category>
       
       <category domain="https://MarsperL.github.io/tags/docker%E9%95%9C%E5%83%8F/">docker镜像</category>
       
@@ -253,7 +260,12 @@
           
           
       <description>&lt;div title=&quot;CodeNews&quot; referrerPolicy=&quot;no-referrer&quot; class=&quot;card_box&quot; style=&quot;background-color: #333; width:96px; height:80px;&quot;&gt;
-    &lt;div</description>
+    &lt;div class=&quot;card_mask&quot;&gt;
+      &lt;span class=&quot;tooltiptext&quot;&gt;免费免登录&lt;/span&gt;
+      &lt;a href=&quot;https://codenews.cc/chatgpt&quot;&gt;查看详情&lt;/a&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;card_top&quot;&gt;
+      &lt;i</description>
           
         
       
@@ -285,7 +297,10 @@
           
           
       <description>&lt;h2 id=&quot;基础环境&quot;&gt;&lt;a href=&quot;#基础环境&quot; class=&quot;headerlink&quot; title=&quot;基础环境&quot;&gt;&lt;/a&gt;基础环境&lt;/h2&gt;&lt;p&gt;系统环境：&lt;/p&gt;
-&lt;p&gt;操作系统：CentOS Stream</description>
+&lt;p&gt;操作系统：CentOS Stream 9&lt;/p&gt;
+&lt;p&gt;软件环境：&lt;/p&gt;
+&lt;p&gt;Docker、Docker Compose&lt;/p&gt;
+&lt;h2 id=&quot;安装Docker&quot;&gt;&lt;a href=&quot;#安装Docker&quot; class=&quot;headerlink&quot; title=&quot;安装Docker&quot;&gt;&lt;/a&gt;安装Docker&lt;/h2&gt;&lt;p&gt;（1）安装 yum-utils 软件包（提供 yum-config-manager</description>
           
         
       
@@ -320,7 +335,9 @@
         
           
           
-      <description>&lt;h2 id=&quot;基础环境&quot;&gt;&lt;a href=&quot;#基础环境&quot; class=&quot;headerlink&quot; title=&quot;基础环境&quot;&gt;&lt;/a&gt;基础环境&lt;/h2&gt;&lt;p&gt;系统环境：&lt;br&gt;CentOS Stream</description>
+      <description>&lt;h2 id=&quot;基础环境&quot;&gt;&lt;a href=&quot;#基础环境&quot; class=&quot;headerlink&quot; title=&quot;基础环境&quot;&gt;&lt;/a&gt;基础环境&lt;/h2&gt;&lt;p&gt;系统环境：&lt;br&gt;CentOS Stream 9&lt;/p&gt;
+&lt;p&gt;软件环境：&lt;br&gt;Apache-2.4.57&lt;br&gt;Mysql-8.0.36（mariaDB）&lt;br&gt;PHP-8.0.30&lt;/p&gt;
+&lt;h2 id=&quot;部署过程&quot;&gt;&lt;a href=&quot;#部署过程&quot; class=&quot;headerlink&quot; title=&quot;部署过程&quot;&gt;&lt;/a&gt;部署过程&lt;/h2&gt;&lt;h3 id=&quot;配置安全策略&quot;&gt;&lt;a href=&quot;#配置安全策略&quot;</description>
           
         
       
@@ -355,7 +372,9 @@
         
           
           
-      <description>&lt;h2 id=&quot;基础环境&quot;&gt;&lt;a href=&quot;#基础环境&quot; class=&quot;headerlink&quot; title=&quot;基础环境&quot;&gt;&lt;/a&gt;基础环境&lt;/h2&gt;&lt;p&gt;系统环境：CentOS Stream</description>
+      <description>&lt;h2 id=&quot;基础环境&quot;&gt;&lt;a href=&quot;#基础环境&quot; class=&quot;headerlink&quot; title=&quot;基础环境&quot;&gt;&lt;/a&gt;基础环境&lt;/h2&gt;&lt;p&gt;系统环境：CentOS Stream 9&lt;/p&gt;
+&lt;p&gt;软件环境：nginx-1.20.1、mysql-8.0.36（mariaDB）、php-8.0.30&lt;/p&gt;
+&lt;h2 id=&quot;部署过程&quot;&gt;&lt;a href=&quot;#部署过程&quot; class=&quot;headerlink&quot; title=&quot;部署过程&quot;&gt;&lt;/a&gt;部署过程&lt;/h2&gt;&lt;h3 id=&quot;方案一：yum安装&quot;&gt;&lt;a href=&quot;#方案一：yum安装&quot; class=&quot;headerlink&quot;</description>
           
         
       
@@ -392,7 +411,17 @@
           
       <description>&lt;h2 id=&quot;环境准备&quot;&gt;&lt;a href=&quot;#环境准备&quot; class=&quot;headerlink&quot; title=&quot;环境准备&quot;&gt;&lt;/a&gt;环境准备&lt;/h2&gt;&lt;ol&gt;
 &lt;li&gt;&lt;p&gt;硬件环境&lt;/p&gt;
-&lt;p&gt;操作系统：Centos Stream</description>
+&lt;p&gt;操作系统：Centos Stream 9&lt;/p&gt;
+&lt;p&gt;CPU：4颗&lt;/p&gt;
+&lt;p&gt;内存：8GB&lt;/p&gt;
+&lt;p&gt;硬盘：50GB&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;软件环境&lt;/p&gt;
+&lt;p&gt;docker版本：26.1.0&lt;/p&gt;
+&lt;p&gt;docker compose版本：v2.26.1&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&quot;部署过程&quot;&gt;&lt;a href=&quot;#部署过程&quot;</description>
           
         
       
@@ -432,7 +461,11 @@
           
           
       <description>&lt;h2 id=&quot;基础环境&quot;&gt;&lt;a href=&quot;#基础环境&quot; class=&quot;headerlink&quot; title=&quot;基础环境&quot;&gt;&lt;/a&gt;基础环境&lt;/h2&gt;&lt;p&gt;系统环境：&lt;/p&gt;
-&lt;p&gt;操作系统：CentOS</description>
+&lt;p&gt;操作系统：CentOS 7.9&lt;/p&gt;
+&lt;p&gt;软件环境：&lt;/p&gt;
+&lt;p&gt;Docker-26.1.4、Docker Compose-2.27.1 、portainer-2.20.3&lt;/p&gt;
+&lt;p&gt;配置阿里yum源 :&lt;/p&gt;
+&lt;figure class=&quot;highlight shell&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span</description>
           
         
       
@@ -468,7 +501,7 @@
           
           
       <description>&lt;h2 id=&quot;服务器端&quot;&gt;&lt;a href=&quot;#服务器端&quot; class=&quot;headerlink&quot; title=&quot;服务器端&quot;&gt;&lt;/a&gt;服务器端&lt;/h2&gt;&lt;p&gt;（1）通过在线方式安装dhcp-server&lt;/p&gt;
-&lt;figure class=&quot;highlight</description>
+&lt;figure class=&quot;highlight plaintext&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;[root@dncp-103 ~]# yum -y install</description>
           
         
       
@@ -500,7 +533,7 @@
           
           
       <description>&lt;h2 id=&quot;服务器端&quot;&gt;&lt;a href=&quot;#服务器端&quot; class=&quot;headerlink&quot; title=&quot;服务器端&quot;&gt;&lt;/a&gt;服务器端&lt;/h2&gt;&lt;p&gt;（1）通过在线方式安装chrony&lt;/p&gt;
-&lt;figure class=&quot;highlight</description>
+&lt;figure class=&quot;highlight plaintext&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;yum install -y</description>
           
         
       
@@ -532,7 +565,7 @@
           
           
       <description>&lt;h2 id=&quot;服务器端&quot;&gt;&lt;a href=&quot;#服务器端&quot; class=&quot;headerlink&quot; title=&quot;服务器端&quot;&gt;&lt;/a&gt;服务器端&lt;/h2&gt;&lt;p&gt;（1）通过在线方式安装bind9&lt;/p&gt;
-&lt;figure class=&quot;highlight</description>
+&lt;figure class=&quot;highlight plaintext&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;yum install -y bind</description>
           
         
       
@@ -563,7 +596,11 @@
         
           
           
-      <description>&lt;h2 id=&quot;基础环境：&quot;&gt;&lt;a href=&quot;#基础环境：&quot; class=&quot;headerlink&quot;</description>
+      <description>&lt;h2 id=&quot;基础环境：&quot;&gt;&lt;a href=&quot;#基础环境：&quot; class=&quot;headerlink&quot; title=&quot;基础环境：&quot;&gt;&lt;/a&gt;基础环境：&lt;/h2&gt;&lt;ol&gt;
+&lt;li&gt;操作系统：Windows10/11&lt;/li&gt;
+&lt;li&gt;运行环境：node.js&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&quot;实现过程：&quot;&gt;&lt;a href=&quot;#实现过程：&quot; class=&quot;headerlink&quot; title=&quot;实现过程：&quot;&gt;&lt;/a&gt;实现过程：&lt;/h2&gt;&lt;h3 id=&quot;安装node-js&quot;&gt;&lt;a href=&quot;#安装node-js&quot; class=&quot;headerlink&quot;</description>
           
         
       
@@ -597,7 +634,10 @@
           
           
       <description>&lt;ol&gt;
-&lt;li&gt;Winlogbeat安装程序可通过其官网（&lt;a</description>
+&lt;li&gt;Winlogbeat安装程序可通过其官网（&lt;a href=&quot;https://www.elastic.co/cn/beats/winlogbeat）下载。&quot;&gt;https://www.elastic.co/cn/beats/winlogbeat）下载。&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;双击启动安装程序，进入安装向导后勾选“I accept the terms in the License Agreement”，单击【Install】，如图所示。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;img src=&quot;/yyg/f547e2a9/4.png&quot; class=&quot;&quot;</description>
           
         
       
@@ -635,7 +675,8 @@
       <description>&lt;h2 id=&quot;任务目标&quot;&gt;&lt;a href=&quot;#任务目标&quot; class=&quot;headerlink&quot; title=&quot;任务目标&quot;&gt;&lt;/a&gt;任务目标&lt;/h2&gt;&lt;ol&gt;
 &lt;li&gt;完成Nextcloud私有云盘的搭建&lt;/li&gt;
 &lt;/ol&gt;
-&lt;h2 id=&quot;部署指南&quot;&gt;&lt;a</description>
+&lt;h2 id=&quot;部署指南&quot;&gt;&lt;a href=&quot;#部署指南&quot; class=&quot;headerlink&quot; title=&quot;部署指南&quot;&gt;&lt;/a&gt;部署指南&lt;/h2&gt;&lt;h3 id=&quot;基础环境准备&quot;&gt;&lt;a href=&quot;#基础环境准备&quot; class=&quot;headerlink&quot; title=&quot;基础环境准备&quot;&gt;&lt;/a&gt;基础环境准备&lt;/h3&gt;&lt;p&gt;配置防火墙策略&lt;/p&gt;
+&lt;figure</description>
           
         
       
@@ -669,7 +710,11 @@
       <description>&lt;h1 id=&quot;任务目标&quot;&gt;&lt;a href=&quot;#任务目标&quot; class=&quot;headerlink&quot; title=&quot;任务目标&quot;&gt;&lt;/a&gt;任务目标&lt;/h1&gt;&lt;ol&gt;
 &lt;li&gt;完成高可用k8s集群安装部署&lt;/li&gt;
 &lt;/ol&gt;
-&lt;h1 id=&quot;任务平台&quot;&gt;&lt;a href=&quot;#任务平台&quot;</description>
+&lt;h1 id=&quot;任务平台&quot;&gt;&lt;a href=&quot;#任务平台&quot; class=&quot;headerlink&quot; title=&quot;任务平台&quot;&gt;&lt;/a&gt;任务平台&lt;/h1&gt;&lt;ol&gt;
+&lt;li&gt;物理设备—&lt;/li&gt;
+&lt;li&gt;操作系统：openEuler 22.03 LTS SP2&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h1 id=&quot;部署指南&quot;&gt;&lt;a href=&quot;#部署指南&quot; class=&quot;headerlink&quot;</description>
           
         
       
@@ -715,7 +760,11 @@
       <description>&lt;h2 id=&quot;任务目标&quot;&gt;&lt;a href=&quot;#任务目标&quot; class=&quot;headerlink&quot; title=&quot;任务目标&quot;&gt;&lt;/a&gt;任务目标&lt;/h2&gt;&lt;ol&gt;
 &lt;li&gt;完成高可用k8s集群安装部署&lt;/li&gt;
 &lt;/ol&gt;
-&lt;h2 id=&quot;任务平台&quot;&gt;&lt;a href=&quot;#任务平台&quot;</description>
+&lt;h2 id=&quot;任务平台&quot;&gt;&lt;a href=&quot;#任务平台&quot; class=&quot;headerlink&quot; title=&quot;任务平台&quot;&gt;&lt;/a&gt;任务平台&lt;/h2&gt;&lt;ol&gt;
+&lt;li&gt;物理设备—&lt;/li&gt;
+&lt;li&gt;操作系统：openEuler 22.03 LTS SP2&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&quot;部署指南&quot;&gt;&lt;a href=&quot;#部署指南&quot; class=&quot;headerlink&quot;</description>
           
         
       
