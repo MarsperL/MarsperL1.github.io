@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>云野阁-星游记</title>
+	<link rel="shortcut icon" href="https://gcore.jsdelivr.net/gh/MarsperL/MarsperL.github.io@1.2/img/icon.png">
+    <script src="https://lib.baomitu.com/leaflet/1.9.4/leaflet.js"></script>
+    <link rel="stylesheet" href="https://lib.baomitu.com/leaflet/1.9.4/leaflet.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0
+        }
+        #map {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    cursor: pointer;	
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <script>
+        var map = L.map("map").setView([34.7568711,113.663221], 6);
+        //使用高德的WMS服务
+        var layer = L.tileLayer('http://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
+            subdomains: ['1', '2', '3', '4'],
+            minZoom: 1,
+            maxZoom: 19
+        })
+        map.addLayer(layer);
+var greenIcon = L.icon({
+    iconUrl: 'https://api.iconify.design/fxemoji:star.svg',
+    iconSize:     [38, 95], // size of the icon
+});
+L.marker([31.238549,121.499318], {icon: greenIcon}).addTo(map).bindPopup("外滩");
+L.marker([36.126193,114.331578], {icon: greenIcon}).addTo(map).bindPopup("殷墟");
+L.marker([36.314313,113.799049], {icon: greenIcon}).addTo(map).bindPopup("红旗渠");
+L.marker([34.553572,112.4862], {icon: greenIcon}).addTo(map).bindPopup("龙门石窟");
+L.marker([34.491955,112.948469], {icon: greenIcon}).addTo(map).bindPopup("嵩山");
+L.marker([33.789488,111.577546], {icon: greenIcon}).addTo(map).bindPopup("鸡冠洞+漂流");
+L.marker([33.744946,111.662456], {icon: greenIcon}).addTo(map).bindPopup("再游老君山");
+    </script>
+</body>
+</html>
+
