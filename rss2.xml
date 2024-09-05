@@ -15,8 +15,88 @@
     <atom:link href="https://marsperl.github.io/rss2.xml" rel="self" type="application/rss+xml"/>
     
     <description>闲云野鹤，八方逍遥</description>
-    <pubDate>Fri, 30 Aug 2024 15:28:25 GMT</pubDate>
+    <pubDate>Thu, 05 Sep 2024 15:11:13 GMT</pubDate>
     <generator>http://hexo.io/</generator>
+    
+    <item>
+      <title>docker 部署 SkyWalking</title>
+      <link>https://marsperl.github.io/yyg/f5933c9f/</link>
+      <guid>https://marsperl.github.io/yyg/f5933c9f/</guid>
+      <pubDate>Thu, 05 Sep 2024 14:54:25 GMT</pubDate>
+      
+        
+        
+          
+          
+      <description>&lt;h2 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h2&gt;&lt;details class=&quot;folding-tag&quot; cyan&gt;&lt;summary&gt; 🔜什么是SkyWalking？🔚 &lt;/summary&gt;
+              &lt;div class=&#39;content&#39;&gt;
+              &lt;blockquote&gt;&lt;p&gt;是一款优秀的国产 APM</description>
+          
+        
+      
+      
+      
+      
+      <category domain="https://MarsperL.github.io/categories/%E5%AE%B9%E5%99%A8%E5%8C%96/">容器化</category>
+      
+      <category domain="https://MarsperL.github.io/categories/%E5%AE%B9%E5%99%A8%E5%8C%96/docker/">docker</category>
+      
+      
+      <category domain="https://MarsperL.github.io/tags/docker/">docker</category>
+      
+      <category domain="https://MarsperL.github.io/tags/%E8%BF%90%E7%BB%B4/">运维</category>
+      
+      <category domain="https://MarsperL.github.io/tags/Linux/">Linux</category>
+      
+      <category domain="https://MarsperL.github.io/tags/SkyWalking/">SkyWalking</category>
+      
+      <category domain="https://MarsperL.github.io/tags/APM%E5%B7%A5%E5%85%B7/">APM工具</category>
+      
+      <category domain="https://MarsperL.github.io/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E9%93%BE%E8%B7%AF%E8%BF%BD%E8%B8%AA/">分布式链路追踪</category>
+      
+      
+      <comments>https://marsperl.github.io/yyg/f5933c9f/#disqus_thread</comments>
+      
+    </item>
+    
+    <item>
+      <title>Slim缩小容器镜像大小</title>
+      <link>https://marsperl.github.io/yyg/fd02fe22/</link>
+      <guid>https://marsperl.github.io/yyg/fd02fe22/</guid>
+      <pubDate>Thu, 05 Sep 2024 14:48:37 GMT</pubDate>
+      
+        
+        
+          
+          
+      <description>&lt;h2 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot; title=&quot;前言&quot;&gt;&lt;/a&gt;前言&lt;/h2&gt;&lt;details class=&quot;folding-tag&quot; cyan&gt;&lt;summary&gt; 🔜Slim🔚 &lt;/summary&gt;
+              &lt;div class=&#39;content&#39;&gt;
+              &lt;p&gt;&lt;a href=&quot;https://github.com/slimtoolkit/slim&quot;&gt;GitHub - slimtoolkit/slim： Slim（toolkit）：不要更改容器镜像中的任何内容，并将其缩小多达 30</description>
+          
+        
+      
+      
+      
+      
+      <category domain="https://MarsperL.github.io/categories/%E5%AE%B9%E5%99%A8%E5%8C%96/">容器化</category>
+      
+      <category domain="https://MarsperL.github.io/categories/%E5%AE%B9%E5%99%A8%E5%8C%96/docker/">docker</category>
+      
+      
+      <category domain="https://MarsperL.github.io/tags/docker/">docker</category>
+      
+      <category domain="https://MarsperL.github.io/tags/%E8%BF%90%E7%BB%B4/">运维</category>
+      
+      <category domain="https://MarsperL.github.io/tags/Linux/">Linux</category>
+      
+      <category domain="https://MarsperL.github.io/tags/Slim/">Slim</category>
+      
+      <category domain="https://MarsperL.github.io/tags/%E7%BC%A9%E5%B0%8F%E5%AE%B9%E5%99%A8%E9%95%9C%E5%83%8F%E5%A4%A7%E5%B0%8F/">缩小容器镜像大小</category>
+      
+      
+      <comments>https://marsperl.github.io/yyg/fd02fe22/#disqus_thread</comments>
+      
+    </item>
     
     <item>
       <title>在Github上使用OsmosFeed搭建在线RSS阅读器（无需服务器）</title>
@@ -694,100 +774,6 @@
       
       
       <comments>https://marsperl.github.io/yyg/f7b8055d/#disqus_thread</comments>
-      
-    </item>
-    
-    <item>
-      <title>高可用容器云建设（k8s集群+ceph集群）</title>
-      <link>https://marsperl.github.io/yyg/57e2a956/</link>
-      <guid>https://marsperl.github.io/yyg/57e2a956/</guid>
-      <pubDate>Thu, 18 Jul 2024 15:55:36 GMT</pubDate>
-      
-        
-        
-          
-          
-      <description>&lt;h1 id=&quot;任务目标&quot;&gt;&lt;a href=&quot;#任务目标&quot; class=&quot;headerlink&quot; title=&quot;任务目标&quot;&gt;&lt;/a&gt;任务目标&lt;/h1&gt;&lt;ol&gt;
-&lt;li&gt;完成高可用k8s集群安装部署&lt;/li&gt;
-&lt;/ol&gt;
-&lt;h1 id=&quot;任务平台&quot;&gt;&lt;a href=&quot;#任务平台&quot; class=&quot;headerlink&quot; title=&quot;任务平台&quot;&gt;&lt;/a&gt;任务平台&lt;/h1&gt;&lt;ol&gt;
-&lt;li&gt;物理设备—&lt;/li&gt;
-&lt;li&gt;操作系统：openEuler 22.03 LTS SP2&lt;/li&gt;
-&lt;/ol&gt;
-&lt;h1 id=&quot;部署指南&quot;&gt;&lt;a href=&quot;#部署指南&quot; class=&quot;headerlink&quot;</description>
-          
-        
-      
-      
-      
-      
-      <category domain="https://MarsperL.github.io/categories/%E5%AE%B9%E5%99%A8%E5%8C%96/">容器化</category>
-      
-      <category domain="https://MarsperL.github.io/categories/%E5%AE%B9%E5%99%A8%E5%8C%96/k8s/">k8s</category>
-      
-      <category domain="https://MarsperL.github.io/categories/%E5%AD%98%E5%82%A8%E7%B3%BB%E7%BB%9F/">存储系统</category>
-      
-      <category domain="https://MarsperL.github.io/categories/%E5%AD%98%E5%82%A8%E7%B3%BB%E7%BB%9F/ceph/">ceph</category>
-      
-      
-      <category domain="https://MarsperL.github.io/tags/docker/">docker</category>
-      
-      <category domain="https://MarsperL.github.io/tags/k8s/">k8s</category>
-      
-      <category domain="https://MarsperL.github.io/tags/ceph/">ceph</category>
-      
-      <category domain="https://MarsperL.github.io/tags/%E5%85%B1%E4%BA%AB%E5%AD%98%E5%82%A8/">共享存储</category>
-      
-      <category domain="https://MarsperL.github.io/tags/ceph%E9%9B%86%E7%BE%A4/">ceph集群</category>
-      
-      <category domain="https://MarsperL.github.io/tags/%E5%AE%B9%E5%99%A8%E4%BA%91/">容器云</category>
-      
-      
-      <comments>https://marsperl.github.io/yyg/57e2a956/#disqus_thread</comments>
-      
-    </item>
-    
-    <item>
-      <title>高可用k8s集群部署指南</title>
-      <link>https://marsperl.github.io/yyg/612a796b/</link>
-      <guid>https://marsperl.github.io/yyg/612a796b/</guid>
-      <pubDate>Thu, 18 Jul 2024 15:55:36 GMT</pubDate>
-      
-        
-        
-          
-          
-      <description>&lt;h2 id=&quot;任务目标&quot;&gt;&lt;a href=&quot;#任务目标&quot; class=&quot;headerlink&quot; title=&quot;任务目标&quot;&gt;&lt;/a&gt;任务目标&lt;/h2&gt;&lt;ol&gt;
-&lt;li&gt;完成高可用k8s集群安装部署&lt;/li&gt;
-&lt;/ol&gt;
-&lt;h2 id=&quot;任务平台&quot;&gt;&lt;a href=&quot;#任务平台&quot; class=&quot;headerlink&quot; title=&quot;任务平台&quot;&gt;&lt;/a&gt;任务平台&lt;/h2&gt;&lt;ol&gt;
-&lt;li&gt;物理设备—&lt;/li&gt;
-&lt;li&gt;操作系统：openEuler 22.03 LTS SP2&lt;/li&gt;
-&lt;/ol&gt;
-&lt;h2 id=&quot;部署指南&quot;&gt;&lt;a href=&quot;#部署指南&quot; class=&quot;headerlink&quot;</description>
-          
-        
-      
-      
-      
-      
-      <category domain="https://MarsperL.github.io/categories/%E5%AE%B9%E5%99%A8%E5%8C%96/">容器化</category>
-      
-      <category domain="https://MarsperL.github.io/categories/%E5%AE%B9%E5%99%A8%E5%8C%96/k8s/">k8s</category>
-      
-      
-      <category domain="https://MarsperL.github.io/tags/docker/">docker</category>
-      
-      <category domain="https://MarsperL.github.io/tags/k8s/">k8s</category>
-      
-      <category domain="https://MarsperL.github.io/tags/Kubeadm/">Kubeadm</category>
-      
-      <category domain="https://MarsperL.github.io/tags/k8s%E9%9B%86%E7%BE%A4/">k8s集群</category>
-      
-      <category domain="https://MarsperL.github.io/tags/%E9%AB%98%E5%8F%AF%E7%94%A8/">高可用</category>
-      
-      
-      <comments>https://marsperl.github.io/yyg/612a796b/#disqus_thread</comments>
       
     </item>
     
