@@ -33,6 +33,53 @@
       </tags>
   </entry>
   <entry>
+    <title>Docker Swarm集群部署</title>
+    <url>/yyg/71468332/</url>
+    <content><![CDATA[<p><strong>任务平台</strong></p>
+<p>3台虚拟机，一台作为manager 节点，另两台作为work节点。</p>
+<p><strong>部署指南</strong></p>
+<p>[TOC]</p>
+<h3 id="安装docker"><a href="#安装docker" class="headerlink" title="安装docker"></a>安装docker</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">下载并安装docker文件及依赖</span></span><br><span class="line">yum install -y yum-utils</span><br><span class="line">yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo</span><br><span class="line">yum install -y docker-ce docker-ce-cli containerd.io</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动docker并设置开机自启</span></span><br><span class="line">systemctl start docker  </span><br><span class="line">systemctl enable docker</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看版本</span></span><br><span class="line">docker -v</span><br></pre></td></tr></table></figure>
+<h3 id="配置防火墙开放端口"><a href="#配置防火墙开放端口" class="headerlink" title="配置防火墙开放端口"></a>配置防火墙开放端口</h3><p>TCP协议端口 2377 ：集群管理端口<br>TCP协议端口 7946 ：节点之间通讯端口（不开放则会负载均衡失效）<br>UDP协议端口 4789 ：overlay网络通讯端口</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">firewall-cmd --zone=public --add-port=2377/tcp --permanent</span><br><span class="line">firewall-cmd --zone=public --add-port=7946/tcp --permanent</span><br><span class="line">firewall-cmd --zone=public --add-port=7946/udp --permanent</span><br><span class="line">firewall-cmd --zone=public --add-port=4789/tcp --permanent</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重载防火墙</span></span><br><span class="line">firewall-cmd --reload</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看80端口是否开放</span></span><br><span class="line">firewall-cmd --query-port=80/tcp</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看所有放行的端口</span></span><br><span class="line">firewall-cmd --zone=public --list-ports</span><br></pre></td></tr></table></figure>
+<h3 id="在-manager-节点创建-Swarm-集群"><a href="#在-manager-节点创建-Swarm-集群" class="headerlink" title="在 manager 节点创建 Swarm 集群"></a>在 manager 节点创建 Swarm 集群</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker swarm init --advertise-addr=本机ip:2377 --listen-addr=本机ip:2377</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Swarm initialized: current node (608u180nsa654xbxdthdhl0f6) is now a manager.</p>
+<p>To add a worker to this swarm, run the following command:</p>
+<p>​    <code>docker swarm join --token SWMTKN-1-13dv43qm3tdux7243z3c0najcetizjpgly1urd4uchtcooxe87-4eh15dbayxttxipm34s5tod6t 172.20.1.51:2377</code></p>
+<p>To add a manager to this swarm, run ‘docker swarm join-token manager’ and follow the instructions.</p>
+</blockquote>
+<p>将执行后产生的命令（如上标红的），分别加入到其他主机中，执行后产生如下结果。即为成功加入。</p>
+<p>或者执行下面命令产生令牌，并且是定期轮换计划（推荐）</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker swarm join-token  --rotate worker</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>This node joined a swarm as a worker.</p>
+</blockquote>
+<p>（扩展）加入管理节点的命令</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker swarm join-token --rotate manager</span><br></pre></td></tr></table></figure>
+<p>在manager节点上输入<code>docker node ls</code> 可查看所有节点。</p>
+<img src="/yyg/71468332/image-20240323221029238-1711203035847-1.png" class="" title="image-20240323221029238">
+<h3 id="创建用于swarm服务的自定义的overlay网络"><a href="#创建用于swarm服务的自定义的overlay网络" class="headerlink" title="创建用于swarm服务的自定义的overlay网络"></a>创建用于swarm服务的自定义的overlay网络</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">方式一</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">--attachable选项表示该网络是可附加的，即其他容器可以连接到该网络</span>  </span><br><span class="line">docker network create -d overlay --attachable my-overlay</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">方式二</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">--subnet:子网 --gateway:网关</span></span><br><span class="line">docker network create --driver overlay --subnet 10.0.9.0/24 --gateway 10.0.9.99 my-overlay</span><br><span class="line">  </span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">查看docker网络</span></span><br><span class="line"> docker network ls</span><br></pre></td></tr></table></figure>
+<h3 id="测试跨主机容器通信"><a href="#测试跨主机容器通信" class="headerlink" title="测试跨主机容器通信"></a>测试跨主机容器通信</h3><ol>
+<li>在三台主机上各部署一个容器，进行相互ping，结果如下图。</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一</span></span><br><span class="line">docker run -it --name master --net=my-overlay ubuntu:latest</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二</span></span><br><span class="line">docker run -it --name node1 --net=my-overlay ubuntu:latest</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机三</span></span><br><span class="line">docker run -it --name node2 --net=my-overlay ubuntu:latest</span><br></pre></td></tr></table></figure>
+<ol>
+<li>安装测试工具</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">apt-get update</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ping工具</span></span><br><span class="line">apt-get install inetutils-ping -y</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ip查看工具</span></span><br><span class="line">apt-get install net-tools -y</span><br></pre></td></tr></table></figure>
+<img src="/yyg/71468332/image-20240323221151231-1711203113839-3.png" class="" title="image-20240323221151231">
+]]></content>
+      <categories>
+        <category>容器化</category>
+        <category>docker</category>
+      </categories>
+      <tags>
+        <tag>docker</tag>
+        <tag>docker Swarm</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>DNS服务器搭建</title>
     <url>/yyg/37824039/</url>
     <content><![CDATA[<h2 id="服务器端"><a href="#服务器端" class="headerlink" title="服务器端"></a>服务器端</h2><p>（1）通过在线方式安装bind9</p>
@@ -69,6 +116,44 @@
       <tags>
         <tag>Linux运维</tag>
         <tag>DNS</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Hexo-Butterfly美化教程 | 基础环境</title>
+    <url>/yyg/e102aa73/</url>
+    <content><![CDATA[<h2 id="基础环境："><a href="#基础环境：" class="headerlink" title="基础环境："></a>基础环境：</h2><ol>
+<li>操作系统：Windows10/11</li>
+<li>运行环境：node.js</li>
+</ol>
+<h2 id="实现过程："><a href="#实现过程：" class="headerlink" title="实现过程："></a>实现过程：</h2><h3 id="安装node-js"><a href="#安装node-js" class="headerlink" title="安装node.js"></a>安装node.js</h3><p>在node.js中文官网<code>https://www.nodejs.com.cn/download_current.html</code>，下载适用于Windows的64位安装包，安装JavaScript运行环境。下载完成后，双击安装程序，按引导进行安装，在安装过程中需勾选”Automatically install the necessary tools. ……“，如图所示。安装过程中，弹出命令指示符，回车下载依赖工具。</p>
+<img src="/yyg/e102aa73/1.png" class="" title="img">
+<p>安装完成后，使用快捷键<code>win+r</code>,调用运行窗口，输入<code>cmd</code>，在命令指示符中输入命令，验证node和npm版本号。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">node -v</span><br><span class="line">npm -v</span><br></pre></td></tr></table></figure>
+<img src="/yyg/e102aa73/2.png" class="" title="img">
+<h3 id="安装git"><a href="#安装git" class="headerlink" title="安装git"></a>安装git</h3><p>从官网<code>https://git-scm.com/download/win</code>下载安装程序，按安装引导一直点击下一步即可。</p>
+<h3 id="安装hexo"><a href="#安装hexo" class="headerlink" title="安装hexo"></a>安装hexo</h3><p>在命令指示符中输入命令安装hexo。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">npm install hexo-cli -g </span><br></pre></td></tr></table></figure>
+<p>创建博客存放目录</p>
+<p>进入要存放博客目录的磁盘，以“F”盘为例，在如下图所示的磁盘路径框中输入“cmd”，点击回车，打开命名指示符。</p>
+<img src="/yyg/e102aa73/3.png" class="" title="img">
+<p>在其中输入如下命令创建博客目录，此处的“blog”为自定义名称。等待博客目录初始化完成。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">hexo init blog</span><br></pre></td></tr></table></figure>
+<p>初始化完成后，进入blog目录，在磁盘路径框中输入“cmd”，点击回车，输入以下命令下载依赖和测试博客是否部署成功。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#下载依赖</span><br><span class="line">npm install</span><br><span class="line"></span><br><span class="line">#本地测试</span><br><span class="line">hexo clean &amp;&amp; hexo g &amp;&amp; hexo s</span><br></pre></td></tr></table></figure>
+<p>成功显示的命令细节如下：</p>
+<blockquote>
+<p>F:\blog&gt;hexo clean &amp;&amp; hexo g &amp;&amp; hexo s<br>INFO Validating config<br>INFO Deleted database.<br>INFO Validating config<br>INFO Start processing<br>INFO Files loaded in 463 ms<br>INFO Generated: archives/index.html<br>INFO Generated: archives/2024/index.html<br>INFO Generated: archives/2024/04/index.html<br>INFO Generated: index.html<br>INFO Generated: css/style.css<br>INFO Generated: fancybox/jquery.fancybox.min.css<br>INFO Generated: fancybox/jquery.fancybox.min.js<br>INFO Generated: js/jquery-3.6.4.min.js<br>INFO Generated: js/script.js<br>INFO Generated: css/images/banner.jpg<br>INFO Generated: 2024/04/18/hello-world/index.html<br>INFO 11 files generated in 660 ms<br>INFO Validating config<br>INFO Start processing<br>INFO Hexo is running at <a href="http://localhost:4000/">http://localhost:4000/</a> . Press Ctrl+C to stop.</p>
+</blockquote>
+<p>在浏览器中访问 <code>http://localhost:4000/</code> ，查看默认博客界面。</p>
+]]></content>
+      <categories>
+        <category>博客教程</category>
+        <category>博客搭建</category>
+      </categories>
+      <tags>
+        <tag>Hexo</tag>
+        <tag>Butterfly</tag>
+        <tag>博客教程</tag>
       </tags>
   </entry>
   <entry>
@@ -123,91 +208,6 @@
       <tags>
         <tag>docker</tag>
         <tag>Matomo</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Docker Swarm集群部署</title>
-    <url>/yyg/71468332/</url>
-    <content><![CDATA[<p><strong>任务平台</strong></p>
-<p>3台虚拟机，一台作为manager 节点，另两台作为work节点。</p>
-<p><strong>部署指南</strong></p>
-<p>[TOC]</p>
-<h3 id="安装docker"><a href="#安装docker" class="headerlink" title="安装docker"></a>安装docker</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">下载并安装docker文件及依赖</span></span><br><span class="line">yum install -y yum-utils</span><br><span class="line">yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo</span><br><span class="line">yum install -y docker-ce docker-ce-cli containerd.io</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动docker并设置开机自启</span></span><br><span class="line">systemctl start docker  </span><br><span class="line">systemctl enable docker</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看版本</span></span><br><span class="line">docker -v</span><br></pre></td></tr></table></figure>
-<h3 id="配置防火墙开放端口"><a href="#配置防火墙开放端口" class="headerlink" title="配置防火墙开放端口"></a>配置防火墙开放端口</h3><p>TCP协议端口 2377 ：集群管理端口<br>TCP协议端口 7946 ：节点之间通讯端口（不开放则会负载均衡失效）<br>UDP协议端口 4789 ：overlay网络通讯端口</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">firewall-cmd --zone=public --add-port=2377/tcp --permanent</span><br><span class="line">firewall-cmd --zone=public --add-port=7946/tcp --permanent</span><br><span class="line">firewall-cmd --zone=public --add-port=7946/udp --permanent</span><br><span class="line">firewall-cmd --zone=public --add-port=4789/tcp --permanent</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重载防火墙</span></span><br><span class="line">firewall-cmd --reload</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看80端口是否开放</span></span><br><span class="line">firewall-cmd --query-port=80/tcp</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看所有放行的端口</span></span><br><span class="line">firewall-cmd --zone=public --list-ports</span><br></pre></td></tr></table></figure>
-<h3 id="在-manager-节点创建-Swarm-集群"><a href="#在-manager-节点创建-Swarm-集群" class="headerlink" title="在 manager 节点创建 Swarm 集群"></a>在 manager 节点创建 Swarm 集群</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker swarm init --advertise-addr=本机ip:2377 --listen-addr=本机ip:2377</span><br></pre></td></tr></table></figure>
-<blockquote>
-<p>Swarm initialized: current node (608u180nsa654xbxdthdhl0f6) is now a manager.</p>
-<p>To add a worker to this swarm, run the following command:</p>
-<p>​    <code>docker swarm join --token SWMTKN-1-13dv43qm3tdux7243z3c0najcetizjpgly1urd4uchtcooxe87-4eh15dbayxttxipm34s5tod6t 172.20.1.51:2377</code></p>
-<p>To add a manager to this swarm, run ‘docker swarm join-token manager’ and follow the instructions.</p>
-</blockquote>
-<p>将执行后产生的命令（如上标红的），分别加入到其他主机中，执行后产生如下结果。即为成功加入。</p>
-<p>或者执行下面命令产生令牌，并且是定期轮换计划（推荐）</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker swarm join-token  --rotate worker</span><br></pre></td></tr></table></figure>
-<blockquote>
-<p>This node joined a swarm as a worker.</p>
-</blockquote>
-<p>（扩展）加入管理节点的命令</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker swarm join-token --rotate manager</span><br></pre></td></tr></table></figure>
-<p>在manager节点上输入<code>docker node ls</code> 可查看所有节点。</p>
-<img src="/yyg/71468332/image-20240323221029238-1711203035847-1.png" class="" title="image-20240323221029238">
-<h3 id="创建用于swarm服务的自定义的overlay网络"><a href="#创建用于swarm服务的自定义的overlay网络" class="headerlink" title="创建用于swarm服务的自定义的overlay网络"></a>创建用于swarm服务的自定义的overlay网络</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">方式一</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">--attachable选项表示该网络是可附加的，即其他容器可以连接到该网络</span>  </span><br><span class="line">docker network create -d overlay --attachable my-overlay</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">方式二</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">--subnet:子网 --gateway:网关</span></span><br><span class="line">docker network create --driver overlay --subnet 10.0.9.0/24 --gateway 10.0.9.99 my-overlay</span><br><span class="line">  </span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">查看docker网络</span></span><br><span class="line"> docker network ls</span><br></pre></td></tr></table></figure>
-<h3 id="测试跨主机容器通信"><a href="#测试跨主机容器通信" class="headerlink" title="测试跨主机容器通信"></a>测试跨主机容器通信</h3><ol>
-<li>在三台主机上各部署一个容器，进行相互ping，结果如下图。</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一</span></span><br><span class="line">docker run -it --name master --net=my-overlay ubuntu:latest</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二</span></span><br><span class="line">docker run -it --name node1 --net=my-overlay ubuntu:latest</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机三</span></span><br><span class="line">docker run -it --name node2 --net=my-overlay ubuntu:latest</span><br></pre></td></tr></table></figure>
-<ol>
-<li>安装测试工具</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">apt-get update</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ping工具</span></span><br><span class="line">apt-get install inetutils-ping -y</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ip查看工具</span></span><br><span class="line">apt-get install net-tools -y</span><br></pre></td></tr></table></figure>
-<img src="/yyg/71468332/image-20240323221151231-1711203113839-3.png" class="" title="image-20240323221151231">
-]]></content>
-      <categories>
-        <category>容器化</category>
-        <category>docker</category>
-      </categories>
-      <tags>
-        <tag>docker</tag>
-        <tag>docker Swarm</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Hexo-Butterfly美化教程 | 基础环境</title>
-    <url>/yyg/e102aa73/</url>
-    <content><![CDATA[<h2 id="基础环境："><a href="#基础环境：" class="headerlink" title="基础环境："></a>基础环境：</h2><ol>
-<li>操作系统：Windows10/11</li>
-<li>运行环境：node.js</li>
-</ol>
-<h2 id="实现过程："><a href="#实现过程：" class="headerlink" title="实现过程："></a>实现过程：</h2><h3 id="安装node-js"><a href="#安装node-js" class="headerlink" title="安装node.js"></a>安装node.js</h3><p>在node.js中文官网<code>https://www.nodejs.com.cn/download_current.html</code>，下载适用于Windows的64位安装包，安装JavaScript运行环境。下载完成后，双击安装程序，按引导进行安装，在安装过程中需勾选”Automatically install the necessary tools. ……“，如图所示。安装过程中，弹出命令指示符，回车下载依赖工具。</p>
-<img src="/yyg/e102aa73/1.png" class="" title="img">
-<p>安装完成后，使用快捷键<code>win+r</code>,调用运行窗口，输入<code>cmd</code>，在命令指示符中输入命令，验证node和npm版本号。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">node -v</span><br><span class="line">npm -v</span><br></pre></td></tr></table></figure>
-<img src="/yyg/e102aa73/2.png" class="" title="img">
-<h3 id="安装git"><a href="#安装git" class="headerlink" title="安装git"></a>安装git</h3><p>从官网<code>https://git-scm.com/download/win</code>下载安装程序，按安装引导一直点击下一步即可。</p>
-<h3 id="安装hexo"><a href="#安装hexo" class="headerlink" title="安装hexo"></a>安装hexo</h3><p>在命令指示符中输入命令安装hexo。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">npm install hexo-cli -g </span><br></pre></td></tr></table></figure>
-<p>创建博客存放目录</p>
-<p>进入要存放博客目录的磁盘，以“F”盘为例，在如下图所示的磁盘路径框中输入“cmd”，点击回车，打开命名指示符。</p>
-<img src="/yyg/e102aa73/3.png" class="" title="img">
-<p>在其中输入如下命令创建博客目录，此处的“blog”为自定义名称。等待博客目录初始化完成。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">hexo init blog</span><br></pre></td></tr></table></figure>
-<p>初始化完成后，进入blog目录，在磁盘路径框中输入“cmd”，点击回车，输入以下命令下载依赖和测试博客是否部署成功。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#下载依赖</span><br><span class="line">npm install</span><br><span class="line"></span><br><span class="line">#本地测试</span><br><span class="line">hexo clean &amp;&amp; hexo g &amp;&amp; hexo s</span><br></pre></td></tr></table></figure>
-<p>成功显示的命令细节如下：</p>
-<blockquote>
-<p>F:\blog&gt;hexo clean &amp;&amp; hexo g &amp;&amp; hexo s<br>INFO Validating config<br>INFO Deleted database.<br>INFO Validating config<br>INFO Start processing<br>INFO Files loaded in 463 ms<br>INFO Generated: archives/index.html<br>INFO Generated: archives/2024/index.html<br>INFO Generated: archives/2024/04/index.html<br>INFO Generated: index.html<br>INFO Generated: css/style.css<br>INFO Generated: fancybox/jquery.fancybox.min.css<br>INFO Generated: fancybox/jquery.fancybox.min.js<br>INFO Generated: js/jquery-3.6.4.min.js<br>INFO Generated: js/script.js<br>INFO Generated: css/images/banner.jpg<br>INFO Generated: 2024/04/18/hello-world/index.html<br>INFO 11 files generated in 660 ms<br>INFO Validating config<br>INFO Start processing<br>INFO Hexo is running at <a href="http://localhost:4000/">http://localhost:4000/</a> . Press Ctrl+C to stop.</p>
-</blockquote>
-<p>在浏览器中访问 <code>http://localhost:4000/</code> ，查看默认博客界面。</p>
-]]></content>
-      <categories>
-        <category>博客教程</category>
-        <category>博客搭建</category>
-      </categories>
-      <tags>
-        <tag>Hexo</tag>
-        <tag>Butterfly</tag>
-        <tag>博客教程</tag>
       </tags>
   </entry>
   <entry>
@@ -535,43 +535,6 @@
       </tags>
   </entry>
   <entry>
-    <title>NTP服务器搭建</title>
-    <url>/yyg/29b27760/</url>
-    <content><![CDATA[<h2 id="服务器端"><a href="#服务器端" class="headerlink" title="服务器端"></a>服务器端</h2><p>（1）通过在线方式安装chrony</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">yum install -y chrony</span><br></pre></td></tr></table></figure>
-<p>（2）启动chrony服务</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">systemctl start chronyd</span><br></pre></td></tr></table></figure>
-<p>（3）查看chrony服务状态</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">systemctl status chronyd</span><br></pre></td></tr></table></figure>
-<p>（4）配置chrony服务为开机自启动</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">systemctl enable chronyd</span><br></pre></td></tr></table></figure>
-<p>（5）修改chronyd服务配置文件，完成NTP服务器的搭建</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">vi /etc/chrony.conf</span><br><span class="line">-------------------chrony.conf-------------------</span><br><span class="line">pool 2.centos.pool.ntp.org iburst</span><br><span class="line">sourcedir /run/chrony-dhcp</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">配置的多个NTP服务器</span></span><br><span class="line">server ftp.aliyun.com iburst</span><br><span class="line">server time1.aliyun.com iburst</span><br><span class="line">server time2.aliyun.com iburst</span><br><span class="line">server time3.aliyun.com iburst</span><br><span class="line">server time4.aliyun.com iburst</span><br><span class="line">server time5.aliyun.com iburst</span><br><span class="line">server 10.10.2.103 iburst</span><br><span class="line">driftfile /var/lib/chrony/drift</span><br><span class="line">makestep 1.0 3</span><br><span class="line">rtcsync</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">允许访问的网段</span></span><br><span class="line">allow 10.10.0.0/16</span><br><span class="line">keyfile /etc/chrony.keys</span><br><span class="line">ntsdumpdir /var/lib/chrony</span><br><span class="line">leapsectz right/UTC</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">日志存储路径</span></span><br><span class="line">logdir /var/log/chrony</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">日志测量统计指标</span></span><br><span class="line">log measurements statistics tracking</span><br><span class="line">-------------------chrony.conf-------------------</span><br></pre></td></tr></table></figure>
-<p>（6）配置防火墙，重启服务，使得配置生效</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 配置ntp服务访问策略，使其能够正常访问</span><br><span class="line">firewall-cmd --permanent --add-service=ntp</span><br><span class="line"># 重新加载防火墙策略</span><br><span class="line">firewall-cmd --reload</span><br><span class="line"># 重启chronyd服务</span><br><span class="line">systemctl restart chronyd</span><br></pre></td></tr></table></figure>
-<p>（7）查看连接NTP服务的客户机</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">chronyc clients</span><br></pre></td></tr></table></figure>
-<h2 id="客户机端"><a href="#客户机端" class="headerlink" title="客户机端"></a>客户机端</h2><p>（1）通过在线方式安装chrony</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">yum install -y chrony</span><br></pre></td></tr></table></figure>
-<p>（2）配置访问chrony服务器</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 修改chrony的配置文件</span><br><span class="line">vi /etc/chrony.conf</span><br><span class="line">-------------------chrony.conf-------------------</span><br><span class="line"># Use public servers from the pool.ntp.org project.</span><br><span class="line"># Please consider joining the pool (https://www.pool.ntp.org/join.html).</span><br><span class="line">pool 2.centos.pool.ntp.org iburst</span><br><span class="line"></span><br><span class="line"># Use NTP servers from DHCP.</span><br><span class="line">sourcedir /run/chrony-dhcp</span><br><span class="line"></span><br><span class="line"># Record the rate at which the system clock gains/losses time.</span><br><span class="line">driftfile /var/lib/chrony/drift</span><br><span class="line"># 配置ntp服务器地址</span><br><span class="line">server 10.10.2.103 iburst</span><br><span class="line">#为排版方便此处省略部分提示信息</span><br><span class="line">-----------------------------------------------</span><br></pre></td></tr></table></figure>
-<p>（3）启动chronyd服务，连接NTP服务器</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 启动chrony服务</span><br><span class="line">systemctl start chronyd</span><br><span class="line"># 查看chrony服务状态</span><br><span class="line">systemctl status chronyd</span><br><span class="line"># 配置chrony服务为开机自启动</span><br><span class="line">systemctl enable chronyd</span><br></pre></td></tr></table></figure>
-<p>（4）配置防火墙，使得配置生效</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 配置ntp服务访问策略，使其能够正常访问</span><br><span class="line">firewall-cmd --permanent --add-service=ntp</span><br><span class="line"># 重新加载防火墙策略</span><br><span class="line">firewall-cmd --reload</span><br></pre></td></tr></table></figure>
-<p>（5）验证NTP服务器的连接情况</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 查看源服务器状态</span><br><span class="line"> chronyc sourcestats</span><br><span class="line"># 查看详细同步状态</span><br><span class="line">chronyc sources -v</span><br><span class="line"># 追踪同步情况</span><br><span class="line">chronyc tracking</span><br><span class="line"># 开启网络时间同步</span><br><span class="line">timedatectl set-ntp true</span><br><span class="line"># 查看时间同步状态</span><br><span class="line">timedatectl status</span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>Linux运维</category>
-        <category>网络服务搭建</category>
-      </categories>
-      <tags>
-        <tag>Linux运维</tag>
-        <tag>NTP</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Slim缩小容器镜像大小</title>
     <url>/yyg/fd02fe22/</url>
     <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><details class="folding-tag" cyan><summary> 🔜Slim🔚 </summary>
@@ -622,6 +585,43 @@
         <tag>Linux</tag>
         <tag>Slim</tag>
         <tag>缩小容器镜像大小</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>NTP服务器搭建</title>
+    <url>/yyg/29b27760/</url>
+    <content><![CDATA[<h2 id="服务器端"><a href="#服务器端" class="headerlink" title="服务器端"></a>服务器端</h2><p>（1）通过在线方式安装chrony</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">yum install -y chrony</span><br></pre></td></tr></table></figure>
+<p>（2）启动chrony服务</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">systemctl start chronyd</span><br></pre></td></tr></table></figure>
+<p>（3）查看chrony服务状态</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">systemctl status chronyd</span><br></pre></td></tr></table></figure>
+<p>（4）配置chrony服务为开机自启动</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">systemctl enable chronyd</span><br></pre></td></tr></table></figure>
+<p>（5）修改chronyd服务配置文件，完成NTP服务器的搭建</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">vi /etc/chrony.conf</span><br><span class="line">-------------------chrony.conf-------------------</span><br><span class="line">pool 2.centos.pool.ntp.org iburst</span><br><span class="line">sourcedir /run/chrony-dhcp</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">配置的多个NTP服务器</span></span><br><span class="line">server ftp.aliyun.com iburst</span><br><span class="line">server time1.aliyun.com iburst</span><br><span class="line">server time2.aliyun.com iburst</span><br><span class="line">server time3.aliyun.com iburst</span><br><span class="line">server time4.aliyun.com iburst</span><br><span class="line">server time5.aliyun.com iburst</span><br><span class="line">server 10.10.2.103 iburst</span><br><span class="line">driftfile /var/lib/chrony/drift</span><br><span class="line">makestep 1.0 3</span><br><span class="line">rtcsync</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">允许访问的网段</span></span><br><span class="line">allow 10.10.0.0/16</span><br><span class="line">keyfile /etc/chrony.keys</span><br><span class="line">ntsdumpdir /var/lib/chrony</span><br><span class="line">leapsectz right/UTC</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">日志存储路径</span></span><br><span class="line">logdir /var/log/chrony</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">日志测量统计指标</span></span><br><span class="line">log measurements statistics tracking</span><br><span class="line">-------------------chrony.conf-------------------</span><br></pre></td></tr></table></figure>
+<p>（6）配置防火墙，重启服务，使得配置生效</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 配置ntp服务访问策略，使其能够正常访问</span><br><span class="line">firewall-cmd --permanent --add-service=ntp</span><br><span class="line"># 重新加载防火墙策略</span><br><span class="line">firewall-cmd --reload</span><br><span class="line"># 重启chronyd服务</span><br><span class="line">systemctl restart chronyd</span><br></pre></td></tr></table></figure>
+<p>（7）查看连接NTP服务的客户机</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">chronyc clients</span><br></pre></td></tr></table></figure>
+<h2 id="客户机端"><a href="#客户机端" class="headerlink" title="客户机端"></a>客户机端</h2><p>（1）通过在线方式安装chrony</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">yum install -y chrony</span><br></pre></td></tr></table></figure>
+<p>（2）配置访问chrony服务器</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 修改chrony的配置文件</span><br><span class="line">vi /etc/chrony.conf</span><br><span class="line">-------------------chrony.conf-------------------</span><br><span class="line"># Use public servers from the pool.ntp.org project.</span><br><span class="line"># Please consider joining the pool (https://www.pool.ntp.org/join.html).</span><br><span class="line">pool 2.centos.pool.ntp.org iburst</span><br><span class="line"></span><br><span class="line"># Use NTP servers from DHCP.</span><br><span class="line">sourcedir /run/chrony-dhcp</span><br><span class="line"></span><br><span class="line"># Record the rate at which the system clock gains/losses time.</span><br><span class="line">driftfile /var/lib/chrony/drift</span><br><span class="line"># 配置ntp服务器地址</span><br><span class="line">server 10.10.2.103 iburst</span><br><span class="line">#为排版方便此处省略部分提示信息</span><br><span class="line">-----------------------------------------------</span><br></pre></td></tr></table></figure>
+<p>（3）启动chronyd服务，连接NTP服务器</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 启动chrony服务</span><br><span class="line">systemctl start chronyd</span><br><span class="line"># 查看chrony服务状态</span><br><span class="line">systemctl status chronyd</span><br><span class="line"># 配置chrony服务为开机自启动</span><br><span class="line">systemctl enable chronyd</span><br></pre></td></tr></table></figure>
+<p>（4）配置防火墙，使得配置生效</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 配置ntp服务访问策略，使其能够正常访问</span><br><span class="line">firewall-cmd --permanent --add-service=ntp</span><br><span class="line"># 重新加载防火墙策略</span><br><span class="line">firewall-cmd --reload</span><br></pre></td></tr></table></figure>
+<p>（5）验证NTP服务器的连接情况</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 查看源服务器状态</span><br><span class="line"> chronyc sourcestats</span><br><span class="line"># 查看详细同步状态</span><br><span class="line">chronyc sources -v</span><br><span class="line"># 追踪同步情况</span><br><span class="line">chronyc tracking</span><br><span class="line"># 开启网络时间同步</span><br><span class="line">timedatectl set-ntp true</span><br><span class="line"># 查看时间同步状态</span><br><span class="line">timedatectl status</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>Linux运维</category>
+        <category>网络服务搭建</category>
+      </categories>
+      <tags>
+        <tag>Linux运维</tag>
+        <tag>NTP</tag>
       </tags>
   </entry>
   <entry>
@@ -702,6 +702,101 @@
         <tag>Linux</tag>
         <tag>Watchtower</tag>
         <tag>自动更新容器</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>docker基础知识</title>
+    <url>/yyg/7b36b89c/</url>
+    <content><![CDATA[<p><code>docker search 镜像</code> #搜索要下载的镜像</p>
+<p><code>docker pull 镜像</code> #将镜像拉到本地</p>
+<p><code>docker images</code> #查看已拉取到本地的镜像</p>
+<p><code>docker rmi 镜像名或ID</code> #删除镜像</p>
+<p><code>docker rm 容器ID</code> #删除已停止容器</p>
+<blockquote>
+<p><code>docker rm -f 容器ID</code> #强制删除容器</p>
+</blockquote>
+<p>一次性删除多个容器</p>
+<blockquote>
+<p><code>docker rm -f $(docker ps -a -q)</code></p>
+<p><code>docker ps -a -q |xargs docker rm</code></p>
+</blockquote>
+<p>删除虚悬镜像</p>
+<blockquote>
+<p><code>docker image ls -f dangling=true</code> #显示所有的虚悬镜像</p>
+<p><code>docker image prune</code> #删除虚悬镜像</p>
+</blockquote>
+<p><code>docker ps</code> #查看正在运行的容器</p>
+<blockquote>
+<p><code>docker ps -a</code> #列出所有正在运行和曾运行过的容器</p>
+<p><code>docker ps -l</code> #显示最近创建的容器</p>
+<p><code>docker ps -n</code> #显示最近创建的n个容器</p>
+<p><code>docker ps -q</code> #只显示容器编号</p>
+</blockquote>
+<p><code>docker stop  容器名或ID</code> #结束容器运行</p>
+<p><code>docker kill  容器名或ID</code> #强制停止容器运行</p>
+<p><code>docker start 容器名或ID</code> #启动已停止的容器</p>
+<p><code>docker restart 容器名或ID</code> #重启容器</p>
+<p><code>docker run -it 镜像名或ID</code> #启动镜像(-it指交互式启动)</p>
+<blockquote>
+<p><code>docker run -d 容器名或ID</code> #容器后台运行</p>
+<p><code>docker run -it -p 端口号:端口号 容器名或ID</code> #以特定端口号运行容器</p>
+<p><code>docker run -it -P 容器名或ID</code> #随机分配端口号运行容器</p>
+<p>启动镜像后，按下<code>ctrl+p+q</code>，容器后台运行 </p>
+</blockquote>
+<p>重新进入后台运行的容器</p>
+<blockquote>
+<p><code>docker exec -it  容器ID</code> #在容器中打开新的终端，并且可以启动新的进程，用exit退出，不会导致容器的停止。(推荐使用)</p>
+<p><code>docker attach 容器ID</code>  #直接进入容器启动命令的终端，不会启动新的进程，用exit退出，会导致容器的停止。</p>
+</blockquote>
+<p><code>docker inspect 容器ID</code>#显示容器内的详细信息</p>
+<p><code>docker logs  容器ID</code> #查看容器日志</p>
+<p><code>docker top  容器ID</code> 查看容器内进程</p>
+<p><code>docker cp  容器ID:容器内路径 目的主机路径</code> #将文件从容器拷贝到主机</p>
+<p>容器的导入导出</p>
+<blockquote>
+<p><code>docker export  容器ID &gt;文件名.tar</code> #将容器及内容导出为tar包</p>
+<p><code>cat 文件名.tar | docker import -镜像用户/镜像名:镜像版本号</code> #从tar包中创建一个新文件系统再导入镜像</p>
+</blockquote>
+<p><code>docker run -it --privileged=true -v /宿主机目录:/容器内目录 镜像名</code>#宿主机与容器之间映射添加容器卷</p>
+<p><code>docker run -it --privileged=true -v /宿主机目录:/容器内目录:rw 镜像名</code>#宿主机与容器之间映射添加容器卷,容器内文件可读可写</p>
+<p><code>docker run -it --privileged=true -v /宿主机目录:/容器内目录:ro 镜像名</code>#宿主机与容器之间映射添加容器卷,容器内文件只可读</p>
+<p><code>docker run -it --privileged=true -volumes-from 父类 -name 容器2名称 镜像名</code> #容器2继承容器1的卷规则</p>
+<img src="/yyg/7b36b89c/image-20240323215245387.png" class="" title="image-20240323215245387">]]></content>
+      <categories>
+        <category>容器化</category>
+        <category>docker</category>
+        <category>梳理总结</category>
+      </categories>
+      <tags>
+        <tag>docker</tag>
+        <tag>docker基础</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>docker 安装 redis</title>
+    <url>/yyg/6fffbcc4/</url>
+    <content><![CDATA[<p>首先输入命令<code>docker pull redis</code> ，将最新版redis安装到本地</p>
+<p>输入以下命令,后台启动redis(注：<strong>该命令是一条命令</strong>)</p>
+<p>其中<code>--name</code>后面的是redis容器的名称，可自行更改</p>
+<blockquote>
+<p>docker run -p 6379:6379 —name mars1 —privileged=true</p>
+<p> -v /app/redis/redis.conf:/etc/redis/redis.conf </p>
+<p>-v /app/redis/data:/data </p>
+<p>-d redis:latest redis-server /etc/redis/redis.conf</p>
+</blockquote>
+<p>此命令也可解决在删除redis容器后，而出现的数据丢失的问题。若要找回数据，则只需重新运行命令即可。</p>
+
+<p>运行<code>docker ps</code>命令，可查看到redis正在运行</p>
+
+<p>然后执行<code>docker exec -it mars1 /bin/bash</code>命令，redis成功运行</p>
+]]></content>
+      <categories>
+        <category>容器化</category>
+        <category>docker</category>
+      </categories>
+      <tags>
+        <tag>docker</tag>
+        <tag>redis</tag>
       </tags>
   </entry>
   <entry>
@@ -900,101 +995,6 @@
         <tag>ceph</tag>
         <tag>共享存储</tag>
         <tag>ceph集群</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>docker 安装 redis</title>
-    <url>/yyg/6fffbcc4/</url>
-    <content><![CDATA[<p>首先输入命令<code>docker pull redis</code> ，将最新版redis安装到本地</p>
-<p>输入以下命令,后台启动redis(注：<strong>该命令是一条命令</strong>)</p>
-<p>其中<code>--name</code>后面的是redis容器的名称，可自行更改</p>
-<blockquote>
-<p>docker run -p 6379:6379 —name mars1 —privileged=true</p>
-<p> -v /app/redis/redis.conf:/etc/redis/redis.conf </p>
-<p>-v /app/redis/data:/data </p>
-<p>-d redis:latest redis-server /etc/redis/redis.conf</p>
-</blockquote>
-<p>此命令也可解决在删除redis容器后，而出现的数据丢失的问题。若要找回数据，则只需重新运行命令即可。</p>
-
-<p>运行<code>docker ps</code>命令，可查看到redis正在运行</p>
-
-<p>然后执行<code>docker exec -it mars1 /bin/bash</code>命令，redis成功运行</p>
-]]></content>
-      <categories>
-        <category>容器化</category>
-        <category>docker</category>
-      </categories>
-      <tags>
-        <tag>docker</tag>
-        <tag>redis</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>docker基础知识</title>
-    <url>/yyg/7b36b89c/</url>
-    <content><![CDATA[<p><code>docker search 镜像</code> #搜索要下载的镜像</p>
-<p><code>docker pull 镜像</code> #将镜像拉到本地</p>
-<p><code>docker images</code> #查看已拉取到本地的镜像</p>
-<p><code>docker rmi 镜像名或ID</code> #删除镜像</p>
-<p><code>docker rm 容器ID</code> #删除已停止容器</p>
-<blockquote>
-<p><code>docker rm -f 容器ID</code> #强制删除容器</p>
-</blockquote>
-<p>一次性删除多个容器</p>
-<blockquote>
-<p><code>docker rm -f $(docker ps -a -q)</code></p>
-<p><code>docker ps -a -q |xargs docker rm</code></p>
-</blockquote>
-<p>删除虚悬镜像</p>
-<blockquote>
-<p><code>docker image ls -f dangling=true</code> #显示所有的虚悬镜像</p>
-<p><code>docker image prune</code> #删除虚悬镜像</p>
-</blockquote>
-<p><code>docker ps</code> #查看正在运行的容器</p>
-<blockquote>
-<p><code>docker ps -a</code> #列出所有正在运行和曾运行过的容器</p>
-<p><code>docker ps -l</code> #显示最近创建的容器</p>
-<p><code>docker ps -n</code> #显示最近创建的n个容器</p>
-<p><code>docker ps -q</code> #只显示容器编号</p>
-</blockquote>
-<p><code>docker stop  容器名或ID</code> #结束容器运行</p>
-<p><code>docker kill  容器名或ID</code> #强制停止容器运行</p>
-<p><code>docker start 容器名或ID</code> #启动已停止的容器</p>
-<p><code>docker restart 容器名或ID</code> #重启容器</p>
-<p><code>docker run -it 镜像名或ID</code> #启动镜像(-it指交互式启动)</p>
-<blockquote>
-<p><code>docker run -d 容器名或ID</code> #容器后台运行</p>
-<p><code>docker run -it -p 端口号:端口号 容器名或ID</code> #以特定端口号运行容器</p>
-<p><code>docker run -it -P 容器名或ID</code> #随机分配端口号运行容器</p>
-<p>启动镜像后，按下<code>ctrl+p+q</code>，容器后台运行 </p>
-</blockquote>
-<p>重新进入后台运行的容器</p>
-<blockquote>
-<p><code>docker exec -it  容器ID</code> #在容器中打开新的终端，并且可以启动新的进程，用exit退出，不会导致容器的停止。(推荐使用)</p>
-<p><code>docker attach 容器ID</code>  #直接进入容器启动命令的终端，不会启动新的进程，用exit退出，会导致容器的停止。</p>
-</blockquote>
-<p><code>docker inspect 容器ID</code>#显示容器内的详细信息</p>
-<p><code>docker logs  容器ID</code> #查看容器日志</p>
-<p><code>docker top  容器ID</code> 查看容器内进程</p>
-<p><code>docker cp  容器ID:容器内路径 目的主机路径</code> #将文件从容器拷贝到主机</p>
-<p>容器的导入导出</p>
-<blockquote>
-<p><code>docker export  容器ID &gt;文件名.tar</code> #将容器及内容导出为tar包</p>
-<p><code>cat 文件名.tar | docker import -镜像用户/镜像名:镜像版本号</code> #从tar包中创建一个新文件系统再导入镜像</p>
-</blockquote>
-<p><code>docker run -it --privileged=true -v /宿主机目录:/容器内目录 镜像名</code>#宿主机与容器之间映射添加容器卷</p>
-<p><code>docker run -it --privileged=true -v /宿主机目录:/容器内目录:rw 镜像名</code>#宿主机与容器之间映射添加容器卷,容器内文件可读可写</p>
-<p><code>docker run -it --privileged=true -v /宿主机目录:/容器内目录:ro 镜像名</code>#宿主机与容器之间映射添加容器卷,容器内文件只可读</p>
-<p><code>docker run -it --privileged=true -volumes-from 父类 -name 容器2名称 镜像名</code> #容器2继承容器1的卷规则</p>
-<img src="/yyg/7b36b89c/image-20240323215245387.png" class="" title="image-20240323215245387">]]></content>
-      <categories>
-        <category>容器化</category>
-        <category>docker</category>
-        <category>梳理总结</category>
-      </categories>
-      <tags>
-        <tag>docker</tag>
-        <tag>docker基础</tag>
       </tags>
   </entry>
   <entry>
@@ -1220,6 +1220,74 @@
       </tags>
   </entry>
   <entry>
+    <title>docker部署zabbix6.4指南</title>
+    <url>/yyg/6d91d852/</url>
+    <content><![CDATA[<h2 id="任务目标"><a href="#任务目标" class="headerlink" title="任务目标"></a>任务目标</h2><ol>
+<li>在主机一上完成docker部署zabbix6.4</li>
+<li>在主机二上安装zabbix-agent2</li>
+<li>使用主机一上的zabbix容器监控主机二的容器等业务</li>
+</ol>
+<h2 id="任务平台"><a href="#任务平台" class="headerlink" title="任务平台"></a>任务平台</h2><ol>
+<li>物理设备—</li>
+<li>操作系统：CentOS 7</li>
+</ol>
+<h2 id="部署指南"><a href="#部署指南" class="headerlink" title="部署指南"></a>部署指南</h2><h3 id="任务-一"><a href="#任务-一" class="headerlink" title="任务 一"></a>任务 一</h3><ol>
+<li>安装docker（最新版）</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">下载并安装docker文件及依赖</span></span><br><span class="line">yum install -y yum-utils</span><br><span class="line">yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo</span><br><span class="line">yum install -y docker-ce docker-ce-cli containerd.io</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动docker并设置开机自启</span></span><br><span class="line">systemctl start docker  </span><br><span class="line">systemctl enable docker</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看版本</span></span><br><span class="line">docker -v</span><br></pre></td></tr></table></figure>
+<ol>
+<li>配置防火墙所需的开放端口</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">放行nginx端口</span></span><br><span class="line">firewall-cmd --zone=public --add-port=80/tcp --permanent</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">放行zabbix agent端口</span></span><br><span class="line">firewall-cmd --zone=public --add-port=10050/tcp --permanent</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">放行zabbix server端口</span></span><br><span class="line">firewall-cmd --zone=public --add-port=10051/tcp --permanent</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">放行zabbix java gateway端口</span></span><br><span class="line">firewall-cmd --zone=public --add-port=10052/tcp --permanent</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">放行mysql端口</span></span><br><span class="line">firewall-cmd --zone=public --add-port=3306/tcp --permanent</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">放行snmptraps端口</span></span><br><span class="line">firewall-cmd --zone=public --add-port=162/udp --permanent</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">重载防火墙</span></span><br><span class="line">firewall-cmd --reload</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看80端口是否开放</span></span><br><span class="line">firewall-cmd --query-port=80/tcp</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看所有放行的端口</span></span><br><span class="line">firewall-cmd --zone=public --list-ports</span><br></pre></td></tr></table></figure>
+<ol>
+<li>拉取zabbix所需镜像文件</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">拉取安装zabbix需要的docker镜像</span></span><br><span class="line">docker pull mysql:8.0</span><br><span class="line">docker pull zabbix/zabbix-java-gateway:alpine-6.4-latest</span><br><span class="line">docker pull zabbix/zabbix-server-mysql:alpine-6.4-latest</span><br><span class="line">docker pull zabbix/zabbix-web-nginx-mysql:alpine-6.4-latest</span><br></pre></td></tr></table></figure>
+<ol>
+<li>创建专用于Zabbix组件容器网络与所需容器</li>
+</ol>
+<h4 id="方案一："><a href="#方案一：" class="headerlink" title="方案一："></a>方案一：</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">创建专用于Zabbix组件容器的网络</span></span><br><span class="line">docker network create --subnet 172.20.0.0/16 --ip-range 172.20.240.0/20 zabbix-net</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动空的MySQ服务器实例</span></span><br><span class="line">docker run --name mysql-server -t \</span><br><span class="line">      -e MYSQL_DATABASE=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_USER=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      -e MYSQL_ROOT_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      --network=zabbix-net \</span><br><span class="line">      --restart=always \</span><br><span class="line">      -d mysql:8.0 \</span><br><span class="line">      --character-set-server=UTF8MB4 --collation-server=UTF8MB4_bin \</span><br><span class="line">      --authentication_policy=mysql_native_password</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动Zabbix Java网关实例</span>      </span><br><span class="line">docker run --name zabbix-java-gateway -t \</span><br><span class="line">      --network=zabbix-net \</span><br><span class="line">      --restart unless-stopped \</span><br><span class="line">      -d zabbix/zabbix-java-gateway:alpine-6.4-latest</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动Zabbix服务器实例并将实例与创建的MySQL服务器实例链接</span>      </span><br><span class="line">docker run --name zabbix-server-mysql -t \</span><br><span class="line">      -e DB_SERVER_HOST=&quot;mysql-server&quot; \</span><br><span class="line">      -e MYSQL_DATABASE=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_USER=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      -e MYSQL_ROOT_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      -e ZBX_JAVAGATEWAY=&quot;zabbix-java-gateway&quot; \</span><br><span class="line">      --network=zabbix-net \</span><br><span class="line">      -p 10051:10051 \</span><br><span class="line">      --restart unless-stopped \</span><br><span class="line">      -d zabbix/zabbix-server-mysql:alpine-6.4-latest</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动Zabbix Web界面，并将实例与创建的MySQL服务器和Zabbix服务器实例链接</span></span><br><span class="line">docker run --name zabbix-web-nginx-mysql -t \</span><br><span class="line">      -e ZBX_SERVER_HOST=&quot;zabbix-server-mysql&quot; \</span><br><span class="line">      -e DB_SERVER_HOST=&quot;mysql-server&quot; \</span><br><span class="line">      -e MYSQL_DATABASE=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_USER=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      -e MYSQL_ROOT_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      --network=zabbix-net \</span><br><span class="line">      -p 80:8080 \</span><br><span class="line">      --restart unless-stopped \</span><br><span class="line">      -d zabbix/zabbix-web-nginx-mysql:alpine-6.4-latest</span><br></pre></td></tr></table></figure>
+<h4 id="方案二：（推荐使用）"><a href="#方案二：（推荐使用）" class="headerlink" title="方案二：（推荐使用）"></a>方案二：（推荐使用）</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动空的MySQ服务器实例</span></span><br><span class="line">docker run --name mysql-server -t \</span><br><span class="line">      -e MYSQL_DATABASE=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_USER=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      -e MYSQL_ROOT_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      --restart=always \</span><br><span class="line">      -d mysql:8.0 \</span><br><span class="line">      --character-set-server=UTF8MB4 --collation-server=UTF8MB4_bin \</span><br><span class="line">      --authentication_policy=mysql_native_password</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动Zabbix Java网关实例</span>      </span><br><span class="line">docker run --name zabbix-java-gateway -t \</span><br><span class="line">      --restart unless-stopped \</span><br><span class="line">      -d zabbix/zabbix-java-gateway:alpine-6.4-latest</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动Zabbix服务器实例并将实例与创建的MySQL服务器实例链接</span>      </span><br><span class="line">docker run --name zabbix-server-mysql -t \</span><br><span class="line">      -e DB_SERVER_HOST=&quot;mysql-server&quot; \</span><br><span class="line">      -e MYSQL_DATABASE=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_USER=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      -e MYSQL_ROOT_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      -e ZBX_JAVAGATEWAY=&quot;zabbix-java-gateway&quot; \</span><br><span class="line">      --link mysql-server:mysql \</span><br><span class="line">      --link zabbix-java-gateway:zabbix-java-gateway \</span><br><span class="line">      -p 10051:10051 \</span><br><span class="line">      --restart unless-stopped \</span><br><span class="line">      -d zabbix/zabbix-server-mysql:alpine-6.4-latest</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动Zabbix Web界面，并将实例与创建的MySQL服务器和Zabbix服务器实例链接</span></span><br><span class="line">docker run --name zabbix-web-nginx-mysql -t \</span><br><span class="line">      -e ZBX_SERVER_HOST=&quot;zabbix-server-mysql&quot; \</span><br><span class="line">      -e DB_SERVER_HOST=&quot;mysql-server&quot; \</span><br><span class="line">      -e MYSQL_DATABASE=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_USER=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      -e MYSQL_ROOT_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      --link mysql-server:mysql \</span><br><span class="line">      --link zabbix-server-mysql:zabbix-server \</span><br><span class="line">      -p 80:8080 \</span><br><span class="line">      --restart unless-stopped \</span><br><span class="line">      -d zabbix/zabbix-web-nginx-mysql:alpine-6.4-latest</span><br></pre></td></tr></table></figure>
+<ol>
+<li>在其中一台的主机的/etc/docker/daemon.json文件中，加入如下内容：</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">打开daemon.json文件</span></span><br><span class="line">vi /etc/docker/daemon.json</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">添加的内容</span></span><br><span class="line">&#123;</span><br><span class="line"> &quot;bip&quot;: &quot;172.16.200.1/24&quot;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重启docker服务</span></span><br><span class="line">systemctl restart docker </span><br></pre></td></tr></table></figure>
+<h3 id="任务二"><a href="#任务二" class="headerlink" title="任务二"></a>任务二</h3><p>在主机二上安装zabbix-agent2</p>
+<p>在要监控的主机上安装zabbix agent2</p>
+<p>步骤1：Zabbix agent2下载</p>
+<div class="tag link"><a class="link-card" title="Zabbix agent2下载" href="https://www.zabbix.com/documentation/6.4/manual/installation/install_from_packages"><div class="left"><img src="https://cdn.pixabay.com/photo/2022/07/08/10/37/books-7309019_960_720.png"/></div><div class="right"><p class="text">Zabbix agent2下载</p><p class="url">https://www.zabbix.com/documentation/6.4/manual/installation/install_from_packages</p></div></a></div>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">rpm -Uvh https://repo.zabbix.com/zabbix/6.4/rhel/7/x86_64/zabbix-release-6.4-1.el7.noarch.rpm</span><br><span class="line">yum clean all</span><br></pre></td></tr></table></figure>
+<p>步骤2：b. 下载Zabbix agent2</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum install zabbix-agent2 zabbix-agent2-plugin-* -y</span><br></pre></td></tr></table></figure>
+<p>步骤3：启动Zabbix agent2</p>
+<p>Start Zabbix agent2 process and make it start at system boot.</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">systemctl restart zabbix-agent2</span><br><span class="line">systemctl enable zabbix-agent2</span><br></pre></td></tr></table></figure>
+<p>运行成功界面如下</p>
+<img src="/yyg/6d91d852/1711208128881-1.png" class="" title="img">
+<img src="/yyg/6d91d852/1711208138487-4-1711208142767-7.png" class="" title="img">
+<h3 id="安装报错总结"><a href="#安装报错总结" class="headerlink" title="安装报错总结"></a>安装报错总结</h3><ol>
+<li><img src="/yyg/6d91d852/1711208157423-9.png" class="" title="img">
+</li>
+</ol>
+<p>进入mysql容器，输入以下命令.</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">进入sql界面</span></span><br><span class="line">mysql -u root -p</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">输入该命令，解决问题</span></span><br><span class="line">create database zabbix character set utf8 collate utf8_bin;</span><br><span class="line">SET GLOBAL log_bin_trust_function_creators = 1;</span><br></pre></td></tr></table></figure>
+<ol>
+<li>安装zabbix出现下图情况解决方法</li>
+</ol>
+<img src="/yyg/6d91d852/1711208164924-12.png" class="" title="img">
+<div class="tag link"><a class="link-card" title="故障处理" href="https://blog.csdn.net/ly4983/article/details/111029506"><div class="left"><img src="https://cdn.pixabay.com/photo/2022/07/08/10/37/books-7309019_960_720.png"/></div><div class="right"><p class="text">故障处理</p><p class="url">https://blog.csdn.net/ly4983/article/details/111029506</p></div></a></div>]]></content>
+      <categories>
+        <category>Linux运维</category>
+        <category>容器化</category>
+        <category>docker</category>
+        <category>监控</category>
+      </categories>
+      <tags>
+        <tag>docker</tag>
+        <tag>zabbix</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>docker镜像仓库搭建(Harbor)</title>
     <url>/yyg/c3b2f9c5/</url>
     <content><![CDATA[<h2 id="任务目标"><a href="#任务目标" class="headerlink" title="任务目标"></a>任务目标</h2><ol>
@@ -1360,74 +1428,6 @@
         <tag>docker</tag>
         <tag>Harbor</tag>
         <tag>容器镜像仓库</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>docker部署zabbix6.4指南</title>
-    <url>/yyg/6d91d852/</url>
-    <content><![CDATA[<h2 id="任务目标"><a href="#任务目标" class="headerlink" title="任务目标"></a>任务目标</h2><ol>
-<li>在主机一上完成docker部署zabbix6.4</li>
-<li>在主机二上安装zabbix-agent2</li>
-<li>使用主机一上的zabbix容器监控主机二的容器等业务</li>
-</ol>
-<h2 id="任务平台"><a href="#任务平台" class="headerlink" title="任务平台"></a>任务平台</h2><ol>
-<li>物理设备—</li>
-<li>操作系统：CentOS 7</li>
-</ol>
-<h2 id="部署指南"><a href="#部署指南" class="headerlink" title="部署指南"></a>部署指南</h2><h3 id="任务-一"><a href="#任务-一" class="headerlink" title="任务 一"></a>任务 一</h3><ol>
-<li>安装docker（最新版）</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">下载并安装docker文件及依赖</span></span><br><span class="line">yum install -y yum-utils</span><br><span class="line">yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo</span><br><span class="line">yum install -y docker-ce docker-ce-cli containerd.io</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动docker并设置开机自启</span></span><br><span class="line">systemctl start docker  </span><br><span class="line">systemctl enable docker</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看版本</span></span><br><span class="line">docker -v</span><br></pre></td></tr></table></figure>
-<ol>
-<li>配置防火墙所需的开放端口</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">放行nginx端口</span></span><br><span class="line">firewall-cmd --zone=public --add-port=80/tcp --permanent</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">放行zabbix agent端口</span></span><br><span class="line">firewall-cmd --zone=public --add-port=10050/tcp --permanent</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">放行zabbix server端口</span></span><br><span class="line">firewall-cmd --zone=public --add-port=10051/tcp --permanent</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">放行zabbix java gateway端口</span></span><br><span class="line">firewall-cmd --zone=public --add-port=10052/tcp --permanent</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">放行mysql端口</span></span><br><span class="line">firewall-cmd --zone=public --add-port=3306/tcp --permanent</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">放行snmptraps端口</span></span><br><span class="line">firewall-cmd --zone=public --add-port=162/udp --permanent</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">重载防火墙</span></span><br><span class="line">firewall-cmd --reload</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看80端口是否开放</span></span><br><span class="line">firewall-cmd --query-port=80/tcp</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看所有放行的端口</span></span><br><span class="line">firewall-cmd --zone=public --list-ports</span><br></pre></td></tr></table></figure>
-<ol>
-<li>拉取zabbix所需镜像文件</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">拉取安装zabbix需要的docker镜像</span></span><br><span class="line">docker pull mysql:8.0</span><br><span class="line">docker pull zabbix/zabbix-java-gateway:alpine-6.4-latest</span><br><span class="line">docker pull zabbix/zabbix-server-mysql:alpine-6.4-latest</span><br><span class="line">docker pull zabbix/zabbix-web-nginx-mysql:alpine-6.4-latest</span><br></pre></td></tr></table></figure>
-<ol>
-<li>创建专用于Zabbix组件容器网络与所需容器</li>
-</ol>
-<h4 id="方案一："><a href="#方案一：" class="headerlink" title="方案一："></a>方案一：</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">创建专用于Zabbix组件容器的网络</span></span><br><span class="line">docker network create --subnet 172.20.0.0/16 --ip-range 172.20.240.0/20 zabbix-net</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动空的MySQ服务器实例</span></span><br><span class="line">docker run --name mysql-server -t \</span><br><span class="line">      -e MYSQL_DATABASE=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_USER=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      -e MYSQL_ROOT_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      --network=zabbix-net \</span><br><span class="line">      --restart=always \</span><br><span class="line">      -d mysql:8.0 \</span><br><span class="line">      --character-set-server=UTF8MB4 --collation-server=UTF8MB4_bin \</span><br><span class="line">      --authentication_policy=mysql_native_password</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动Zabbix Java网关实例</span>      </span><br><span class="line">docker run --name zabbix-java-gateway -t \</span><br><span class="line">      --network=zabbix-net \</span><br><span class="line">      --restart unless-stopped \</span><br><span class="line">      -d zabbix/zabbix-java-gateway:alpine-6.4-latest</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动Zabbix服务器实例并将实例与创建的MySQL服务器实例链接</span>      </span><br><span class="line">docker run --name zabbix-server-mysql -t \</span><br><span class="line">      -e DB_SERVER_HOST=&quot;mysql-server&quot; \</span><br><span class="line">      -e MYSQL_DATABASE=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_USER=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      -e MYSQL_ROOT_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      -e ZBX_JAVAGATEWAY=&quot;zabbix-java-gateway&quot; \</span><br><span class="line">      --network=zabbix-net \</span><br><span class="line">      -p 10051:10051 \</span><br><span class="line">      --restart unless-stopped \</span><br><span class="line">      -d zabbix/zabbix-server-mysql:alpine-6.4-latest</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动Zabbix Web界面，并将实例与创建的MySQL服务器和Zabbix服务器实例链接</span></span><br><span class="line">docker run --name zabbix-web-nginx-mysql -t \</span><br><span class="line">      -e ZBX_SERVER_HOST=&quot;zabbix-server-mysql&quot; \</span><br><span class="line">      -e DB_SERVER_HOST=&quot;mysql-server&quot; \</span><br><span class="line">      -e MYSQL_DATABASE=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_USER=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      -e MYSQL_ROOT_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      --network=zabbix-net \</span><br><span class="line">      -p 80:8080 \</span><br><span class="line">      --restart unless-stopped \</span><br><span class="line">      -d zabbix/zabbix-web-nginx-mysql:alpine-6.4-latest</span><br></pre></td></tr></table></figure>
-<h4 id="方案二：（推荐使用）"><a href="#方案二：（推荐使用）" class="headerlink" title="方案二：（推荐使用）"></a>方案二：（推荐使用）</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动空的MySQ服务器实例</span></span><br><span class="line">docker run --name mysql-server -t \</span><br><span class="line">      -e MYSQL_DATABASE=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_USER=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      -e MYSQL_ROOT_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      --restart=always \</span><br><span class="line">      -d mysql:8.0 \</span><br><span class="line">      --character-set-server=UTF8MB4 --collation-server=UTF8MB4_bin \</span><br><span class="line">      --authentication_policy=mysql_native_password</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动Zabbix Java网关实例</span>      </span><br><span class="line">docker run --name zabbix-java-gateway -t \</span><br><span class="line">      --restart unless-stopped \</span><br><span class="line">      -d zabbix/zabbix-java-gateway:alpine-6.4-latest</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动Zabbix服务器实例并将实例与创建的MySQL服务器实例链接</span>      </span><br><span class="line">docker run --name zabbix-server-mysql -t \</span><br><span class="line">      -e DB_SERVER_HOST=&quot;mysql-server&quot; \</span><br><span class="line">      -e MYSQL_DATABASE=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_USER=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      -e MYSQL_ROOT_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      -e ZBX_JAVAGATEWAY=&quot;zabbix-java-gateway&quot; \</span><br><span class="line">      --link mysql-server:mysql \</span><br><span class="line">      --link zabbix-java-gateway:zabbix-java-gateway \</span><br><span class="line">      -p 10051:10051 \</span><br><span class="line">      --restart unless-stopped \</span><br><span class="line">      -d zabbix/zabbix-server-mysql:alpine-6.4-latest</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动Zabbix Web界面，并将实例与创建的MySQL服务器和Zabbix服务器实例链接</span></span><br><span class="line">docker run --name zabbix-web-nginx-mysql -t \</span><br><span class="line">      -e ZBX_SERVER_HOST=&quot;zabbix-server-mysql&quot; \</span><br><span class="line">      -e DB_SERVER_HOST=&quot;mysql-server&quot; \</span><br><span class="line">      -e MYSQL_DATABASE=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_USER=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      -e MYSQL_ROOT_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      --link mysql-server:mysql \</span><br><span class="line">      --link zabbix-server-mysql:zabbix-server \</span><br><span class="line">      -p 80:8080 \</span><br><span class="line">      --restart unless-stopped \</span><br><span class="line">      -d zabbix/zabbix-web-nginx-mysql:alpine-6.4-latest</span><br></pre></td></tr></table></figure>
-<ol>
-<li>在其中一台的主机的/etc/docker/daemon.json文件中，加入如下内容：</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">打开daemon.json文件</span></span><br><span class="line">vi /etc/docker/daemon.json</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">添加的内容</span></span><br><span class="line">&#123;</span><br><span class="line"> &quot;bip&quot;: &quot;172.16.200.1/24&quot;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重启docker服务</span></span><br><span class="line">systemctl restart docker </span><br></pre></td></tr></table></figure>
-<h3 id="任务二"><a href="#任务二" class="headerlink" title="任务二"></a>任务二</h3><p>在主机二上安装zabbix-agent2</p>
-<p>在要监控的主机上安装zabbix agent2</p>
-<p>步骤1：Zabbix agent2下载</p>
-<div class="tag link"><a class="link-card" title="Zabbix agent2下载" href="https://www.zabbix.com/documentation/6.4/manual/installation/install_from_packages"><div class="left"><img src="https://cdn.pixabay.com/photo/2022/07/08/10/37/books-7309019_960_720.png"/></div><div class="right"><p class="text">Zabbix agent2下载</p><p class="url">https://www.zabbix.com/documentation/6.4/manual/installation/install_from_packages</p></div></a></div>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">rpm -Uvh https://repo.zabbix.com/zabbix/6.4/rhel/7/x86_64/zabbix-release-6.4-1.el7.noarch.rpm</span><br><span class="line">yum clean all</span><br></pre></td></tr></table></figure>
-<p>步骤2：b. 下载Zabbix agent2</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum install zabbix-agent2 zabbix-agent2-plugin-* -y</span><br></pre></td></tr></table></figure>
-<p>步骤3：启动Zabbix agent2</p>
-<p>Start Zabbix agent2 process and make it start at system boot.</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">systemctl restart zabbix-agent2</span><br><span class="line">systemctl enable zabbix-agent2</span><br></pre></td></tr></table></figure>
-<p>运行成功界面如下</p>
-<img src="/yyg/6d91d852/1711208128881-1.png" class="" title="img">
-<img src="/yyg/6d91d852/1711208138487-4-1711208142767-7.png" class="" title="img">
-<h3 id="安装报错总结"><a href="#安装报错总结" class="headerlink" title="安装报错总结"></a>安装报错总结</h3><ol>
-<li><img src="/yyg/6d91d852/1711208157423-9.png" class="" title="img">
-</li>
-</ol>
-<p>进入mysql容器，输入以下命令.</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">进入sql界面</span></span><br><span class="line">mysql -u root -p</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">输入该命令，解决问题</span></span><br><span class="line">create database zabbix character set utf8 collate utf8_bin;</span><br><span class="line">SET GLOBAL log_bin_trust_function_creators = 1;</span><br></pre></td></tr></table></figure>
-<ol>
-<li>安装zabbix出现下图情况解决方法</li>
-</ol>
-<img src="/yyg/6d91d852/1711208164924-12.png" class="" title="img">
-<div class="tag link"><a class="link-card" title="故障处理" href="https://blog.csdn.net/ly4983/article/details/111029506"><div class="left"><img src="https://cdn.pixabay.com/photo/2022/07/08/10/37/books-7309019_960_720.png"/></div><div class="right"><p class="text">故障处理</p><p class="url">https://blog.csdn.net/ly4983/article/details/111029506</p></div></a></div>]]></content>
-      <categories>
-        <category>Linux运维</category>
-        <category>容器化</category>
-        <category>docker</category>
-        <category>监控</category>
-      </categories>
-      <tags>
-        <tag>docker</tag>
-        <tag>zabbix</tag>
       </tags>
   </entry>
   <entry>
@@ -1616,54 +1616,6 @@ Mastodon:  @Podman_io@fosstodon.org
       </tags>
   </entry>
   <entry>
-    <title>x86服务器构建ARM架构docker镜像</title>
-    <url>/yyg/4451cec/</url>
-    <content><![CDATA[<h2 id="基础环境"><a href="#基础环境" class="headerlink" title="基础环境"></a>基础环境</h2><p>操作系统：openEuler 22.03 (LTS-SP2)</p>
-<p>软件：Docker-26.1.2 、Docker Compose-v2.27.0</p>
-<h2 id="安装Docker"><a href="#安装Docker" class="headerlink" title="安装Docker"></a>安装Docker</h2><p>（1）配置yum源下载docker。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo</span><br><span class="line">sed -i &#x27;s/\$releasever/7/g&#x27; /etc/yum.repos.d/docker-ce.repo</span><br></pre></td></tr></table></figure>
-<p>（2）安装最新版docker和docker compose。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">下载依赖及docker、docker compose</span></span><br><span class="line">yum install -container-selinux</span><br><span class="line">yum install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin </span><br></pre></td></tr></table></figure>
-<p>（3）修改Docker的数据目录为“/data/dockerData”，并配置docker镜像源。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;&#123;</span><br><span class="line">  &quot;data-root&quot;: &quot;/data/dockerData&quot;,</span><br><span class="line"> &quot;registry-mirrors&quot;: [&quot;https://dockerhub.icu&quot;]</span><br><span class="line">&#125;&#x27; &gt; /etc/docker/daemon.json</span><br></pre></td></tr></table></figure>
-<p>（4）启动Docker服务，并设置为开机自启动。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">systemctl start docker</span><br><span class="line">systemctl enable docker</span><br></pre></td></tr></table></figure>
-<h2 id="使用-register-注册可支持的架构解析器"><a href="#使用-register-注册可支持的架构解析器" class="headerlink" title="使用 register 注册可支持的架构解析器"></a>使用 <code>register</code> 注册可支持的架构解析器</h2><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker run --rm --privileged multiarch/qemu-user-static:register --reset</span><br></pre></td></tr></table></figure>
-<p>查看二进制格式的解释器是否启用，显示<code>enabled</code>，即为启用。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">ls  /proc/sys/fs/binfmt_misc/ </span><br><span class="line">cat /proc/sys/fs/binfmt_misc/qemu-aarch64</span><br></pre></td></tr></table></figure>
-<h2 id="拉取基础arm镜像"><a href="#拉取基础arm镜像" class="headerlink" title="拉取基础arm镜像"></a>拉取基础arm镜像</h2><p>此处以httpd镜像为例，在x86服务器上拉取arm64架构的httpd镜像，其中<code>--platform=arm64</code>指定拉取的镜像架构位arm64，<code>--platform=amd64</code>则是拉取x86架构的镜像。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker pull --platform=arm64 httpd:latest</span><br></pre></td></tr></table></figure>
-<h2 id="定义Dockerfile，创建新镜像"><a href="#定义Dockerfile，创建新镜像" class="headerlink" title="定义Dockerfile，创建新镜像"></a>定义Dockerfile，创建新镜像</h2><p>通过使用Dockerfile创建新arm镜像的方式有两种，一种是直接下载<code>qemu-aarch64-static</code>程序，在构建镜像时直接拷贝进镜像中；另一种是拉取<code>multiarch/qemu-user-static:x86_64-aarch64</code>镜像，通过多阶段构建，从<code>multiarch/qemu-user-static:x86_64-aarch64</code>镜像中复制 <code>qemu-aarch64-static</code>程序 到 <code>httpd</code> 镜像中。</p>
-<h3 id="方式一：下载程序，直接复制"><a href="#方式一：下载程序，直接复制" class="headerlink" title="方式一：下载程序，直接复制"></a>方式一：下载程序，直接复制</h3><p>（1）在下载<code>qemu-aarch64-static</code>程序时，可直接下载该程序，也可先下载其压缩包，再解压。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">直接下载程序（推荐）</span></span><br><span class="line">wget https://github.com/multiarch/qemu-user-static/releases/download/v7.2.0-1/qemu-aarch64-static</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">先下载其压缩包，再解压</span></span><br><span class="line">wget https://github.com/multiarch/qemu-user-static/releases/download/v7.2.0-1/qemu-aarch64-static.tar.gz</span><br><span class="line">tar -vzxf qemu-aarch64-static.tar.gz</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">赋予可执行权限</span></span><br><span class="line">chmod +x /usr/bin/qemu-aarch64-static</span><br></pre></td></tr></table></figure>
-<p>（2）创建Dockerfile文件，在httpd镜像的基础上构建新镜像，<code>qemu-aarch64-static</code><mark>程序必须和Dockerfile文件在同一目录下</mark>。Dockerfile文件的具体内容如下：</p>
-<figure class="highlight dockerfile"><table><tr><td class="code"><pre><span class="line"><span class="keyword">FROM</span> httpd:latest</span><br><span class="line"><span class="comment"># 将qemu-aarch64-static程序拷贝进镜像的/usr/bin/目录</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> ./qemu-aarch64-static /usr/bin/qemu-aarch64-static</span></span><br><span class="line"><span class="comment"># 将测试的html文件拷贝到镜像的相关目录</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> ./index.html  /usr/local/apache2/htdocs/</span></span><br></pre></td></tr></table></figure>
-<p>（3）指定构建的架构，执行命令开始构建新镜像，构建完成后，查看新镜像的架构并导出为tar文件，在arm服务器上进行验证。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">构建镜像</span></span><br><span class="line">docker build --platform arm64 -t httpd:1.00 .</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看新镜像的架构</span></span><br><span class="line"> docker inspect httpd:1.00 | grep Architecture</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">导出镜像为tar文件</span></span><br><span class="line">docker save -o httpd.tar httpd:1.00</span><br></pre></td></tr></table></figure>
-<h3 id="方式二：通过镜像多重构建复制"><a href="#方式二：通过镜像多重构建复制" class="headerlink" title="方式二：通过镜像多重构建复制"></a>方式二：通过镜像多重构建复制</h3><p>（1）创建Dockerfile文件，分两个阶段构建新镜像，第一阶段从 <code>multiarch/qemu-user-static</code> 镜像中获取<code>qemu-aarch64-static</code>程序，第二阶段在httpd镜像的基础上构建新镜像，Dockerfile文件的具体内容如下：</p>
-<figure class="highlight dockerfile"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 第一阶段：从multiarch/qemu-user-static镜像中获取qemu-aarch64-static程序  </span></span><br><span class="line"><span class="keyword">FROM</span> multiarch/qemu-<span class="keyword">user</span>-static:x86_64-aarch64 as qemu</span><br><span class="line"><span class="comment"># 第二阶段：在httpd镜像的基础上构建新镜像</span></span><br><span class="line"><span class="keyword">FROM</span> httpd:latest</span><br><span class="line"><span class="comment"># 将qemu-aarch64-static程序拷贝进镜像的/usr/bin/目录</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> --from=qemu /usr/bin/qemu-aarch64-static /usr/bin/</span></span><br><span class="line"><span class="comment"># 将测试的html文件拷贝到镜像的相关目录</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> ./index.html  /usr/local/apache2/htdocs/</span></span><br></pre></td></tr></table></figure>
-<p>（2）指定构建的架构，执行命令开始构建新镜像，构建完成后，查看新镜像的架构并导出为tar文件，在arm服务器上进行验证。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">构建镜像</span></span><br><span class="line">docker build --platform arm64 -t httpd:1.00 .</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看新镜像的架构</span></span><br><span class="line"> docker inspect httpd:1.00 | grep Architecture</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">导出镜像为tar文件</span></span><br><span class="line">docker save -o httpd.tar httpd:1.00</span><br></pre></td></tr></table></figure>
-<p><mark>扩展：通过镜像多重构建复制也可用该docker命令直接替代。</mark></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker build --rm --platform arm64 -t &quot;httpd:1.00&quot; -&lt;&lt;EOF</span><br><span class="line">FROM multiarch/qemu-user-static:x86_64-aarch64 as qemu</span><br><span class="line">FROM httpd:latest</span><br><span class="line">COPY --from=qemu /usr/bin/qemu-aarch64-static /usr/bin</span><br><span class="line">COPY ./index.html  /usr/local/apache2/htdocs/</span><br><span class="line">EOF</span><br></pre></td></tr></table></figure>
-<h2 id="在arm服务器上验证"><a href="#在arm服务器上验证" class="headerlink" title="在arm服务器上验证"></a>在arm服务器上验证</h2><p>将新的镜像tar文件导入到arm服务器上，创建新容器验证镜像是否可用及镜像中的html文件是否生效。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">导入新镜像</span></span><br><span class="line">docker load -i httpd.tar</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看新镜像的架构</span></span><br><span class="line">docker inspect httpd:1.00 | grep Architecture</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">运行新容器</span></span><br><span class="line">docker run -itd --name test httpd:1.00</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看运行状态</span></span><br><span class="line">docker ps</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看容器IP</span></span><br><span class="line">docker inspect test | grep IPAddress</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">访问测试上传的html文件是否生效</span></span><br><span class="line">curl 172.17.0.2</span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>Linux运维</category>
-        <category>容器化</category>
-        <category>docker</category>
-        <category>容器管理</category>
-      </categories>
-      <tags>
-        <tag>运维</tag>
-        <tag>Linux</tag>
-        <tag>docker镜像</tag>
-        <tag>跨架构镜像</tag>
-        <tag>x86-ARM</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>一些免费的gpt网站</title>
     <url>/yyg/30035ff1/</url>
     <content><![CDATA[<div title="CodeNews" referrerPolicy="no-referrer" class="card_box" style="background-color: #333; width:96px; height:80px;">
@@ -1772,6 +1724,54 @@ Mastodon:  @Podman_io@fosstodon.org
       <tags>
         <tag>人工智能助手</tag>
         <tag>免费gpt</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>x86服务器构建ARM架构docker镜像</title>
+    <url>/yyg/4451cec/</url>
+    <content><![CDATA[<h2 id="基础环境"><a href="#基础环境" class="headerlink" title="基础环境"></a>基础环境</h2><p>操作系统：openEuler 22.03 (LTS-SP2)</p>
+<p>软件：Docker-26.1.2 、Docker Compose-v2.27.0</p>
+<h2 id="安装Docker"><a href="#安装Docker" class="headerlink" title="安装Docker"></a>安装Docker</h2><p>（1）配置yum源下载docker。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo</span><br><span class="line">sed -i &#x27;s/\$releasever/7/g&#x27; /etc/yum.repos.d/docker-ce.repo</span><br></pre></td></tr></table></figure>
+<p>（2）安装最新版docker和docker compose。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">下载依赖及docker、docker compose</span></span><br><span class="line">yum install -container-selinux</span><br><span class="line">yum install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin </span><br></pre></td></tr></table></figure>
+<p>（3）修改Docker的数据目录为“/data/dockerData”，并配置docker镜像源。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;&#123;</span><br><span class="line">  &quot;data-root&quot;: &quot;/data/dockerData&quot;,</span><br><span class="line"> &quot;registry-mirrors&quot;: [&quot;https://dockerhub.icu&quot;]</span><br><span class="line">&#125;&#x27; &gt; /etc/docker/daemon.json</span><br></pre></td></tr></table></figure>
+<p>（4）启动Docker服务，并设置为开机自启动。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">systemctl start docker</span><br><span class="line">systemctl enable docker</span><br></pre></td></tr></table></figure>
+<h2 id="使用-register-注册可支持的架构解析器"><a href="#使用-register-注册可支持的架构解析器" class="headerlink" title="使用 register 注册可支持的架构解析器"></a>使用 <code>register</code> 注册可支持的架构解析器</h2><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker run --rm --privileged multiarch/qemu-user-static:register --reset</span><br></pre></td></tr></table></figure>
+<p>查看二进制格式的解释器是否启用，显示<code>enabled</code>，即为启用。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">ls  /proc/sys/fs/binfmt_misc/ </span><br><span class="line">cat /proc/sys/fs/binfmt_misc/qemu-aarch64</span><br></pre></td></tr></table></figure>
+<h2 id="拉取基础arm镜像"><a href="#拉取基础arm镜像" class="headerlink" title="拉取基础arm镜像"></a>拉取基础arm镜像</h2><p>此处以httpd镜像为例，在x86服务器上拉取arm64架构的httpd镜像，其中<code>--platform=arm64</code>指定拉取的镜像架构位arm64，<code>--platform=amd64</code>则是拉取x86架构的镜像。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker pull --platform=arm64 httpd:latest</span><br></pre></td></tr></table></figure>
+<h2 id="定义Dockerfile，创建新镜像"><a href="#定义Dockerfile，创建新镜像" class="headerlink" title="定义Dockerfile，创建新镜像"></a>定义Dockerfile，创建新镜像</h2><p>通过使用Dockerfile创建新arm镜像的方式有两种，一种是直接下载<code>qemu-aarch64-static</code>程序，在构建镜像时直接拷贝进镜像中；另一种是拉取<code>multiarch/qemu-user-static:x86_64-aarch64</code>镜像，通过多阶段构建，从<code>multiarch/qemu-user-static:x86_64-aarch64</code>镜像中复制 <code>qemu-aarch64-static</code>程序 到 <code>httpd</code> 镜像中。</p>
+<h3 id="方式一：下载程序，直接复制"><a href="#方式一：下载程序，直接复制" class="headerlink" title="方式一：下载程序，直接复制"></a>方式一：下载程序，直接复制</h3><p>（1）在下载<code>qemu-aarch64-static</code>程序时，可直接下载该程序，也可先下载其压缩包，再解压。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">直接下载程序（推荐）</span></span><br><span class="line">wget https://github.com/multiarch/qemu-user-static/releases/download/v7.2.0-1/qemu-aarch64-static</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">先下载其压缩包，再解压</span></span><br><span class="line">wget https://github.com/multiarch/qemu-user-static/releases/download/v7.2.0-1/qemu-aarch64-static.tar.gz</span><br><span class="line">tar -vzxf qemu-aarch64-static.tar.gz</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">赋予可执行权限</span></span><br><span class="line">chmod +x /usr/bin/qemu-aarch64-static</span><br></pre></td></tr></table></figure>
+<p>（2）创建Dockerfile文件，在httpd镜像的基础上构建新镜像，<code>qemu-aarch64-static</code><mark>程序必须和Dockerfile文件在同一目录下</mark>。Dockerfile文件的具体内容如下：</p>
+<figure class="highlight dockerfile"><table><tr><td class="code"><pre><span class="line"><span class="keyword">FROM</span> httpd:latest</span><br><span class="line"><span class="comment"># 将qemu-aarch64-static程序拷贝进镜像的/usr/bin/目录</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> ./qemu-aarch64-static /usr/bin/qemu-aarch64-static</span></span><br><span class="line"><span class="comment"># 将测试的html文件拷贝到镜像的相关目录</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> ./index.html  /usr/local/apache2/htdocs/</span></span><br></pre></td></tr></table></figure>
+<p>（3）指定构建的架构，执行命令开始构建新镜像，构建完成后，查看新镜像的架构并导出为tar文件，在arm服务器上进行验证。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">构建镜像</span></span><br><span class="line">docker build --platform arm64 -t httpd:1.00 .</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看新镜像的架构</span></span><br><span class="line"> docker inspect httpd:1.00 | grep Architecture</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">导出镜像为tar文件</span></span><br><span class="line">docker save -o httpd.tar httpd:1.00</span><br></pre></td></tr></table></figure>
+<h3 id="方式二：通过镜像多重构建复制"><a href="#方式二：通过镜像多重构建复制" class="headerlink" title="方式二：通过镜像多重构建复制"></a>方式二：通过镜像多重构建复制</h3><p>（1）创建Dockerfile文件，分两个阶段构建新镜像，第一阶段从 <code>multiarch/qemu-user-static</code> 镜像中获取<code>qemu-aarch64-static</code>程序，第二阶段在httpd镜像的基础上构建新镜像，Dockerfile文件的具体内容如下：</p>
+<figure class="highlight dockerfile"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 第一阶段：从multiarch/qemu-user-static镜像中获取qemu-aarch64-static程序  </span></span><br><span class="line"><span class="keyword">FROM</span> multiarch/qemu-<span class="keyword">user</span>-static:x86_64-aarch64 as qemu</span><br><span class="line"><span class="comment"># 第二阶段：在httpd镜像的基础上构建新镜像</span></span><br><span class="line"><span class="keyword">FROM</span> httpd:latest</span><br><span class="line"><span class="comment"># 将qemu-aarch64-static程序拷贝进镜像的/usr/bin/目录</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> --from=qemu /usr/bin/qemu-aarch64-static /usr/bin/</span></span><br><span class="line"><span class="comment"># 将测试的html文件拷贝到镜像的相关目录</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> ./index.html  /usr/local/apache2/htdocs/</span></span><br></pre></td></tr></table></figure>
+<p>（2）指定构建的架构，执行命令开始构建新镜像，构建完成后，查看新镜像的架构并导出为tar文件，在arm服务器上进行验证。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">构建镜像</span></span><br><span class="line">docker build --platform arm64 -t httpd:1.00 .</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看新镜像的架构</span></span><br><span class="line"> docker inspect httpd:1.00 | grep Architecture</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">导出镜像为tar文件</span></span><br><span class="line">docker save -o httpd.tar httpd:1.00</span><br></pre></td></tr></table></figure>
+<p><mark>扩展：通过镜像多重构建复制也可用该docker命令直接替代。</mark></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker build --rm --platform arm64 -t &quot;httpd:1.00&quot; -&lt;&lt;EOF</span><br><span class="line">FROM multiarch/qemu-user-static:x86_64-aarch64 as qemu</span><br><span class="line">FROM httpd:latest</span><br><span class="line">COPY --from=qemu /usr/bin/qemu-aarch64-static /usr/bin</span><br><span class="line">COPY ./index.html  /usr/local/apache2/htdocs/</span><br><span class="line">EOF</span><br></pre></td></tr></table></figure>
+<h2 id="在arm服务器上验证"><a href="#在arm服务器上验证" class="headerlink" title="在arm服务器上验证"></a>在arm服务器上验证</h2><p>将新的镜像tar文件导入到arm服务器上，创建新容器验证镜像是否可用及镜像中的html文件是否生效。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">导入新镜像</span></span><br><span class="line">docker load -i httpd.tar</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看新镜像的架构</span></span><br><span class="line">docker inspect httpd:1.00 | grep Architecture</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">运行新容器</span></span><br><span class="line">docker run -itd --name test httpd:1.00</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看运行状态</span></span><br><span class="line">docker ps</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看容器IP</span></span><br><span class="line">docker inspect test | grep IPAddress</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">访问测试上传的html文件是否生效</span></span><br><span class="line">curl 172.17.0.2</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>Linux运维</category>
+        <category>容器化</category>
+        <category>docker</category>
+        <category>容器管理</category>
+      </categories>
+      <tags>
+        <tag>运维</tag>
+        <tag>Linux</tag>
+        <tag>docker镜像</tag>
+        <tag>跨架构镜像</tag>
+        <tag>x86-ARM</tag>
       </tags>
   </entry>
   <entry>
@@ -2054,6 +2054,70 @@ Mastodon:  @Podman_io@fosstodon.org
       </tags>
   </entry>
   <entry>
+    <title>实现Docker 容器跨主机通讯</title>
+    <url>/yyg/60ed202a/</url>
+    <content><![CDATA[<p>[TOC]</p>
+<h3 id="方案一：docker-swarm集群"><a href="#方案一：docker-swarm集群" class="headerlink" title="方案一：docker swarm集群"></a>方案一：docker swarm集群</h3><p><a href="https://blog.csdn.net/AMCUL/article/details/132913280">https://blog.csdn.net/AMCUL/article/details/132913280</a></p>
+<h3 id="方案二：直接路由法"><a href="#方案二：直接路由法" class="headerlink" title="方案二：直接路由法"></a>方案二：直接路由法</h3><p>在部署指南中提到的方法的实现分固定网段、路由持久化、IP转发三部分组成。</p>
+<h4 id="方法1："><a href="#方法1：" class="headerlink" title="方法1："></a>方法1：</h4><h5 id="修改并固定docker0的默认网段"><a href="#修改并固定docker0的默认网段" class="headerlink" title="修改并固定docker0的默认网段"></a>修改并固定docker0的默认网段</h5><ol>
+<li>修改docker0网段ip，在主机的/etc/docker/daemon.json文件中，加入如下内容：</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">打开daemon.json文件</span></span><br><span class="line">vi /etc/docker/daemon.json</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一中添加的内容</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">172.16.200.1 为主机一的docker网段ip</span></span><br><span class="line">&#123;</span><br><span class="line"> &quot;bip&quot;: &quot;172.16.200.1/24&quot;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二中添加的内容</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">172.16.210.1 为主机二的docker网段ip</span></span><br><span class="line">&#123;</span><br><span class="line"> &quot;bip&quot;: &quot;172.16.210.1/24&quot;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重启docker服务</span></span><br><span class="line">systemctl restart docker </span><br></pre></td></tr></table></figure>
+<ol>
+<li>添加路由规则，主机间互相添加</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机1上添加路由规则（添加主机2的ip和网段）</span></span><br><span class="line">ip route add 172.16.210.0/24 via 172.20.1.52</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机2上添加路由规则（添加主机1的ip和网段）</span></span><br><span class="line">ip route add 172.16.200.0/24 via 172.20.1.51</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">方式一：</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">开启路由转发</span></span><br><span class="line">iptables -P FORWARD ACCEPT</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">方式二：</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">配置iptables规则（本机的网段）</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一</span></span><br><span class="line">iptables -t nat -F POSTROUTING</span><br><span class="line">iptables -t nat -A POSTROUTING -s 172.16.200.0/24 ! -d 172.16.0.0/16 -j MASQUERADE</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二</span></span><br><span class="line">iptables -t nat -F POSTROUTING</span><br><span class="line">iptables -t nat -A POSTROUTING -s 172.16.210.0/24 ! -d 172.16.0.0/16 -j MASQUERADE</span><br></pre></td></tr></table></figure>
+<ol>
+<li>启动容器并测试</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">主机1上启动ubuntu容器</span></span><br><span class="line">docker run -it --name node1 ubuntu:latest /bin/bash</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">主机2上启动ubuntu容器</span></span><br><span class="line">docker run -it --name node2 ubuntu:latest /bin/bash</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装测试工具</span></span><br><span class="line">apt-get update</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ping工具</span></span><br><span class="line">apt-get install inetutils-ping -y</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ip查看工具</span></span><br><span class="line">apt-get install net-tools -y</span><br></pre></td></tr></table></figure>
+<h5 id="路由持久化（防止主机重启路由丢失）"><a href="#路由持久化（防止主机重启路由丢失）" class="headerlink" title="路由持久化（防止主机重启路由丢失）"></a>路由持久化（防止主机重启路由丢失）</h5><h6 id="法一：（推荐）"><a href="#法一：（推荐）" class="headerlink" title="法一：（推荐）"></a>法一：（推荐）</h6><p>在<code>/etc/sysconfig/network-scripts/</code>目录下创建名为<code>route-enp0s3</code>(enp0s3为主机网卡的名字，以实际为准)的文件 </p>
+<p>推荐此方法，注意创建时<code>route-</code>后跟的是本机主机的网卡名</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">vi /etc/sysconfig/network-scripts/route-enp0s3</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">在此文件添加如下格式的内容</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一中添加</span></span><br><span class="line">172.16.230.0/24 via 172.20.1.52</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二中添加</span></span><br><span class="line">172.16.220.0/24 via 172.20.1.51</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重启网络验证</span></span><br><span class="line">service network restart</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看路由表中是否有刚才添加的路由</span></span><br><span class="line">ip route show | column -t</span><br></pre></td></tr></table></figure>
+<h6 id="法二："><a href="#法二：" class="headerlink" title="法二："></a>法二：</h6><p>在<code>/etc/sysconfig/static-routes</code> 文件里添加如下内容 (没有static-routes需手动建立)</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一中添加</span></span><br><span class="line">any net 172.16.230.0/24 via 172.20.1.52</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二中添加</span></span><br><span class="line">any net 172.16.220.0/24 via 172.20.1.51</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重启网络服务</span></span><br><span class="line">systemctl restart network</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看路由表中是否有刚才添加的路由</span></span><br><span class="line">ip route show | column -t</span><br></pre></td></tr></table></figure>
+<h5 id="开启IP转发"><a href="#开启IP转发" class="headerlink" title="开启IP转发"></a>开启IP转发</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">永久开启</span></span><br><span class="line">vi /etc/sysctl.conf</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">修改</span></span><br><span class="line">net.ipv4.ip_forward=1</span><br></pre></td></tr></table></figure>
+<h4 id="方法2：（适用于使用固定ip的容器）"><a href="#方法2：（适用于使用固定ip的容器）" class="headerlink" title="方法2：（适用于使用固定ip的容器）"></a>方法2：（适用于使用固定ip的容器）</h4><h5 id="创建docker网络"><a href="#创建docker网络" class="headerlink" title="创建docker网络"></a>创建docker网络</h5><ol>
+<li>docker桥接类型网络创建</li>
+</ol>
+<p>分别对两台服务器中的docker创建名字为test的网络，指定子网范围为 172.16.220.0/24 、172.16.230.0/24</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一</span></span><br><span class="line">docker network create test --driver bridge --ipam-driver default --subnet 172.16.220.0/24</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二</span></span><br><span class="line">docker network create test --driver bridge --ipam-driver default --subnet 172.16.230.0/24</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看网络</span></span><br><span class="line">docker network ls</span><br></pre></td></tr></table></figure>
+<ol>
+<li>设置静态路由</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机1上添加路由规则（添加主机2的ip和网段）</span></span><br><span class="line">ip route add 172.16.230.0/24 via 172.20.1.52</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机2上添加路由规则（添加主机1的ip和网段）</span></span><br><span class="line">ip route add 172.16.220.0/24 via 172.20.1.51</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">开启路由转发</span></span><br><span class="line">iptables -P FORWARD ACCEPT</span><br></pre></td></tr></table></figure>
+<ol>
+<li>启动容器并测试</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">主机1上启动ubuntu容器(加上创建的桥接网络)</span></span><br><span class="line">docker run -it --name node1 --net=test ubuntu:latest /bin/bash</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">主机2上启动ubuntu容器(加上创建的桥接网络)</span></span><br><span class="line">docker run -it --name node2 --net=test ubuntu:latest /bin/bash</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装测试工具</span></span><br><span class="line">apt-get update</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ping工具</span></span><br><span class="line">apt-get install inetutils-ping -y</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ip查看工具</span></span><br><span class="line">apt-get install net-tools -y</span><br></pre></td></tr></table></figure>
+<h5 id="路由持久化（防止主机重启路由丢失）-1"><a href="#路由持久化（防止主机重启路由丢失）-1" class="headerlink" title="路由持久化（防止主机重启路由丢失）"></a>路由持久化（防止主机重启路由丢失）</h5><p>使用<strong>nmtui图形化界面添加</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">下载nmtui</span></span><br><span class="line">yum install net-tools -y</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">显示nmtui图形化界面</span></span><br><span class="line">nmtui</span><br></pre></td></tr></table></figure>
+<p>在主机一网卡中配置主机二的docker网络的ip段和ip，在主机二网卡中配置主机一的docker网络的ip段和ip</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一中添加</span></span><br><span class="line">172.16.230.0/24  172.20.1.52</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二中添加</span></span><br><span class="line">172.16.220.0/24  172.20.1.51</span><br></pre></td></tr></table></figure>
+<p>配置完成会在/etc/sysconfig/network-scripts文件夹下看到</p>
+<img src="/yyg/60ed202a/image-20240323221412716-1711203257505-1.png" class="" title="image-20240323221412716">
+<img src="/yyg/60ed202a/image-20240323221442754-1711203286475-3.png" class="" title="image-20240323221442754">
+<p>启动对应主机的新创建的网卡（网络重启或系统重启后会失效）</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一</span></span><br><span class="line">nmcli c up br-aed92de88760</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二</span></span><br><span class="line">nmcli c up br-0ab3914edle2</span><br></pre></td></tr></table></figure>
+<p>要使新网卡保持启动则需将对应新创建的网卡文件中的<code>ONBOOT=no</code>改为<code>ONBOOT=yes</code></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一</span></span><br><span class="line">vi ifcfg-br-aed92de88760</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">ONBOOT=no改为ONBOOT=<span class="built_in">yes</span></span></span><br><span class="line">ONBOOT=yes</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二</span></span><br><span class="line">vi ifcfg-br-0ab3914edle2</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">ONBOOT=no改为ONBOOT=<span class="built_in">yes</span></span></span><br><span class="line">ONBOOT=yes</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重启网络服务</span></span><br><span class="line">systemctl restart network</span><br></pre></td></tr></table></figure>
+<img src="/yyg/60ed202a/image-20240323221537519-1711203339288-5.png" class="" title="image-20240323221537519">
+<h5 id="开启IP转发-1"><a href="#开启IP转发-1" class="headerlink" title="开启IP转发"></a>开启IP转发</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">永久开启</span></span><br><span class="line">vi /etc/sysctl.conf</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">修改</span></span><br><span class="line">net.ipv4.ip_forward=1</span><br></pre></td></tr></table></figure>
+<p>此时容器不受网络重启影响，可实现跨主机通讯。</p>
+<p>但系统重启后，所创建的docker网络和容器均失效。</p>
+<p>需要重新创建docker网络和容器，此后docker网络和容器均不受系统重启和网络重启的影响，成功实现docker容器的跨主机通讯。</p>
+<img src="/yyg/60ed202a/image-20240323221547069-1711203348713-7.png" class="" title="image-20240323221547069">]]></content>
+      <categories>
+        <category>容器化</category>
+        <category>docker</category>
+        <category>梳理总结</category>
+      </categories>
+      <tags>
+        <tag>docker</tag>
+        <tag>容器通信</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>安装Winlogbeat日志采集器</title>
     <url>/yyg/f547e2a9/</url>
     <content><![CDATA[<ol>
@@ -2135,70 +2199,6 @@ Mastodon:  @Podman_io@fosstodon.org
       <tags>
         <tag>运维</tag>
         <tag>总结</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>实现Docker 容器跨主机通讯</title>
-    <url>/yyg/60ed202a/</url>
-    <content><![CDATA[<p>[TOC]</p>
-<h3 id="方案一：docker-swarm集群"><a href="#方案一：docker-swarm集群" class="headerlink" title="方案一：docker swarm集群"></a>方案一：docker swarm集群</h3><p><a href="https://blog.csdn.net/AMCUL/article/details/132913280">https://blog.csdn.net/AMCUL/article/details/132913280</a></p>
-<h3 id="方案二：直接路由法"><a href="#方案二：直接路由法" class="headerlink" title="方案二：直接路由法"></a>方案二：直接路由法</h3><p>在部署指南中提到的方法的实现分固定网段、路由持久化、IP转发三部分组成。</p>
-<h4 id="方法1："><a href="#方法1：" class="headerlink" title="方法1："></a>方法1：</h4><h5 id="修改并固定docker0的默认网段"><a href="#修改并固定docker0的默认网段" class="headerlink" title="修改并固定docker0的默认网段"></a>修改并固定docker0的默认网段</h5><ol>
-<li>修改docker0网段ip，在主机的/etc/docker/daemon.json文件中，加入如下内容：</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">打开daemon.json文件</span></span><br><span class="line">vi /etc/docker/daemon.json</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一中添加的内容</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">172.16.200.1 为主机一的docker网段ip</span></span><br><span class="line">&#123;</span><br><span class="line"> &quot;bip&quot;: &quot;172.16.200.1/24&quot;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二中添加的内容</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">172.16.210.1 为主机二的docker网段ip</span></span><br><span class="line">&#123;</span><br><span class="line"> &quot;bip&quot;: &quot;172.16.210.1/24&quot;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重启docker服务</span></span><br><span class="line">systemctl restart docker </span><br></pre></td></tr></table></figure>
-<ol>
-<li>添加路由规则，主机间互相添加</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机1上添加路由规则（添加主机2的ip和网段）</span></span><br><span class="line">ip route add 172.16.210.0/24 via 172.20.1.52</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机2上添加路由规则（添加主机1的ip和网段）</span></span><br><span class="line">ip route add 172.16.200.0/24 via 172.20.1.51</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">方式一：</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">开启路由转发</span></span><br><span class="line">iptables -P FORWARD ACCEPT</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">方式二：</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">配置iptables规则（本机的网段）</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一</span></span><br><span class="line">iptables -t nat -F POSTROUTING</span><br><span class="line">iptables -t nat -A POSTROUTING -s 172.16.200.0/24 ! -d 172.16.0.0/16 -j MASQUERADE</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二</span></span><br><span class="line">iptables -t nat -F POSTROUTING</span><br><span class="line">iptables -t nat -A POSTROUTING -s 172.16.210.0/24 ! -d 172.16.0.0/16 -j MASQUERADE</span><br></pre></td></tr></table></figure>
-<ol>
-<li>启动容器并测试</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">主机1上启动ubuntu容器</span></span><br><span class="line">docker run -it --name node1 ubuntu:latest /bin/bash</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">主机2上启动ubuntu容器</span></span><br><span class="line">docker run -it --name node2 ubuntu:latest /bin/bash</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装测试工具</span></span><br><span class="line">apt-get update</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ping工具</span></span><br><span class="line">apt-get install inetutils-ping -y</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ip查看工具</span></span><br><span class="line">apt-get install net-tools -y</span><br></pre></td></tr></table></figure>
-<h5 id="路由持久化（防止主机重启路由丢失）"><a href="#路由持久化（防止主机重启路由丢失）" class="headerlink" title="路由持久化（防止主机重启路由丢失）"></a>路由持久化（防止主机重启路由丢失）</h5><h6 id="法一：（推荐）"><a href="#法一：（推荐）" class="headerlink" title="法一：（推荐）"></a>法一：（推荐）</h6><p>在<code>/etc/sysconfig/network-scripts/</code>目录下创建名为<code>route-enp0s3</code>(enp0s3为主机网卡的名字，以实际为准)的文件 </p>
-<p>推荐此方法，注意创建时<code>route-</code>后跟的是本机主机的网卡名</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">vi /etc/sysconfig/network-scripts/route-enp0s3</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">在此文件添加如下格式的内容</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一中添加</span></span><br><span class="line">172.16.230.0/24 via 172.20.1.52</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二中添加</span></span><br><span class="line">172.16.220.0/24 via 172.20.1.51</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重启网络验证</span></span><br><span class="line">service network restart</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看路由表中是否有刚才添加的路由</span></span><br><span class="line">ip route show | column -t</span><br></pre></td></tr></table></figure>
-<h6 id="法二："><a href="#法二：" class="headerlink" title="法二："></a>法二：</h6><p>在<code>/etc/sysconfig/static-routes</code> 文件里添加如下内容 (没有static-routes需手动建立)</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一中添加</span></span><br><span class="line">any net 172.16.230.0/24 via 172.20.1.52</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二中添加</span></span><br><span class="line">any net 172.16.220.0/24 via 172.20.1.51</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重启网络服务</span></span><br><span class="line">systemctl restart network</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看路由表中是否有刚才添加的路由</span></span><br><span class="line">ip route show | column -t</span><br></pre></td></tr></table></figure>
-<h5 id="开启IP转发"><a href="#开启IP转发" class="headerlink" title="开启IP转发"></a>开启IP转发</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">永久开启</span></span><br><span class="line">vi /etc/sysctl.conf</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">修改</span></span><br><span class="line">net.ipv4.ip_forward=1</span><br></pre></td></tr></table></figure>
-<h4 id="方法2：（适用于使用固定ip的容器）"><a href="#方法2：（适用于使用固定ip的容器）" class="headerlink" title="方法2：（适用于使用固定ip的容器）"></a>方法2：（适用于使用固定ip的容器）</h4><h5 id="创建docker网络"><a href="#创建docker网络" class="headerlink" title="创建docker网络"></a>创建docker网络</h5><ol>
-<li>docker桥接类型网络创建</li>
-</ol>
-<p>分别对两台服务器中的docker创建名字为test的网络，指定子网范围为 172.16.220.0/24 、172.16.230.0/24</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一</span></span><br><span class="line">docker network create test --driver bridge --ipam-driver default --subnet 172.16.220.0/24</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二</span></span><br><span class="line">docker network create test --driver bridge --ipam-driver default --subnet 172.16.230.0/24</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看网络</span></span><br><span class="line">docker network ls</span><br></pre></td></tr></table></figure>
-<ol>
-<li>设置静态路由</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机1上添加路由规则（添加主机2的ip和网段）</span></span><br><span class="line">ip route add 172.16.230.0/24 via 172.20.1.52</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机2上添加路由规则（添加主机1的ip和网段）</span></span><br><span class="line">ip route add 172.16.220.0/24 via 172.20.1.51</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">开启路由转发</span></span><br><span class="line">iptables -P FORWARD ACCEPT</span><br></pre></td></tr></table></figure>
-<ol>
-<li>启动容器并测试</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">主机1上启动ubuntu容器(加上创建的桥接网络)</span></span><br><span class="line">docker run -it --name node1 --net=test ubuntu:latest /bin/bash</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">主机2上启动ubuntu容器(加上创建的桥接网络)</span></span><br><span class="line">docker run -it --name node2 --net=test ubuntu:latest /bin/bash</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装测试工具</span></span><br><span class="line">apt-get update</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ping工具</span></span><br><span class="line">apt-get install inetutils-ping -y</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装ip查看工具</span></span><br><span class="line">apt-get install net-tools -y</span><br></pre></td></tr></table></figure>
-<h5 id="路由持久化（防止主机重启路由丢失）-1"><a href="#路由持久化（防止主机重启路由丢失）-1" class="headerlink" title="路由持久化（防止主机重启路由丢失）"></a>路由持久化（防止主机重启路由丢失）</h5><p>使用<strong>nmtui图形化界面添加</strong></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">下载nmtui</span></span><br><span class="line">yum install net-tools -y</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">显示nmtui图形化界面</span></span><br><span class="line">nmtui</span><br></pre></td></tr></table></figure>
-<p>在主机一网卡中配置主机二的docker网络的ip段和ip，在主机二网卡中配置主机一的docker网络的ip段和ip</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一中添加</span></span><br><span class="line">172.16.230.0/24  172.20.1.52</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二中添加</span></span><br><span class="line">172.16.220.0/24  172.20.1.51</span><br></pre></td></tr></table></figure>
-<p>配置完成会在/etc/sysconfig/network-scripts文件夹下看到</p>
-<img src="/yyg/60ed202a/image-20240323221412716-1711203257505-1.png" class="" title="image-20240323221412716">
-<img src="/yyg/60ed202a/image-20240323221442754-1711203286475-3.png" class="" title="image-20240323221442754">
-<p>启动对应主机的新创建的网卡（网络重启或系统重启后会失效）</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一</span></span><br><span class="line">nmcli c up br-aed92de88760</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二</span></span><br><span class="line">nmcli c up br-0ab3914edle2</span><br></pre></td></tr></table></figure>
-<p>要使新网卡保持启动则需将对应新创建的网卡文件中的<code>ONBOOT=no</code>改为<code>ONBOOT=yes</code></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机一</span></span><br><span class="line">vi ifcfg-br-aed92de88760</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">ONBOOT=no改为ONBOOT=<span class="built_in">yes</span></span></span><br><span class="line">ONBOOT=yes</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">主机二</span></span><br><span class="line">vi ifcfg-br-0ab3914edle2</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">ONBOOT=no改为ONBOOT=<span class="built_in">yes</span></span></span><br><span class="line">ONBOOT=yes</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重启网络服务</span></span><br><span class="line">systemctl restart network</span><br></pre></td></tr></table></figure>
-<img src="/yyg/60ed202a/image-20240323221537519-1711203339288-5.png" class="" title="image-20240323221537519">
-<h5 id="开启IP转发-1"><a href="#开启IP转发-1" class="headerlink" title="开启IP转发"></a>开启IP转发</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">永久开启</span></span><br><span class="line">vi /etc/sysctl.conf</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">修改</span></span><br><span class="line">net.ipv4.ip_forward=1</span><br></pre></td></tr></table></figure>
-<p>此时容器不受网络重启影响，可实现跨主机通讯。</p>
-<p>但系统重启后，所创建的docker网络和容器均失效。</p>
-<p>需要重新创建docker网络和容器，此后docker网络和容器均不受系统重启和网络重启的影响，成功实现docker容器的跨主机通讯。</p>
-<img src="/yyg/60ed202a/image-20240323221547069-1711203348713-7.png" class="" title="image-20240323221547069">]]></content>
-      <categories>
-        <category>容器化</category>
-        <category>docker</category>
-        <category>梳理总结</category>
-      </categories>
-      <tags>
-        <tag>docker</tag>
-        <tag>容器通信</tag>
       </tags>
   </entry>
   <entry>
