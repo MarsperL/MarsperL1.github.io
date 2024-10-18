@@ -33,6 +33,45 @@
       </tags>
   </entry>
   <entry>
+    <title>DNS服务器搭建</title>
+    <url>/yyg/37824039/</url>
+    <content><![CDATA[<h2 id="服务器端"><a href="#服务器端" class="headerlink" title="服务器端"></a>服务器端</h2><p>（1）通过在线方式安装bind9</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">yum install -y bind bind-utils</span><br></pre></td></tr></table></figure>
+<p>（2）启动服务</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">systemctl start named</span><br></pre></td></tr></table></figure>
+<p>（3）查看服务状态</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">systemctl status named</span><br></pre></td></tr></table></figure>
+<p>（4）配置服务为开机自启动</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">systemctl enable named</span><br></pre></td></tr></table></figure>
+<p>（5）修改named服务配置文件，配置DNS日志路径</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">vi /etc/named.conf</span><br><span class="line">-------------------named.conf-------------------</span><br><span class="line">options &#123;</span><br><span class="line">        // 接受来自任何网络接口的DNS请求</span><br><span class="line">        listen-on port 53 &#123; any; &#125;;</span><br><span class="line">        listen-on-v6 port 53 &#123; ::1; &#125;;</span><br><span class="line">        directory       &quot;/var/named&quot;;</span><br><span class="line">        dump-file       &quot;/var/named/data/cache_dump.db&quot;;</span><br><span class="line">        statistics-file &quot;/var/named/data/named_stats.txt&quot;;</span><br><span class="line">        memstatistics-file &quot;/var/named/data/named_mem_stats.txt&quot;;</span><br><span class="line">        secroots-file   &quot;/var/named/data/named.secroots&quot;;</span><br><span class="line">        recursing-file  &quot;/var/named/data/named.recursing&quot;;</span><br><span class="line">        // 允许访问的ip范围</span><br><span class="line">        allow-query     &#123; 10.10.0.0/16; &#125;;</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">为排版方便此处省略部分提示信息</span></span><br><span class="line">&#125;;</span><br><span class="line">logging &#123;</span><br><span class="line">    //    channel default_debug &#123;</span><br><span class="line">    //            file &quot;data/named.run&quot;;</span><br><span class="line">    //            severity dynamic;</span><br><span class="line">    //    &#125;;</span><br><span class="line">        </span><br><span class="line">        channel named_log &#123;</span><br><span class="line">                // 指定日志文件的路径,设置日志文件的版本数量限制为5个，每个文件的最大大小为50m</span><br><span class="line">                file &quot;/var/log/dns/named.log&quot; versions 5 size 50m;</span><br><span class="line">                // 日志记录的时间格式采用ISO 8601标准</span><br><span class="line">                print-time iso8601;</span><br><span class="line">                // 打印日志条目的类别</span><br><span class="line">                print-category yes;</span><br><span class="line">               // 打印日志条目的严重性</span><br><span class="line">                print-severity yes;</span><br><span class="line">                severity info;</span><br><span class="line">        &#125;;</span><br><span class="line">        // 定义多个日志记录类别</span><br><span class="line">        category default   &#123; named_log; &#125;;</span><br><span class="line">        category general   &#123; named_log; &#125;;</span><br><span class="line">        category config   &#123; named_log; &#125;;</span><br><span class="line">        category client   &#123; named_log; &#125;;</span><br><span class="line">        category network   &#123; named_log; &#125;;</span><br><span class="line">        category notify   &#123; named_log; &#125;;</span><br><span class="line">        category queries   &#123; named_log; &#125;;</span><br><span class="line">        category update   &#123; named_log; &#125;;</span><br><span class="line">        category query-errors  &#123; named_log; &#125;;</span><br><span class="line">        category resolver   &#123; named_log; &#125;;</span><br><span class="line">        category xfer-in   &#123; named_log; &#125;;</span><br><span class="line">        category xfer-out   &#123; named_log; &#125;;</span><br><span class="line">        category dnssec   &#123; named_log; &#125;;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">为排版方便此处省略部分提示信息</span></span><br><span class="line">-------------------named.conf-------------------</span><br></pre></td></tr></table></figure>
+<p>（6）配置DNS区域，完成DNS服务器的搭建</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">vi /etc/named.rfc1912.zones</span><br><span class="line">-------------------named.rfc1912.zones-------------------</span><br><span class="line">// If private ranges should be forwarded, add</span><br><span class="line">// disable-empty-zone &quot;.&quot;; into options</span><br><span class="line">//</span><br><span class="line"></span><br><span class="line">zone &quot;localhost.localdomain&quot; IN &#123;</span><br><span class="line">        type master;</span><br><span class="line">        file &quot;named.localhost&quot;;</span><br><span class="line">        allow-update &#123; none; &#125;;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">zone &quot;localhost&quot; IN &#123;</span><br><span class="line">        type master;</span><br><span class="line">        file &quot;named.localhost&quot;;</span><br><span class="line">        allow-update &#123; none; &#125;;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">zone &quot;1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa&quot; IN &#123;</span><br><span class="line">        type master;</span><br><span class="line">        file &quot;named.loopback&quot;;</span><br><span class="line">        allow-update &#123; none; &#125;;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">zone &quot;1.0.0.127.in-addr.arpa&quot; IN &#123;</span><br><span class="line">        type master;</span><br><span class="line">        file &quot;named.loopback&quot;;</span><br><span class="line">        allow-update &#123; none; &#125;;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">zone &quot;0.in-addr.arpa&quot; IN &#123;</span><br><span class="line">        type master;</span><br><span class="line">        file &quot;named.empty&quot;;</span><br><span class="line">        allow-update &#123; none; &#125;;</span><br><span class="line">&#125;;</span><br><span class="line">// 自定义域名区域和DNS记录集合</span><br><span class="line">zone &quot;elk.com&quot; IN &#123;</span><br><span class="line">        type master;</span><br><span class="line">        file &quot;/var/named/elk.com.zone&quot;;</span><br><span class="line">        allow-update &#123; none; &#125;;</span><br><span class="line">&#125;;</span><br><span class="line">-----------------------------------------------</span><br></pre></td></tr></table></figure>
+<p>（7）创建”elk.com”的区域数据文件，并定义DNS服务器的域名为“<a href="https://dns.elk.com/">dns.elk.com</a>”和客户机的域名为“<a href="https://test.elk.com/">test.elk.com</a>”。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 创建&quot;elk.com&quot;的区域数据文件</span><br><span class="line">vi /var/named/elk.com.zone</span><br><span class="line"># 定义DNS服务器和客户机的域名</span><br><span class="line">-------------------named.rfc1912.zones-------------------</span><br><span class="line">$TTL 1D</span><br><span class="line">@       IN SOA  dns.elk.com. admin.elk.com. (</span><br><span class="line">                                        0       ; serial</span><br><span class="line">                                        1D      ; refresh</span><br><span class="line">                                        1H      ; retry</span><br><span class="line">                                        1W      ; expire</span><br><span class="line">                                        3H )    ; minimum</span><br><span class="line">@   IN  NS      dns.elk.com.</span><br><span class="line">dns     IN      A   10.10.2.103</span><br><span class="line">test    IN      A   10.10.2.113</span><br><span class="line">-------------------------------------------------------</span><br></pre></td></tr></table></figure>
+<p>（8）设置日志服务权限，配置防火墙，重启服务使得配置生效</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 创建存放日志的目录并赋权</span><br><span class="line">mkdir /var/log/dns</span><br><span class="line">chmod -R 777 /var/log/dns/</span><br><span class="line"># 配置dns服务访问策略，使其能够正常访问</span><br><span class="line">firewall-cmd --permanent --add-service=dns</span><br><span class="line"># 重新加载防火墙策略</span><br><span class="line">firewall-cmd --reload</span><br><span class="line"># 重启named服务，让配置生效</span><br><span class="line"> systemctl restart named</span><br></pre></td></tr></table></figure>
+<p>（9）修改DNS为“10.10.2.103”，并重启网络生效。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 使用nmtui管理网络连接</span><br><span class="line">nmtui</span><br></pre></td></tr></table></figure>
+<p>选择“编辑连接”，回车，选择网卡“ens32”，在“编辑连接”界面中将DNS服务器修改为“10.10.2.103”，保存退出。如图6-1-1、6-1-2所示。</p>
+<p><a href="https://marsperl.github.io/yyg/37824039/image-20240422191810676.png"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="img"></a><a href="https://marsperl.github.io/yyg/37824039/2.png"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="img"></a></p>
+<p>保存退出后，重启网络让DNS服务器配置生效。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">systemctl restart NetworkManager</span><br></pre></td></tr></table></figure>
+<p>（10）验证DNS服务器是否配置成功。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">ping www.baidu.com</span><br><span class="line">ping dns.elk.com</span><br><span class="line">ping test.elk.com</span><br></pre></td></tr></table></figure>
+<h2 id="客户机端"><a href="#客户机端" class="headerlink" title="客户机端"></a>客户机端</h2><p>修改DNS配置为“10.10.2.103”，具体步骤参照《步骤1：虚拟机规划》的“（9）”。</p>
+<p>重启网络网络后，验证DNS配置是否生效。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">ping www.baidu.com</span><br><span class="line">ping dns.elk.com</span><br><span class="line">ping test.elk.com</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Linux运维</category>
+        <category>网络服务搭建</category>
+      </categories>
+      <tags>
+        <tag>Linux运维</tag>
+        <tag>DNS</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Docker Swarm集群部署</title>
     <url>/yyg/71468332/</url>
     <content><![CDATA[<p><strong>任务平台</strong></p>
@@ -77,83 +116,6 @@
       <tags>
         <tag>docker</tag>
         <tag>docker Swarm</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>DNS服务器搭建</title>
-    <url>/yyg/37824039/</url>
-    <content><![CDATA[<h2 id="服务器端"><a href="#服务器端" class="headerlink" title="服务器端"></a>服务器端</h2><p>（1）通过在线方式安装bind9</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">yum install -y bind bind-utils</span><br></pre></td></tr></table></figure>
-<p>（2）启动服务</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">systemctl start named</span><br></pre></td></tr></table></figure>
-<p>（3）查看服务状态</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">systemctl status named</span><br></pre></td></tr></table></figure>
-<p>（4）配置服务为开机自启动</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">systemctl enable named</span><br></pre></td></tr></table></figure>
-<p>（5）修改named服务配置文件，配置DNS日志路径</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">vi /etc/named.conf</span><br><span class="line">-------------------named.conf-------------------</span><br><span class="line">options &#123;</span><br><span class="line">        // 接受来自任何网络接口的DNS请求</span><br><span class="line">        listen-on port 53 &#123; any; &#125;;</span><br><span class="line">        listen-on-v6 port 53 &#123; ::1; &#125;;</span><br><span class="line">        directory       &quot;/var/named&quot;;</span><br><span class="line">        dump-file       &quot;/var/named/data/cache_dump.db&quot;;</span><br><span class="line">        statistics-file &quot;/var/named/data/named_stats.txt&quot;;</span><br><span class="line">        memstatistics-file &quot;/var/named/data/named_mem_stats.txt&quot;;</span><br><span class="line">        secroots-file   &quot;/var/named/data/named.secroots&quot;;</span><br><span class="line">        recursing-file  &quot;/var/named/data/named.recursing&quot;;</span><br><span class="line">        // 允许访问的ip范围</span><br><span class="line">        allow-query     &#123; 10.10.0.0/16; &#125;;</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">为排版方便此处省略部分提示信息</span></span><br><span class="line">&#125;;</span><br><span class="line">logging &#123;</span><br><span class="line">    //    channel default_debug &#123;</span><br><span class="line">    //            file &quot;data/named.run&quot;;</span><br><span class="line">    //            severity dynamic;</span><br><span class="line">    //    &#125;;</span><br><span class="line">        </span><br><span class="line">        channel named_log &#123;</span><br><span class="line">                // 指定日志文件的路径,设置日志文件的版本数量限制为5个，每个文件的最大大小为50m</span><br><span class="line">                file &quot;/var/log/dns/named.log&quot; versions 5 size 50m;</span><br><span class="line">                // 日志记录的时间格式采用ISO 8601标准</span><br><span class="line">                print-time iso8601;</span><br><span class="line">                // 打印日志条目的类别</span><br><span class="line">                print-category yes;</span><br><span class="line">               // 打印日志条目的严重性</span><br><span class="line">                print-severity yes;</span><br><span class="line">                severity info;</span><br><span class="line">        &#125;;</span><br><span class="line">        // 定义多个日志记录类别</span><br><span class="line">        category default   &#123; named_log; &#125;;</span><br><span class="line">        category general   &#123; named_log; &#125;;</span><br><span class="line">        category config   &#123; named_log; &#125;;</span><br><span class="line">        category client   &#123; named_log; &#125;;</span><br><span class="line">        category network   &#123; named_log; &#125;;</span><br><span class="line">        category notify   &#123; named_log; &#125;;</span><br><span class="line">        category queries   &#123; named_log; &#125;;</span><br><span class="line">        category update   &#123; named_log; &#125;;</span><br><span class="line">        category query-errors  &#123; named_log; &#125;;</span><br><span class="line">        category resolver   &#123; named_log; &#125;;</span><br><span class="line">        category xfer-in   &#123; named_log; &#125;;</span><br><span class="line">        category xfer-out   &#123; named_log; &#125;;</span><br><span class="line">        category dnssec   &#123; named_log; &#125;;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">为排版方便此处省略部分提示信息</span></span><br><span class="line">-------------------named.conf-------------------</span><br></pre></td></tr></table></figure>
-<p>（6）配置DNS区域，完成DNS服务器的搭建</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">vi /etc/named.rfc1912.zones</span><br><span class="line">-------------------named.rfc1912.zones-------------------</span><br><span class="line">// If private ranges should be forwarded, add</span><br><span class="line">// disable-empty-zone &quot;.&quot;; into options</span><br><span class="line">//</span><br><span class="line"></span><br><span class="line">zone &quot;localhost.localdomain&quot; IN &#123;</span><br><span class="line">        type master;</span><br><span class="line">        file &quot;named.localhost&quot;;</span><br><span class="line">        allow-update &#123; none; &#125;;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">zone &quot;localhost&quot; IN &#123;</span><br><span class="line">        type master;</span><br><span class="line">        file &quot;named.localhost&quot;;</span><br><span class="line">        allow-update &#123; none; &#125;;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">zone &quot;1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa&quot; IN &#123;</span><br><span class="line">        type master;</span><br><span class="line">        file &quot;named.loopback&quot;;</span><br><span class="line">        allow-update &#123; none; &#125;;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">zone &quot;1.0.0.127.in-addr.arpa&quot; IN &#123;</span><br><span class="line">        type master;</span><br><span class="line">        file &quot;named.loopback&quot;;</span><br><span class="line">        allow-update &#123; none; &#125;;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">zone &quot;0.in-addr.arpa&quot; IN &#123;</span><br><span class="line">        type master;</span><br><span class="line">        file &quot;named.empty&quot;;</span><br><span class="line">        allow-update &#123; none; &#125;;</span><br><span class="line">&#125;;</span><br><span class="line">// 自定义域名区域和DNS记录集合</span><br><span class="line">zone &quot;elk.com&quot; IN &#123;</span><br><span class="line">        type master;</span><br><span class="line">        file &quot;/var/named/elk.com.zone&quot;;</span><br><span class="line">        allow-update &#123; none; &#125;;</span><br><span class="line">&#125;;</span><br><span class="line">-----------------------------------------------</span><br></pre></td></tr></table></figure>
-<p>（7）创建”elk.com”的区域数据文件，并定义DNS服务器的域名为“<a href="https://dns.elk.com/">dns.elk.com</a>”和客户机的域名为“<a href="https://test.elk.com/">test.elk.com</a>”。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 创建&quot;elk.com&quot;的区域数据文件</span><br><span class="line">vi /var/named/elk.com.zone</span><br><span class="line"># 定义DNS服务器和客户机的域名</span><br><span class="line">-------------------named.rfc1912.zones-------------------</span><br><span class="line">$TTL 1D</span><br><span class="line">@       IN SOA  dns.elk.com. admin.elk.com. (</span><br><span class="line">                                        0       ; serial</span><br><span class="line">                                        1D      ; refresh</span><br><span class="line">                                        1H      ; retry</span><br><span class="line">                                        1W      ; expire</span><br><span class="line">                                        3H )    ; minimum</span><br><span class="line">@   IN  NS      dns.elk.com.</span><br><span class="line">dns     IN      A   10.10.2.103</span><br><span class="line">test    IN      A   10.10.2.113</span><br><span class="line">-------------------------------------------------------</span><br></pre></td></tr></table></figure>
-<p>（8）设置日志服务权限，配置防火墙，重启服务使得配置生效</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 创建存放日志的目录并赋权</span><br><span class="line">mkdir /var/log/dns</span><br><span class="line">chmod -R 777 /var/log/dns/</span><br><span class="line"># 配置dns服务访问策略，使其能够正常访问</span><br><span class="line">firewall-cmd --permanent --add-service=dns</span><br><span class="line"># 重新加载防火墙策略</span><br><span class="line">firewall-cmd --reload</span><br><span class="line"># 重启named服务，让配置生效</span><br><span class="line"> systemctl restart named</span><br></pre></td></tr></table></figure>
-<p>（9）修改DNS为“10.10.2.103”，并重启网络生效。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 使用nmtui管理网络连接</span><br><span class="line">nmtui</span><br></pre></td></tr></table></figure>
-<p>选择“编辑连接”，回车，选择网卡“ens32”，在“编辑连接”界面中将DNS服务器修改为“10.10.2.103”，保存退出。如图6-1-1、6-1-2所示。</p>
-<p><a href="https://marsperl.github.io/yyg/37824039/image-20240422191810676.png"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="img"></a><a href="https://marsperl.github.io/yyg/37824039/2.png"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="img"></a></p>
-<p>保存退出后，重启网络让DNS服务器配置生效。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">systemctl restart NetworkManager</span><br></pre></td></tr></table></figure>
-<p>（10）验证DNS服务器是否配置成功。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">ping www.baidu.com</span><br><span class="line">ping dns.elk.com</span><br><span class="line">ping test.elk.com</span><br></pre></td></tr></table></figure>
-<h2 id="客户机端"><a href="#客户机端" class="headerlink" title="客户机端"></a>客户机端</h2><p>修改DNS配置为“10.10.2.103”，具体步骤参照《步骤1：虚拟机规划》的“（9）”。</p>
-<p>重启网络网络后，验证DNS配置是否生效。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">ping www.baidu.com</span><br><span class="line">ping dns.elk.com</span><br><span class="line">ping test.elk.com</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Linux运维</category>
-        <category>网络服务搭建</category>
-      </categories>
-      <tags>
-        <tag>Linux运维</tag>
-        <tag>DNS</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Hexo-Butterfly美化教程 | 基础环境</title>
-    <url>/yyg/e102aa73/</url>
-    <content><![CDATA[<h2 id="基础环境："><a href="#基础环境：" class="headerlink" title="基础环境："></a>基础环境：</h2><ol>
-<li>操作系统：Windows10/11</li>
-<li>运行环境：node.js</li>
-</ol>
-<h2 id="实现过程："><a href="#实现过程：" class="headerlink" title="实现过程："></a>实现过程：</h2><h3 id="安装node-js"><a href="#安装node-js" class="headerlink" title="安装node.js"></a>安装node.js</h3><p>在node.js中文官网<code>https://www.nodejs.com.cn/download_current.html</code>，下载适用于Windows的64位安装包，安装JavaScript运行环境。下载完成后，双击安装程序，按引导进行安装，在安装过程中需勾选”Automatically install the necessary tools. ……“，如图所示。安装过程中，弹出命令指示符，回车下载依赖工具。</p>
-<img src="/yyg/e102aa73/1.png" class="" title="img">
-<p>安装完成后，使用快捷键<code>win+r</code>,调用运行窗口，输入<code>cmd</code>，在命令指示符中输入命令，验证node和npm版本号。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">node -v</span><br><span class="line">npm -v</span><br></pre></td></tr></table></figure>
-<img src="/yyg/e102aa73/2.png" class="" title="img">
-<h3 id="安装git"><a href="#安装git" class="headerlink" title="安装git"></a>安装git</h3><p>从官网<code>https://git-scm.com/download/win</code>下载安装程序，按安装引导一直点击下一步即可。</p>
-<h3 id="安装hexo"><a href="#安装hexo" class="headerlink" title="安装hexo"></a>安装hexo</h3><p>在命令指示符中输入命令安装hexo。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">npm install hexo-cli -g </span><br></pre></td></tr></table></figure>
-<p>创建博客存放目录</p>
-<p>进入要存放博客目录的磁盘，以“F”盘为例，在如下图所示的磁盘路径框中输入“cmd”，点击回车，打开命名指示符。</p>
-<img src="/yyg/e102aa73/3.png" class="" title="img">
-<p>在其中输入如下命令创建博客目录，此处的“blog”为自定义名称。等待博客目录初始化完成。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">hexo init blog</span><br></pre></td></tr></table></figure>
-<p>初始化完成后，进入blog目录，在磁盘路径框中输入“cmd”，点击回车，输入以下命令下载依赖和测试博客是否部署成功。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#下载依赖</span><br><span class="line">npm install</span><br><span class="line"></span><br><span class="line">#本地测试</span><br><span class="line">hexo clean &amp;&amp; hexo g &amp;&amp; hexo s</span><br></pre></td></tr></table></figure>
-<p>成功显示的命令细节如下：</p>
-<blockquote>
-<p>F:\blog&gt;hexo clean &amp;&amp; hexo g &amp;&amp; hexo s<br>INFO Validating config<br>INFO Deleted database.<br>INFO Validating config<br>INFO Start processing<br>INFO Files loaded in 463 ms<br>INFO Generated: archives/index.html<br>INFO Generated: archives/2024/index.html<br>INFO Generated: archives/2024/04/index.html<br>INFO Generated: index.html<br>INFO Generated: css/style.css<br>INFO Generated: fancybox/jquery.fancybox.min.css<br>INFO Generated: fancybox/jquery.fancybox.min.js<br>INFO Generated: js/jquery-3.6.4.min.js<br>INFO Generated: js/script.js<br>INFO Generated: css/images/banner.jpg<br>INFO Generated: 2024/04/18/hello-world/index.html<br>INFO 11 files generated in 660 ms<br>INFO Validating config<br>INFO Start processing<br>INFO Hexo is running at <a href="http://localhost:4000/">http://localhost:4000/</a> . Press Ctrl+C to stop.</p>
-</blockquote>
-<p>在浏览器中访问 <code>http://localhost:4000/</code> ，查看默认博客界面。</p>
-]]></content>
-      <categories>
-        <category>博客教程</category>
-        <category>博客搭建</category>
-      </categories>
-      <tags>
-        <tag>Hexo</tag>
-        <tag>Butterfly</tag>
-        <tag>博客教程</tag>
       </tags>
   </entry>
   <entry>
@@ -208,6 +170,44 @@
       <tags>
         <tag>docker</tag>
         <tag>Matomo</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Hexo-Butterfly美化教程 | 基础环境</title>
+    <url>/yyg/e102aa73/</url>
+    <content><![CDATA[<h2 id="基础环境："><a href="#基础环境：" class="headerlink" title="基础环境："></a>基础环境：</h2><ol>
+<li>操作系统：Windows10/11</li>
+<li>运行环境：node.js</li>
+</ol>
+<h2 id="实现过程："><a href="#实现过程：" class="headerlink" title="实现过程："></a>实现过程：</h2><h3 id="安装node-js"><a href="#安装node-js" class="headerlink" title="安装node.js"></a>安装node.js</h3><p>在node.js中文官网<code>https://www.nodejs.com.cn/download_current.html</code>，下载适用于Windows的64位安装包，安装JavaScript运行环境。下载完成后，双击安装程序，按引导进行安装，在安装过程中需勾选”Automatically install the necessary tools. ……“，如图所示。安装过程中，弹出命令指示符，回车下载依赖工具。</p>
+<img src="/yyg/e102aa73/1.png" class="" title="img">
+<p>安装完成后，使用快捷键<code>win+r</code>,调用运行窗口，输入<code>cmd</code>，在命令指示符中输入命令，验证node和npm版本号。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">node -v</span><br><span class="line">npm -v</span><br></pre></td></tr></table></figure>
+<img src="/yyg/e102aa73/2.png" class="" title="img">
+<h3 id="安装git"><a href="#安装git" class="headerlink" title="安装git"></a>安装git</h3><p>从官网<code>https://git-scm.com/download/win</code>下载安装程序，按安装引导一直点击下一步即可。</p>
+<h3 id="安装hexo"><a href="#安装hexo" class="headerlink" title="安装hexo"></a>安装hexo</h3><p>在命令指示符中输入命令安装hexo。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">npm install hexo-cli -g </span><br></pre></td></tr></table></figure>
+<p>创建博客存放目录</p>
+<p>进入要存放博客目录的磁盘，以“F”盘为例，在如下图所示的磁盘路径框中输入“cmd”，点击回车，打开命名指示符。</p>
+<img src="/yyg/e102aa73/3.png" class="" title="img">
+<p>在其中输入如下命令创建博客目录，此处的“blog”为自定义名称。等待博客目录初始化完成。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">hexo init blog</span><br></pre></td></tr></table></figure>
+<p>初始化完成后，进入blog目录，在磁盘路径框中输入“cmd”，点击回车，输入以下命令下载依赖和测试博客是否部署成功。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#下载依赖</span><br><span class="line">npm install</span><br><span class="line"></span><br><span class="line">#本地测试</span><br><span class="line">hexo clean &amp;&amp; hexo g &amp;&amp; hexo s</span><br></pre></td></tr></table></figure>
+<p>成功显示的命令细节如下：</p>
+<blockquote>
+<p>F:\blog&gt;hexo clean &amp;&amp; hexo g &amp;&amp; hexo s<br>INFO Validating config<br>INFO Deleted database.<br>INFO Validating config<br>INFO Start processing<br>INFO Files loaded in 463 ms<br>INFO Generated: archives/index.html<br>INFO Generated: archives/2024/index.html<br>INFO Generated: archives/2024/04/index.html<br>INFO Generated: index.html<br>INFO Generated: css/style.css<br>INFO Generated: fancybox/jquery.fancybox.min.css<br>INFO Generated: fancybox/jquery.fancybox.min.js<br>INFO Generated: js/jquery-3.6.4.min.js<br>INFO Generated: js/script.js<br>INFO Generated: css/images/banner.jpg<br>INFO Generated: 2024/04/18/hello-world/index.html<br>INFO 11 files generated in 660 ms<br>INFO Validating config<br>INFO Start processing<br>INFO Hexo is running at <a href="http://localhost:4000/">http://localhost:4000/</a> . Press Ctrl+C to stop.</p>
+</blockquote>
+<p>在浏览器中访问 <code>http://localhost:4000/</code> ，查看默认博客界面。</p>
+]]></content>
+      <categories>
+        <category>博客教程</category>
+        <category>博客搭建</category>
+      </categories>
+      <tags>
+        <tag>Hexo</tag>
+        <tag>Butterfly</tag>
+        <tag>博客教程</tag>
       </tags>
   </entry>
   <entry>
@@ -491,6 +491,43 @@
       </tags>
   </entry>
   <entry>
+    <title>NTP服务器搭建</title>
+    <url>/yyg/29b27760/</url>
+    <content><![CDATA[<h2 id="服务器端"><a href="#服务器端" class="headerlink" title="服务器端"></a>服务器端</h2><p>（1）通过在线方式安装chrony</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">yum install -y chrony</span><br></pre></td></tr></table></figure>
+<p>（2）启动chrony服务</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">systemctl start chronyd</span><br></pre></td></tr></table></figure>
+<p>（3）查看chrony服务状态</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">systemctl status chronyd</span><br></pre></td></tr></table></figure>
+<p>（4）配置chrony服务为开机自启动</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">systemctl enable chronyd</span><br></pre></td></tr></table></figure>
+<p>（5）修改chronyd服务配置文件，完成NTP服务器的搭建</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">vi /etc/chrony.conf</span><br><span class="line">-------------------chrony.conf-------------------</span><br><span class="line">pool 2.centos.pool.ntp.org iburst</span><br><span class="line">sourcedir /run/chrony-dhcp</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">配置的多个NTP服务器</span></span><br><span class="line">server ftp.aliyun.com iburst</span><br><span class="line">server time1.aliyun.com iburst</span><br><span class="line">server time2.aliyun.com iburst</span><br><span class="line">server time3.aliyun.com iburst</span><br><span class="line">server time4.aliyun.com iburst</span><br><span class="line">server time5.aliyun.com iburst</span><br><span class="line">server 10.10.2.103 iburst</span><br><span class="line">driftfile /var/lib/chrony/drift</span><br><span class="line">makestep 1.0 3</span><br><span class="line">rtcsync</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">允许访问的网段</span></span><br><span class="line">allow 10.10.0.0/16</span><br><span class="line">keyfile /etc/chrony.keys</span><br><span class="line">ntsdumpdir /var/lib/chrony</span><br><span class="line">leapsectz right/UTC</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">日志存储路径</span></span><br><span class="line">logdir /var/log/chrony</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">日志测量统计指标</span></span><br><span class="line">log measurements statistics tracking</span><br><span class="line">-------------------chrony.conf-------------------</span><br></pre></td></tr></table></figure>
+<p>（6）配置防火墙，重启服务，使得配置生效</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 配置ntp服务访问策略，使其能够正常访问</span><br><span class="line">firewall-cmd --permanent --add-service=ntp</span><br><span class="line"># 重新加载防火墙策略</span><br><span class="line">firewall-cmd --reload</span><br><span class="line"># 重启chronyd服务</span><br><span class="line">systemctl restart chronyd</span><br></pre></td></tr></table></figure>
+<p>（7）查看连接NTP服务的客户机</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">chronyc clients</span><br></pre></td></tr></table></figure>
+<h2 id="客户机端"><a href="#客户机端" class="headerlink" title="客户机端"></a>客户机端</h2><p>（1）通过在线方式安装chrony</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">yum install -y chrony</span><br></pre></td></tr></table></figure>
+<p>（2）配置访问chrony服务器</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 修改chrony的配置文件</span><br><span class="line">vi /etc/chrony.conf</span><br><span class="line">-------------------chrony.conf-------------------</span><br><span class="line"># Use public servers from the pool.ntp.org project.</span><br><span class="line"># Please consider joining the pool (https://www.pool.ntp.org/join.html).</span><br><span class="line">pool 2.centos.pool.ntp.org iburst</span><br><span class="line"></span><br><span class="line"># Use NTP servers from DHCP.</span><br><span class="line">sourcedir /run/chrony-dhcp</span><br><span class="line"></span><br><span class="line"># Record the rate at which the system clock gains/losses time.</span><br><span class="line">driftfile /var/lib/chrony/drift</span><br><span class="line"># 配置ntp服务器地址</span><br><span class="line">server 10.10.2.103 iburst</span><br><span class="line">#为排版方便此处省略部分提示信息</span><br><span class="line">-----------------------------------------------</span><br></pre></td></tr></table></figure>
+<p>（3）启动chronyd服务，连接NTP服务器</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 启动chrony服务</span><br><span class="line">systemctl start chronyd</span><br><span class="line"># 查看chrony服务状态</span><br><span class="line">systemctl status chronyd</span><br><span class="line"># 配置chrony服务为开机自启动</span><br><span class="line">systemctl enable chronyd</span><br></pre></td></tr></table></figure>
+<p>（4）配置防火墙，使得配置生效</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 配置ntp服务访问策略，使其能够正常访问</span><br><span class="line">firewall-cmd --permanent --add-service=ntp</span><br><span class="line"># 重新加载防火墙策略</span><br><span class="line">firewall-cmd --reload</span><br></pre></td></tr></table></figure>
+<p>（5）验证NTP服务器的连接情况</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 查看源服务器状态</span><br><span class="line"> chronyc sourcestats</span><br><span class="line"># 查看详细同步状态</span><br><span class="line">chronyc sources -v</span><br><span class="line"># 追踪同步情况</span><br><span class="line">chronyc tracking</span><br><span class="line"># 开启网络时间同步</span><br><span class="line">timedatectl set-ntp true</span><br><span class="line"># 查看时间同步状态</span><br><span class="line">timedatectl status</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>Linux运维</category>
+        <category>网络服务搭建</category>
+      </categories>
+      <tags>
+        <tag>Linux运维</tag>
+        <tag>NTP</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Linux实现模拟IPMI</title>
     <url>/yyg/9ec93abd/</url>
     <content><![CDATA[<h2 id="环境准备："><a href="#环境准备：" class="headerlink" title="环境准备："></a>环境准备：</h2><p>（1）使用脚本安装docker、docker-compose</p>
@@ -588,43 +625,6 @@
       </tags>
   </entry>
   <entry>
-    <title>NTP服务器搭建</title>
-    <url>/yyg/29b27760/</url>
-    <content><![CDATA[<h2 id="服务器端"><a href="#服务器端" class="headerlink" title="服务器端"></a>服务器端</h2><p>（1）通过在线方式安装chrony</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">yum install -y chrony</span><br></pre></td></tr></table></figure>
-<p>（2）启动chrony服务</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">systemctl start chronyd</span><br></pre></td></tr></table></figure>
-<p>（3）查看chrony服务状态</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">systemctl status chronyd</span><br></pre></td></tr></table></figure>
-<p>（4）配置chrony服务为开机自启动</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">systemctl enable chronyd</span><br></pre></td></tr></table></figure>
-<p>（5）修改chronyd服务配置文件，完成NTP服务器的搭建</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">vi /etc/chrony.conf</span><br><span class="line">-------------------chrony.conf-------------------</span><br><span class="line">pool 2.centos.pool.ntp.org iburst</span><br><span class="line">sourcedir /run/chrony-dhcp</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">配置的多个NTP服务器</span></span><br><span class="line">server ftp.aliyun.com iburst</span><br><span class="line">server time1.aliyun.com iburst</span><br><span class="line">server time2.aliyun.com iburst</span><br><span class="line">server time3.aliyun.com iburst</span><br><span class="line">server time4.aliyun.com iburst</span><br><span class="line">server time5.aliyun.com iburst</span><br><span class="line">server 10.10.2.103 iburst</span><br><span class="line">driftfile /var/lib/chrony/drift</span><br><span class="line">makestep 1.0 3</span><br><span class="line">rtcsync</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">允许访问的网段</span></span><br><span class="line">allow 10.10.0.0/16</span><br><span class="line">keyfile /etc/chrony.keys</span><br><span class="line">ntsdumpdir /var/lib/chrony</span><br><span class="line">leapsectz right/UTC</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">日志存储路径</span></span><br><span class="line">logdir /var/log/chrony</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">日志测量统计指标</span></span><br><span class="line">log measurements statistics tracking</span><br><span class="line">-------------------chrony.conf-------------------</span><br></pre></td></tr></table></figure>
-<p>（6）配置防火墙，重启服务，使得配置生效</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 配置ntp服务访问策略，使其能够正常访问</span><br><span class="line">firewall-cmd --permanent --add-service=ntp</span><br><span class="line"># 重新加载防火墙策略</span><br><span class="line">firewall-cmd --reload</span><br><span class="line"># 重启chronyd服务</span><br><span class="line">systemctl restart chronyd</span><br></pre></td></tr></table></figure>
-<p>（7）查看连接NTP服务的客户机</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">chronyc clients</span><br></pre></td></tr></table></figure>
-<h2 id="客户机端"><a href="#客户机端" class="headerlink" title="客户机端"></a>客户机端</h2><p>（1）通过在线方式安装chrony</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">yum install -y chrony</span><br></pre></td></tr></table></figure>
-<p>（2）配置访问chrony服务器</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 修改chrony的配置文件</span><br><span class="line">vi /etc/chrony.conf</span><br><span class="line">-------------------chrony.conf-------------------</span><br><span class="line"># Use public servers from the pool.ntp.org project.</span><br><span class="line"># Please consider joining the pool (https://www.pool.ntp.org/join.html).</span><br><span class="line">pool 2.centos.pool.ntp.org iburst</span><br><span class="line"></span><br><span class="line"># Use NTP servers from DHCP.</span><br><span class="line">sourcedir /run/chrony-dhcp</span><br><span class="line"></span><br><span class="line"># Record the rate at which the system clock gains/losses time.</span><br><span class="line">driftfile /var/lib/chrony/drift</span><br><span class="line"># 配置ntp服务器地址</span><br><span class="line">server 10.10.2.103 iburst</span><br><span class="line">#为排版方便此处省略部分提示信息</span><br><span class="line">-----------------------------------------------</span><br></pre></td></tr></table></figure>
-<p>（3）启动chronyd服务，连接NTP服务器</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 启动chrony服务</span><br><span class="line">systemctl start chronyd</span><br><span class="line"># 查看chrony服务状态</span><br><span class="line">systemctl status chronyd</span><br><span class="line"># 配置chrony服务为开机自启动</span><br><span class="line">systemctl enable chronyd</span><br></pre></td></tr></table></figure>
-<p>（4）配置防火墙，使得配置生效</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 配置ntp服务访问策略，使其能够正常访问</span><br><span class="line">firewall-cmd --permanent --add-service=ntp</span><br><span class="line"># 重新加载防火墙策略</span><br><span class="line">firewall-cmd --reload</span><br></pre></td></tr></table></figure>
-<p>（5）验证NTP服务器的连接情况</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 查看源服务器状态</span><br><span class="line"> chronyc sourcestats</span><br><span class="line"># 查看详细同步状态</span><br><span class="line">chronyc sources -v</span><br><span class="line"># 追踪同步情况</span><br><span class="line">chronyc tracking</span><br><span class="line"># 开启网络时间同步</span><br><span class="line">timedatectl set-ntp true</span><br><span class="line"># 查看时间同步状态</span><br><span class="line">timedatectl status</span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>Linux运维</category>
-        <category>网络服务搭建</category>
-      </categories>
-      <tags>
-        <tag>Linux运维</tag>
-        <tag>NTP</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Watchtower自动更新docker容器</title>
     <url>/yyg/d3a49a0e/</url>
     <content><![CDATA[<h2 id="基础环境"><a href="#基础环境" class="headerlink" title="基础环境"></a>基础环境</h2><p>系统：openEuler 22.03 (LTS-SP4) X86</p>
@@ -702,101 +702,6 @@
         <tag>Linux</tag>
         <tag>Watchtower</tag>
         <tag>自动更新容器</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>docker基础知识</title>
-    <url>/yyg/7b36b89c/</url>
-    <content><![CDATA[<p><code>docker search 镜像</code> #搜索要下载的镜像</p>
-<p><code>docker pull 镜像</code> #将镜像拉到本地</p>
-<p><code>docker images</code> #查看已拉取到本地的镜像</p>
-<p><code>docker rmi 镜像名或ID</code> #删除镜像</p>
-<p><code>docker rm 容器ID</code> #删除已停止容器</p>
-<blockquote>
-<p><code>docker rm -f 容器ID</code> #强制删除容器</p>
-</blockquote>
-<p>一次性删除多个容器</p>
-<blockquote>
-<p><code>docker rm -f $(docker ps -a -q)</code></p>
-<p><code>docker ps -a -q |xargs docker rm</code></p>
-</blockquote>
-<p>删除虚悬镜像</p>
-<blockquote>
-<p><code>docker image ls -f dangling=true</code> #显示所有的虚悬镜像</p>
-<p><code>docker image prune</code> #删除虚悬镜像</p>
-</blockquote>
-<p><code>docker ps</code> #查看正在运行的容器</p>
-<blockquote>
-<p><code>docker ps -a</code> #列出所有正在运行和曾运行过的容器</p>
-<p><code>docker ps -l</code> #显示最近创建的容器</p>
-<p><code>docker ps -n</code> #显示最近创建的n个容器</p>
-<p><code>docker ps -q</code> #只显示容器编号</p>
-</blockquote>
-<p><code>docker stop  容器名或ID</code> #结束容器运行</p>
-<p><code>docker kill  容器名或ID</code> #强制停止容器运行</p>
-<p><code>docker start 容器名或ID</code> #启动已停止的容器</p>
-<p><code>docker restart 容器名或ID</code> #重启容器</p>
-<p><code>docker run -it 镜像名或ID</code> #启动镜像(-it指交互式启动)</p>
-<blockquote>
-<p><code>docker run -d 容器名或ID</code> #容器后台运行</p>
-<p><code>docker run -it -p 端口号:端口号 容器名或ID</code> #以特定端口号运行容器</p>
-<p><code>docker run -it -P 容器名或ID</code> #随机分配端口号运行容器</p>
-<p>启动镜像后，按下<code>ctrl+p+q</code>，容器后台运行 </p>
-</blockquote>
-<p>重新进入后台运行的容器</p>
-<blockquote>
-<p><code>docker exec -it  容器ID</code> #在容器中打开新的终端，并且可以启动新的进程，用exit退出，不会导致容器的停止。(推荐使用)</p>
-<p><code>docker attach 容器ID</code>  #直接进入容器启动命令的终端，不会启动新的进程，用exit退出，会导致容器的停止。</p>
-</blockquote>
-<p><code>docker inspect 容器ID</code>#显示容器内的详细信息</p>
-<p><code>docker logs  容器ID</code> #查看容器日志</p>
-<p><code>docker top  容器ID</code> 查看容器内进程</p>
-<p><code>docker cp  容器ID:容器内路径 目的主机路径</code> #将文件从容器拷贝到主机</p>
-<p>容器的导入导出</p>
-<blockquote>
-<p><code>docker export  容器ID &gt;文件名.tar</code> #将容器及内容导出为tar包</p>
-<p><code>cat 文件名.tar | docker import -镜像用户/镜像名:镜像版本号</code> #从tar包中创建一个新文件系统再导入镜像</p>
-</blockquote>
-<p><code>docker run -it --privileged=true -v /宿主机目录:/容器内目录 镜像名</code>#宿主机与容器之间映射添加容器卷</p>
-<p><code>docker run -it --privileged=true -v /宿主机目录:/容器内目录:rw 镜像名</code>#宿主机与容器之间映射添加容器卷,容器内文件可读可写</p>
-<p><code>docker run -it --privileged=true -v /宿主机目录:/容器内目录:ro 镜像名</code>#宿主机与容器之间映射添加容器卷,容器内文件只可读</p>
-<p><code>docker run -it --privileged=true -volumes-from 父类 -name 容器2名称 镜像名</code> #容器2继承容器1的卷规则</p>
-<img src="/yyg/7b36b89c/image-20240323215245387.png" class="" title="image-20240323215245387">]]></content>
-      <categories>
-        <category>容器化</category>
-        <category>docker</category>
-        <category>梳理总结</category>
-      </categories>
-      <tags>
-        <tag>docker</tag>
-        <tag>docker基础</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>docker 安装 redis</title>
-    <url>/yyg/6fffbcc4/</url>
-    <content><![CDATA[<p>首先输入命令<code>docker pull redis</code> ，将最新版redis安装到本地</p>
-<p>输入以下命令,后台启动redis(注：<strong>该命令是一条命令</strong>)</p>
-<p>其中<code>--name</code>后面的是redis容器的名称，可自行更改</p>
-<blockquote>
-<p>docker run -p 6379:6379 —name mars1 —privileged=true</p>
-<p> -v /app/redis/redis.conf:/etc/redis/redis.conf </p>
-<p>-v /app/redis/data:/data </p>
-<p>-d redis:latest redis-server /etc/redis/redis.conf</p>
-</blockquote>
-<p>此命令也可解决在删除redis容器后，而出现的数据丢失的问题。若要找回数据，则只需重新运行命令即可。</p>
-
-<p>运行<code>docker ps</code>命令，可查看到redis正在运行</p>
-
-<p>然后执行<code>docker exec -it mars1 /bin/bash</code>命令，redis成功运行</p>
-]]></content>
-      <categories>
-        <category>容器化</category>
-        <category>docker</category>
-      </categories>
-      <tags>
-        <tag>docker</tag>
-        <tag>redis</tag>
       </tags>
   </entry>
   <entry>
@@ -995,6 +900,101 @@
         <tag>ceph</tag>
         <tag>共享存储</tag>
         <tag>ceph集群</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>docker 安装 redis</title>
+    <url>/yyg/6fffbcc4/</url>
+    <content><![CDATA[<p>首先输入命令<code>docker pull redis</code> ，将最新版redis安装到本地</p>
+<p>输入以下命令,后台启动redis(注：<strong>该命令是一条命令</strong>)</p>
+<p>其中<code>--name</code>后面的是redis容器的名称，可自行更改</p>
+<blockquote>
+<p>docker run -p 6379:6379 —name mars1 —privileged=true</p>
+<p> -v /app/redis/redis.conf:/etc/redis/redis.conf </p>
+<p>-v /app/redis/data:/data </p>
+<p>-d redis:latest redis-server /etc/redis/redis.conf</p>
+</blockquote>
+<p>此命令也可解决在删除redis容器后，而出现的数据丢失的问题。若要找回数据，则只需重新运行命令即可。</p>
+
+<p>运行<code>docker ps</code>命令，可查看到redis正在运行</p>
+
+<p>然后执行<code>docker exec -it mars1 /bin/bash</code>命令，redis成功运行</p>
+]]></content>
+      <categories>
+        <category>容器化</category>
+        <category>docker</category>
+      </categories>
+      <tags>
+        <tag>docker</tag>
+        <tag>redis</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>docker基础知识</title>
+    <url>/yyg/7b36b89c/</url>
+    <content><![CDATA[<p><code>docker search 镜像</code> #搜索要下载的镜像</p>
+<p><code>docker pull 镜像</code> #将镜像拉到本地</p>
+<p><code>docker images</code> #查看已拉取到本地的镜像</p>
+<p><code>docker rmi 镜像名或ID</code> #删除镜像</p>
+<p><code>docker rm 容器ID</code> #删除已停止容器</p>
+<blockquote>
+<p><code>docker rm -f 容器ID</code> #强制删除容器</p>
+</blockquote>
+<p>一次性删除多个容器</p>
+<blockquote>
+<p><code>docker rm -f $(docker ps -a -q)</code></p>
+<p><code>docker ps -a -q |xargs docker rm</code></p>
+</blockquote>
+<p>删除虚悬镜像</p>
+<blockquote>
+<p><code>docker image ls -f dangling=true</code> #显示所有的虚悬镜像</p>
+<p><code>docker image prune</code> #删除虚悬镜像</p>
+</blockquote>
+<p><code>docker ps</code> #查看正在运行的容器</p>
+<blockquote>
+<p><code>docker ps -a</code> #列出所有正在运行和曾运行过的容器</p>
+<p><code>docker ps -l</code> #显示最近创建的容器</p>
+<p><code>docker ps -n</code> #显示最近创建的n个容器</p>
+<p><code>docker ps -q</code> #只显示容器编号</p>
+</blockquote>
+<p><code>docker stop  容器名或ID</code> #结束容器运行</p>
+<p><code>docker kill  容器名或ID</code> #强制停止容器运行</p>
+<p><code>docker start 容器名或ID</code> #启动已停止的容器</p>
+<p><code>docker restart 容器名或ID</code> #重启容器</p>
+<p><code>docker run -it 镜像名或ID</code> #启动镜像(-it指交互式启动)</p>
+<blockquote>
+<p><code>docker run -d 容器名或ID</code> #容器后台运行</p>
+<p><code>docker run -it -p 端口号:端口号 容器名或ID</code> #以特定端口号运行容器</p>
+<p><code>docker run -it -P 容器名或ID</code> #随机分配端口号运行容器</p>
+<p>启动镜像后，按下<code>ctrl+p+q</code>，容器后台运行 </p>
+</blockquote>
+<p>重新进入后台运行的容器</p>
+<blockquote>
+<p><code>docker exec -it  容器ID</code> #在容器中打开新的终端，并且可以启动新的进程，用exit退出，不会导致容器的停止。(推荐使用)</p>
+<p><code>docker attach 容器ID</code>  #直接进入容器启动命令的终端，不会启动新的进程，用exit退出，会导致容器的停止。</p>
+</blockquote>
+<p><code>docker inspect 容器ID</code>#显示容器内的详细信息</p>
+<p><code>docker logs  容器ID</code> #查看容器日志</p>
+<p><code>docker top  容器ID</code> 查看容器内进程</p>
+<p><code>docker cp  容器ID:容器内路径 目的主机路径</code> #将文件从容器拷贝到主机</p>
+<p>容器的导入导出</p>
+<blockquote>
+<p><code>docker export  容器ID &gt;文件名.tar</code> #将容器及内容导出为tar包</p>
+<p><code>cat 文件名.tar | docker import -镜像用户/镜像名:镜像版本号</code> #从tar包中创建一个新文件系统再导入镜像</p>
+</blockquote>
+<p><code>docker run -it --privileged=true -v /宿主机目录:/容器内目录 镜像名</code>#宿主机与容器之间映射添加容器卷</p>
+<p><code>docker run -it --privileged=true -v /宿主机目录:/容器内目录:rw 镜像名</code>#宿主机与容器之间映射添加容器卷,容器内文件可读可写</p>
+<p><code>docker run -it --privileged=true -v /宿主机目录:/容器内目录:ro 镜像名</code>#宿主机与容器之间映射添加容器卷,容器内文件只可读</p>
+<p><code>docker run -it --privileged=true -volumes-from 父类 -name 容器2名称 镜像名</code> #容器2继承容器1的卷规则</p>
+<img src="/yyg/7b36b89c/image-20240323215245387.png" class="" title="image-20240323215245387">]]></content>
+      <categories>
+        <category>容器化</category>
+        <category>docker</category>
+        <category>梳理总结</category>
+      </categories>
+      <tags>
+        <tag>docker</tag>
+        <tag>docker基础</tag>
       </tags>
   </entry>
   <entry>
@@ -1288,6 +1288,84 @@
       </tags>
   </entry>
   <entry>
+    <title>k8s集群对接ceph集群部署指南</title>
+    <url>/yyg/57e2a956/</url>
+    <content><![CDATA[<h2 id="任务目标"><a href="#任务目标" class="headerlink" title="任务目标"></a>任务目标</h2><ol>
+<li>完成k8s集群对接ceph集群</li>
+</ol>
+<h2 id="任务平台"><a href="#任务平台" class="headerlink" title="任务平台"></a>任务平台</h2><ol>
+<li>物理设备—</li>
+<li>操作系统：openEuler 22.03 LTS SP2</li>
+</ol>
+<h2 id="部署指南"><a href="#部署指南" class="headerlink" title="部署指南"></a>部署指南</h2><p>采用动态挂载ceph RBD存储</p>
+<h3 id="任务一：安装ceph客户端（ceph-common）"><a href="#任务一：安装ceph客户端（ceph-common）" class="headerlink" title="任务一：安装ceph客户端（ceph-common）"></a>任务一：安装ceph客户端（ceph-common）</h3><p>在k8s集群的每个节点安装ceph-common</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum install ceph-common -y</span><br></pre></td></tr></table></figure>
+<h3 id="任务二：同步cpeh集群配置文件"><a href="#任务二：同步cpeh集群配置文件" class="headerlink" title="任务二：同步cpeh集群配置文件"></a>任务二：同步cpeh集群配置文件</h3><p>将 ceph 集群的 /etc/ceph/{ceph.conf,ceph.client.admin.keyring} 文件同步到 k8s 所有节点上</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">配置ssh免密</span></span><br><span class="line">ssh-keygen -t rsa</span><br><span class="line">ssh-copy-id 10.10.3.121</span><br><span class="line">ssh-copy-id 10.10.3.122</span><br><span class="line">ssh-copy-id 10.10.3.123</span><br><span class="line">ssh-copy-id 10.10.3.124</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">拷贝文件</span></span><br><span class="line">scp -r /etc/ceph/&#123;ceph.conf,ceph.client.admin.keyring&#125; 10.10.3.121:/etc/ceph</span><br><span class="line">scp -r /etc/ceph/&#123;ceph.conf,ceph.client.admin.keyring&#125; 10.10.3.122:/etc/ceph</span><br><span class="line">scp -r /etc/ceph/&#123;ceph.conf,ceph.client.admin.keyring&#125; 10.10.3.123:/etc/ceph</span><br><span class="line">scp -r /etc/ceph/&#123;ceph.conf,ceph.client.admin.keyring&#125; 10.10.3.124:/etc/ceph</span><br></pre></td></tr></table></figure>
+<h3 id="任务三：部署ceph-csi（使用rbd）"><a href="#任务三：部署ceph-csi（使用rbd）" class="headerlink" title="任务三：部署ceph-csi（使用rbd）"></a>任务三：部署ceph-csi（使用rbd）</h3><ol>
+<li>下载ceph-csi组件</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">下载文件</span></span><br><span class="line">wget https://github.com/ceph/ceph-csi/archive/refs/tags/v3.9.0.tar.gz</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">解压</span></span><br><span class="line">mv v3.9.0.tar.gz ceph-csi-v3.9.0.tar.gz</span><br><span class="line">tar -xzf ceph-csi-v3.9.0.tar.gz</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">进入目录</span></span><br><span class="line">cd  ceph-csi-3.9.0/deploy/rbd/kubernetes</span><br><span class="line">mkdir /data/cephfs/csi</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">拷进csi中，共6六个文件</span></span><br><span class="line">cp * /data/cephfs</span><br></pre></td></tr></table></figure>
+<ol>
+<li>拉取csi组件所需镜像</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看所需镜像</span></span><br><span class="line">grep image csi-rbdplugin-provisioner.yaml</span><br><span class="line">grep image csi-rbdplugin.yaml</span><br></pre></td></tr></table></figure>
+<p>在所有k8s节点上拉取所需的镜像</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">./pull-images.sh registry.k8s.io/sig-storage/csi-provisioner:v3.5.0</span><br><span class="line">./pull-images.sh registry.k8s.io/sig-storage/csi-resizer:v1.8.0</span><br><span class="line">./pull-images.sh registry.k8s.io/sig-storage/csi-snapshotter:v6.2.2</span><br><span class="line">docker pull quay.io/cephcsi/cephcsi:v3.9.0</span><br><span class="line">./pull-images.sh registry.k8s.io/sig-storage/csi-attacher:v4.3.0</span><br><span class="line">./pull-images.sh registry.k8s.io/sig-storage/csi-node-driver-registrar:v2.8.0</span><br></pre></td></tr></table></figure>
+<ol>
+<li>创建命名空间<code>cephfs</code></li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: Namespace</span><br><span class="line">metadata:</span><br><span class="line">  labels:</span><br><span class="line">    kubernetes.io/metadata.name: cephfs</span><br><span class="line">  name: cephfs</span><br><span class="line">  &#x27; &gt; ceph-namespace.yaml</span><br><span class="line">  </span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">执行</span></span><br><span class="line">  kubectl apply -f ceph-namespace.yaml </span><br></pre></td></tr></table></figure>
+<ol>
+<li>创建连接 ceph 集群的秘钥文件csi-rbd-secret.yaml</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: Secret</span><br><span class="line">metadata:</span><br><span class="line">  name: csi-rbd-secret</span><br><span class="line">  namespace: cephfs</span><br><span class="line">stringData:</span><br><span class="line">  adminID: admin  #管理员名称</span><br><span class="line">  adminKey: AQCNNDZlPKI5KxAA/3gXnOmhHgyLU2qPzTaZ3A==   #ceph集群密钥</span><br><span class="line">  userID: admin   #用户名称 </span><br><span class="line">  userKey: AQCNNDZlPKI5KxAA/3gXnOmhHgyLU2qPzTaZ3A==  #ceph集群密钥</span><br><span class="line">  &#x27; &gt; csi-rbd-secret.yaml</span><br><span class="line">  </span><br><span class="line"><span class="meta prompt_">   #</span><span class="language-bash">执行</span></span><br><span class="line">    kubectl apply -f csi-rbd-secret.yaml</span><br></pre></td></tr></table></figure>
+<ol>
+<li>创建ceph-config-map.yaml</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: ConfigMap</span><br><span class="line">data:</span><br><span class="line">  ceph.conf: |</span><br><span class="line">     [global]</span><br><span class="line">     fsid = 79fd2206-39ca-4ec4-9cd2-96e065c6361e     # 生成的FSID</span><br><span class="line">     mon initial members =future-ceph-node0,future-ceph-node1,future-ceph-node2,future-ceph-node3            # 主机名</span><br><span class="line">     mon host = 10.10.3.117,10.10.3.118,10.10.3.119,10.10.3.120                       # 对应的IP</span><br><span class="line">     public network = 10.10.3.0/24</span><br><span class="line">     auth cluster required = cephx</span><br><span class="line">     auth service required = cephx</span><br><span class="line">     auth client required = cephx</span><br><span class="line">     osd journal size = 1024</span><br><span class="line">     osd pool default size = 3</span><br><span class="line">     osd pool default min size = 2</span><br><span class="line">     osd pool default pg num = 333</span><br><span class="line">     osd pool default pgp num = 333</span><br><span class="line">     osd crush chooseleaf type = 1</span><br><span class="line">     [mon]</span><br><span class="line">     mon allow pool delete = true</span><br><span class="line"></span><br><span class="line">     [mds.future-ceph-node0]</span><br><span class="line">     host = future-ceph-node0</span><br><span class="line">  keyring: |</span><br><span class="line">metadata:</span><br><span class="line">  name: ceph-config</span><br><span class="line">  namespace: cephfs</span><br><span class="line">&#x27; &gt; ceph-config-map.yaml</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">执行</span></span><br><span class="line"> kubectl apply -f ceph-config-map.yaml  </span><br></pre></td></tr></table></figure>
+<ol>
+<li>修改csi-config-map.yaml，配置连接 ceph 集群的信息</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: ConfigMap</span><br><span class="line">metadata:</span><br><span class="line">  name: ceph-csi-config</span><br><span class="line">  namespace: cephfs</span><br><span class="line">  labels:</span><br><span class="line">    addonmanager.kubernetes.io/mode: Reconcile</span><br><span class="line">data:</span><br><span class="line">  config.json: |-</span><br><span class="line">    [&#123;&quot;clusterID&quot;:&quot;79fd2206-39ca-4ec4-9cd2-96e065c6361e&quot;,&quot;monitors&quot;:[&quot;10.10.3.117:6789&quot;,&quot;10.10.3.118:6789&quot;,&quot;10.10.3.119:6789&quot;,&quot;10.10.3.120:6789&quot;]&#125;]</span><br><span class="line">&#x27; &gt; csi-config-map.yaml</span><br></pre></td></tr></table></figure>
+<ol>
+<li><p>修改csi组件配置文件</p>
+<ol>
+<li><p>拷贝进<code>/data/cephfs/csi</code>目录中的所有yaml文件中的命名空间由<code>default</code>改为<code>cephfs</code></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">cd /data/cephfs/csi</span><br><span class="line">sed -i &quot;s/namespace: default/namespace: cephfs/g&quot; $(grep -rl &quot;namespace: default&quot; ./)</span><br><span class="line">sed -i &#x27;/^kind: ServiceAccount/a\  namespace: cephfs&#x27; $(grep -rl &quot;^kind: ServiceAccount&quot; ./)</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>将<code>csi-rbdplugin-provisioner.yaml</code> 和 <code>csi-rbdplugin.yaml</code> 中的 kms 部分配置注释掉</p>
+<blockquote>
+<p>   # - name: KMS_CONFIGMAP_NAME</p>
+<p>​            #   value: encryptionConfig</p>
+<p>#- name: ceph-csi-encryption-kms-config</p>
+<p>​        #  configMap:</p>
+<p>​        #    name: ceph-csi-encryption-kms-config</p>
+</blockquote>
+</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">执行，安装csi组件</span></span><br><span class="line">kubectl apply -f csi-config-map.yaml</span><br><span class="line">kubectl apply -f csi-nodeplugin-rbac.yaml</span><br><span class="line">kubectl apply -f csidriver.yaml</span><br><span class="line">kubectl apply -f csi-provisioner-rbac.yaml</span><br><span class="line">kubectl apply -f csi-rbdplugin-provisioner.yaml</span><br><span class="line">kubectl apply -f csi-rbdplugin.yaml</span><br></pre></td></tr></table></figure>
+<h3 id="任务四：创建storageclass"><a href="#任务四：创建storageclass" class="headerlink" title="任务四：创建storageclass"></a>任务四：创建storageclass</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: storage.k8s.io/v1</span><br><span class="line">kind: StorageClass</span><br><span class="line">metadata:</span><br><span class="line">  annotations:</span><br><span class="line">    k8s.kuboard.cn/storageType: cephfs_provisioner</span><br><span class="line">  name: csi-rbd-sc</span><br><span class="line">provisioner: rbd.csi.ceph.com</span><br><span class="line">parameters:</span><br><span class="line"><span class="meta prompt_"> # </span><span class="language-bash">fsName: cephfs <span class="comment">#ceph集群cephfs文件系统名称</span></span></span><br><span class="line">  clusterID: 79fd2206-39ca-4ec4-9cd2-96e065c6361e #ceph集群的fsid </span><br><span class="line">  pool: rbd-k8s #ceph中创建的存储池</span><br><span class="line">  imageFeatures: layering</span><br><span class="line">  csi.storage.k8s.io/provisioner-secret-name: csi-rbd-secret</span><br><span class="line">  csi.storage.k8s.io/provisioner-secret-namespace: cephfs</span><br><span class="line">  csi.storage.k8s.io/controller-expand-secret-name: csi-rbd-secret</span><br><span class="line">  csi.storage.k8s.io/controller-expand-secret-namespace: cephfs</span><br><span class="line">  csi.storage.k8s.io/node-stage-secret-name: csi-rbd-secret</span><br><span class="line">  csi.storage.k8s.io/node-stage-secret-namespace: cephfs</span><br><span class="line">  csi.storage.k8s.io/fstype: xfs</span><br><span class="line">reclaimPolicy: Delete</span><br><span class="line">volumeBindingMode: Immediate</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">allowVolumeExpansion: <span class="literal">true</span></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">mountOptions:</span></span><br><span class="line"><span class="meta prompt_"> # </span><span class="language-bash">- discard</span></span><br><span class="line"> &#x27; &gt; storageclass.yaml</span><br><span class="line"><span class="meta prompt_"> </span></span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">执行</span></span><br><span class="line">  kubectl apply -f storageclass.yaml</span><br></pre></td></tr></table></figure>
+<h3 id="任务五：创建PVC"><a href="#任务五：创建PVC" class="headerlink" title="任务五：创建PVC"></a>任务五：创建PVC</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: PersistentVolumeClaim</span><br><span class="line">metadata:</span><br><span class="line">  name: rbd-pvc #PVC的名称</span><br><span class="line">  namespace: cephfs</span><br><span class="line">spec:</span><br><span class="line">  accessModes:</span><br><span class="line">    - ReadWriteOnce</span><br><span class="line">  resources:</span><br><span class="line">    requests:</span><br><span class="line">      storage: 1Gi  #设置容量</span><br><span class="line">  storageClassName: csi-rbd-sc</span><br><span class="line">  &#x27; &gt; pvc.yaml</span><br><span class="line"><span class="meta prompt_">  </span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">执行</span></span><br><span class="line"> kubectl apply -f pvc.yaml</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看PVC是否创建成功</span></span><br><span class="line">kubectl get pvc -n cephfs</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看PV是否创建成功</span></span><br><span class="line">kubectl get pv -n cephfs</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看ceph集群中的cephfs_data存储池中是否创建了image</span></span><br><span class="line"> rbd ls -p cephfs_data</span><br></pre></td></tr></table></figure>
+<h3 id="任务六：创建pod，进行测试验证"><a href="#任务六：创建pod，进行测试验证" class="headerlink" title="任务六：创建pod，进行测试验证"></a>任务六：创建pod，进行测试验证</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: Pod</span><br><span class="line">metadata:</span><br><span class="line">  name: csi-rbd-demo-pod</span><br><span class="line">  namespace: cephfs</span><br><span class="line">spec:</span><br><span class="line">  containers:</span><br><span class="line">    - name: web-server</span><br><span class="line">      image: nginx:latest</span><br><span class="line">      volumeMounts:</span><br><span class="line">        - name: mypvc</span><br><span class="line">          mountPath: /var/lib/www/html</span><br><span class="line">  volumes:</span><br><span class="line">    - name: mypvc</span><br><span class="line">      persistentVolumeClaim:</span><br><span class="line">        claimName: rbd-pvc  #对应的PVC名称</span><br><span class="line">        readOnly: false</span><br><span class="line">&#x27; &gt; pod.yaml</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">执行</span></span><br><span class="line"> kubectl apply -f pod.yaml</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">进入容器查看挂载信息</span></span><br><span class="line"> kubectl exec -it csi-rbd-demo-pod bash</span><br><span class="line"> lsblk -l|grep rbd</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>容器化</category>
+        <category>k8s</category>
+        <category>存储系统</category>
+        <category>ceph</category>
+      </categories>
+      <tags>
+        <tag>docker</tag>
+        <tag>k8s</tag>
+        <tag>ceph</tag>
+        <tag>共享存储</tag>
+        <tag>ceph集群</tag>
+        <tag>容器云</tag>
+        <tag>k8s对接ceph</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>docker镜像仓库搭建(Harbor)</title>
     <url>/yyg/c3b2f9c5/</url>
     <content><![CDATA[<h2 id="任务目标"><a href="#任务目标" class="headerlink" title="任务目标"></a>任务目标</h2><ol>
@@ -1431,84 +1509,6 @@
       </tags>
   </entry>
   <entry>
-    <title>k8s集群对接ceph集群部署指南</title>
-    <url>/yyg/57e2a956/</url>
-    <content><![CDATA[<h2 id="任务目标"><a href="#任务目标" class="headerlink" title="任务目标"></a>任务目标</h2><ol>
-<li>完成k8s集群对接ceph集群</li>
-</ol>
-<h2 id="任务平台"><a href="#任务平台" class="headerlink" title="任务平台"></a>任务平台</h2><ol>
-<li>物理设备—</li>
-<li>操作系统：openEuler 22.03 LTS SP2</li>
-</ol>
-<h2 id="部署指南"><a href="#部署指南" class="headerlink" title="部署指南"></a>部署指南</h2><p>采用动态挂载ceph RBD存储</p>
-<h3 id="任务一：安装ceph客户端（ceph-common）"><a href="#任务一：安装ceph客户端（ceph-common）" class="headerlink" title="任务一：安装ceph客户端（ceph-common）"></a>任务一：安装ceph客户端（ceph-common）</h3><p>在k8s集群的每个节点安装ceph-common</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum install ceph-common -y</span><br></pre></td></tr></table></figure>
-<h3 id="任务二：同步cpeh集群配置文件"><a href="#任务二：同步cpeh集群配置文件" class="headerlink" title="任务二：同步cpeh集群配置文件"></a>任务二：同步cpeh集群配置文件</h3><p>将 ceph 集群的 /etc/ceph/{ceph.conf,ceph.client.admin.keyring} 文件同步到 k8s 所有节点上</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">配置ssh免密</span></span><br><span class="line">ssh-keygen -t rsa</span><br><span class="line">ssh-copy-id 10.10.3.121</span><br><span class="line">ssh-copy-id 10.10.3.122</span><br><span class="line">ssh-copy-id 10.10.3.123</span><br><span class="line">ssh-copy-id 10.10.3.124</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">拷贝文件</span></span><br><span class="line">scp -r /etc/ceph/&#123;ceph.conf,ceph.client.admin.keyring&#125; 10.10.3.121:/etc/ceph</span><br><span class="line">scp -r /etc/ceph/&#123;ceph.conf,ceph.client.admin.keyring&#125; 10.10.3.122:/etc/ceph</span><br><span class="line">scp -r /etc/ceph/&#123;ceph.conf,ceph.client.admin.keyring&#125; 10.10.3.123:/etc/ceph</span><br><span class="line">scp -r /etc/ceph/&#123;ceph.conf,ceph.client.admin.keyring&#125; 10.10.3.124:/etc/ceph</span><br></pre></td></tr></table></figure>
-<h3 id="任务三：部署ceph-csi（使用rbd）"><a href="#任务三：部署ceph-csi（使用rbd）" class="headerlink" title="任务三：部署ceph-csi（使用rbd）"></a>任务三：部署ceph-csi（使用rbd）</h3><ol>
-<li>下载ceph-csi组件</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">下载文件</span></span><br><span class="line">wget https://github.com/ceph/ceph-csi/archive/refs/tags/v3.9.0.tar.gz</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">解压</span></span><br><span class="line">mv v3.9.0.tar.gz ceph-csi-v3.9.0.tar.gz</span><br><span class="line">tar -xzf ceph-csi-v3.9.0.tar.gz</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">进入目录</span></span><br><span class="line">cd  ceph-csi-3.9.0/deploy/rbd/kubernetes</span><br><span class="line">mkdir /data/cephfs/csi</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">拷进csi中，共6六个文件</span></span><br><span class="line">cp * /data/cephfs</span><br></pre></td></tr></table></figure>
-<ol>
-<li>拉取csi组件所需镜像</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看所需镜像</span></span><br><span class="line">grep image csi-rbdplugin-provisioner.yaml</span><br><span class="line">grep image csi-rbdplugin.yaml</span><br></pre></td></tr></table></figure>
-<p>在所有k8s节点上拉取所需的镜像</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">./pull-images.sh registry.k8s.io/sig-storage/csi-provisioner:v3.5.0</span><br><span class="line">./pull-images.sh registry.k8s.io/sig-storage/csi-resizer:v1.8.0</span><br><span class="line">./pull-images.sh registry.k8s.io/sig-storage/csi-snapshotter:v6.2.2</span><br><span class="line">docker pull quay.io/cephcsi/cephcsi:v3.9.0</span><br><span class="line">./pull-images.sh registry.k8s.io/sig-storage/csi-attacher:v4.3.0</span><br><span class="line">./pull-images.sh registry.k8s.io/sig-storage/csi-node-driver-registrar:v2.8.0</span><br></pre></td></tr></table></figure>
-<ol>
-<li>创建命名空间<code>cephfs</code></li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: Namespace</span><br><span class="line">metadata:</span><br><span class="line">  labels:</span><br><span class="line">    kubernetes.io/metadata.name: cephfs</span><br><span class="line">  name: cephfs</span><br><span class="line">  &#x27; &gt; ceph-namespace.yaml</span><br><span class="line">  </span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">执行</span></span><br><span class="line">  kubectl apply -f ceph-namespace.yaml </span><br></pre></td></tr></table></figure>
-<ol>
-<li>创建连接 ceph 集群的秘钥文件csi-rbd-secret.yaml</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: Secret</span><br><span class="line">metadata:</span><br><span class="line">  name: csi-rbd-secret</span><br><span class="line">  namespace: cephfs</span><br><span class="line">stringData:</span><br><span class="line">  adminID: admin  #管理员名称</span><br><span class="line">  adminKey: AQCNNDZlPKI5KxAA/3gXnOmhHgyLU2qPzTaZ3A==   #ceph集群密钥</span><br><span class="line">  userID: admin   #用户名称 </span><br><span class="line">  userKey: AQCNNDZlPKI5KxAA/3gXnOmhHgyLU2qPzTaZ3A==  #ceph集群密钥</span><br><span class="line">  &#x27; &gt; csi-rbd-secret.yaml</span><br><span class="line">  </span><br><span class="line"><span class="meta prompt_">   #</span><span class="language-bash">执行</span></span><br><span class="line">    kubectl apply -f csi-rbd-secret.yaml</span><br></pre></td></tr></table></figure>
-<ol>
-<li>创建ceph-config-map.yaml</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: ConfigMap</span><br><span class="line">data:</span><br><span class="line">  ceph.conf: |</span><br><span class="line">     [global]</span><br><span class="line">     fsid = 79fd2206-39ca-4ec4-9cd2-96e065c6361e     # 生成的FSID</span><br><span class="line">     mon initial members =future-ceph-node0,future-ceph-node1,future-ceph-node2,future-ceph-node3            # 主机名</span><br><span class="line">     mon host = 10.10.3.117,10.10.3.118,10.10.3.119,10.10.3.120                       # 对应的IP</span><br><span class="line">     public network = 10.10.3.0/24</span><br><span class="line">     auth cluster required = cephx</span><br><span class="line">     auth service required = cephx</span><br><span class="line">     auth client required = cephx</span><br><span class="line">     osd journal size = 1024</span><br><span class="line">     osd pool default size = 3</span><br><span class="line">     osd pool default min size = 2</span><br><span class="line">     osd pool default pg num = 333</span><br><span class="line">     osd pool default pgp num = 333</span><br><span class="line">     osd crush chooseleaf type = 1</span><br><span class="line">     [mon]</span><br><span class="line">     mon allow pool delete = true</span><br><span class="line"></span><br><span class="line">     [mds.future-ceph-node0]</span><br><span class="line">     host = future-ceph-node0</span><br><span class="line">  keyring: |</span><br><span class="line">metadata:</span><br><span class="line">  name: ceph-config</span><br><span class="line">  namespace: cephfs</span><br><span class="line">&#x27; &gt; ceph-config-map.yaml</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">执行</span></span><br><span class="line"> kubectl apply -f ceph-config-map.yaml  </span><br></pre></td></tr></table></figure>
-<ol>
-<li>修改csi-config-map.yaml，配置连接 ceph 集群的信息</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: ConfigMap</span><br><span class="line">metadata:</span><br><span class="line">  name: ceph-csi-config</span><br><span class="line">  namespace: cephfs</span><br><span class="line">  labels:</span><br><span class="line">    addonmanager.kubernetes.io/mode: Reconcile</span><br><span class="line">data:</span><br><span class="line">  config.json: |-</span><br><span class="line">    [&#123;&quot;clusterID&quot;:&quot;79fd2206-39ca-4ec4-9cd2-96e065c6361e&quot;,&quot;monitors&quot;:[&quot;10.10.3.117:6789&quot;,&quot;10.10.3.118:6789&quot;,&quot;10.10.3.119:6789&quot;,&quot;10.10.3.120:6789&quot;]&#125;]</span><br><span class="line">&#x27; &gt; csi-config-map.yaml</span><br></pre></td></tr></table></figure>
-<ol>
-<li><p>修改csi组件配置文件</p>
-<ol>
-<li><p>拷贝进<code>/data/cephfs/csi</code>目录中的所有yaml文件中的命名空间由<code>default</code>改为<code>cephfs</code></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">cd /data/cephfs/csi</span><br><span class="line">sed -i &quot;s/namespace: default/namespace: cephfs/g&quot; $(grep -rl &quot;namespace: default&quot; ./)</span><br><span class="line">sed -i &#x27;/^kind: ServiceAccount/a\  namespace: cephfs&#x27; $(grep -rl &quot;^kind: ServiceAccount&quot; ./)</span><br></pre></td></tr></table></figure>
-</li>
-</ol>
-<p>将<code>csi-rbdplugin-provisioner.yaml</code> 和 <code>csi-rbdplugin.yaml</code> 中的 kms 部分配置注释掉</p>
-<blockquote>
-<p>   # - name: KMS_CONFIGMAP_NAME</p>
-<p>​            #   value: encryptionConfig</p>
-<p>#- name: ceph-csi-encryption-kms-config</p>
-<p>​        #  configMap:</p>
-<p>​        #    name: ceph-csi-encryption-kms-config</p>
-</blockquote>
-</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">执行，安装csi组件</span></span><br><span class="line">kubectl apply -f csi-config-map.yaml</span><br><span class="line">kubectl apply -f csi-nodeplugin-rbac.yaml</span><br><span class="line">kubectl apply -f csidriver.yaml</span><br><span class="line">kubectl apply -f csi-provisioner-rbac.yaml</span><br><span class="line">kubectl apply -f csi-rbdplugin-provisioner.yaml</span><br><span class="line">kubectl apply -f csi-rbdplugin.yaml</span><br></pre></td></tr></table></figure>
-<h3 id="任务四：创建storageclass"><a href="#任务四：创建storageclass" class="headerlink" title="任务四：创建storageclass"></a>任务四：创建storageclass</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: storage.k8s.io/v1</span><br><span class="line">kind: StorageClass</span><br><span class="line">metadata:</span><br><span class="line">  annotations:</span><br><span class="line">    k8s.kuboard.cn/storageType: cephfs_provisioner</span><br><span class="line">  name: csi-rbd-sc</span><br><span class="line">provisioner: rbd.csi.ceph.com</span><br><span class="line">parameters:</span><br><span class="line"><span class="meta prompt_"> # </span><span class="language-bash">fsName: cephfs <span class="comment">#ceph集群cephfs文件系统名称</span></span></span><br><span class="line">  clusterID: 79fd2206-39ca-4ec4-9cd2-96e065c6361e #ceph集群的fsid </span><br><span class="line">  pool: rbd-k8s #ceph中创建的存储池</span><br><span class="line">  imageFeatures: layering</span><br><span class="line">  csi.storage.k8s.io/provisioner-secret-name: csi-rbd-secret</span><br><span class="line">  csi.storage.k8s.io/provisioner-secret-namespace: cephfs</span><br><span class="line">  csi.storage.k8s.io/controller-expand-secret-name: csi-rbd-secret</span><br><span class="line">  csi.storage.k8s.io/controller-expand-secret-namespace: cephfs</span><br><span class="line">  csi.storage.k8s.io/node-stage-secret-name: csi-rbd-secret</span><br><span class="line">  csi.storage.k8s.io/node-stage-secret-namespace: cephfs</span><br><span class="line">  csi.storage.k8s.io/fstype: xfs</span><br><span class="line">reclaimPolicy: Delete</span><br><span class="line">volumeBindingMode: Immediate</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">allowVolumeExpansion: <span class="literal">true</span></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">mountOptions:</span></span><br><span class="line"><span class="meta prompt_"> # </span><span class="language-bash">- discard</span></span><br><span class="line"> &#x27; &gt; storageclass.yaml</span><br><span class="line"><span class="meta prompt_"> </span></span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">执行</span></span><br><span class="line">  kubectl apply -f storageclass.yaml</span><br></pre></td></tr></table></figure>
-<h3 id="任务五：创建PVC"><a href="#任务五：创建PVC" class="headerlink" title="任务五：创建PVC"></a>任务五：创建PVC</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: PersistentVolumeClaim</span><br><span class="line">metadata:</span><br><span class="line">  name: rbd-pvc #PVC的名称</span><br><span class="line">  namespace: cephfs</span><br><span class="line">spec:</span><br><span class="line">  accessModes:</span><br><span class="line">    - ReadWriteOnce</span><br><span class="line">  resources:</span><br><span class="line">    requests:</span><br><span class="line">      storage: 1Gi  #设置容量</span><br><span class="line">  storageClassName: csi-rbd-sc</span><br><span class="line">  &#x27; &gt; pvc.yaml</span><br><span class="line"><span class="meta prompt_">  </span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">执行</span></span><br><span class="line"> kubectl apply -f pvc.yaml</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看PVC是否创建成功</span></span><br><span class="line">kubectl get pvc -n cephfs</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看PV是否创建成功</span></span><br><span class="line">kubectl get pv -n cephfs</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看ceph集群中的cephfs_data存储池中是否创建了image</span></span><br><span class="line"> rbd ls -p cephfs_data</span><br></pre></td></tr></table></figure>
-<h3 id="任务六：创建pod，进行测试验证"><a href="#任务六：创建pod，进行测试验证" class="headerlink" title="任务六：创建pod，进行测试验证"></a>任务六：创建pod，进行测试验证</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">apiVersion: v1</span><br><span class="line">kind: Pod</span><br><span class="line">metadata:</span><br><span class="line">  name: csi-rbd-demo-pod</span><br><span class="line">  namespace: cephfs</span><br><span class="line">spec:</span><br><span class="line">  containers:</span><br><span class="line">    - name: web-server</span><br><span class="line">      image: nginx:latest</span><br><span class="line">      volumeMounts:</span><br><span class="line">        - name: mypvc</span><br><span class="line">          mountPath: /var/lib/www/html</span><br><span class="line">  volumes:</span><br><span class="line">    - name: mypvc</span><br><span class="line">      persistentVolumeClaim:</span><br><span class="line">        claimName: rbd-pvc  #对应的PVC名称</span><br><span class="line">        readOnly: false</span><br><span class="line">&#x27; &gt; pod.yaml</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">执行</span></span><br><span class="line"> kubectl apply -f pod.yaml</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">进入容器查看挂载信息</span></span><br><span class="line"> kubectl exec -it csi-rbd-demo-pod bash</span><br><span class="line"> lsblk -l|grep rbd</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>容器化</category>
-        <category>k8s</category>
-        <category>存储系统</category>
-        <category>ceph</category>
-      </categories>
-      <tags>
-        <tag>docker</tag>
-        <tag>k8s</tag>
-        <tag>ceph</tag>
-        <tag>共享存储</tag>
-        <tag>ceph集群</tag>
-        <tag>容器云</tag>
-        <tag>k8s对接ceph</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>podman-5.1.2 部署</title>
     <url>/yyg/c10999ab/</url>
     <content><![CDATA[<h2 id="基础环境"><a href="#基础环境" class="headerlink" title="基础环境"></a>基础环境</h2><p>系统：openEuler 22.03 (LTS-SP4) X86</p>
@@ -1613,6 +1613,54 @@ Mastodon:  @Podman_io@fosstodon.org
         <tag>总结</tag>
         <tag>脚本</tag>
         <tag>shell</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>x86服务器构建ARM架构docker镜像</title>
+    <url>/yyg/4451cec/</url>
+    <content><![CDATA[<h2 id="基础环境"><a href="#基础环境" class="headerlink" title="基础环境"></a>基础环境</h2><p>操作系统：openEuler 22.03 (LTS-SP2)</p>
+<p>软件：Docker-26.1.2 、Docker Compose-v2.27.0</p>
+<h2 id="安装Docker"><a href="#安装Docker" class="headerlink" title="安装Docker"></a>安装Docker</h2><p>（1）配置yum源下载docker。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo</span><br><span class="line">sed -i &#x27;s/\$releasever/7/g&#x27; /etc/yum.repos.d/docker-ce.repo</span><br></pre></td></tr></table></figure>
+<p>（2）安装最新版docker和docker compose。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">下载依赖及docker、docker compose</span></span><br><span class="line">yum install -container-selinux</span><br><span class="line">yum install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin </span><br></pre></td></tr></table></figure>
+<p>（3）修改Docker的数据目录为“/data/dockerData”，并配置docker镜像源。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;&#123;</span><br><span class="line">  &quot;data-root&quot;: &quot;/data/dockerData&quot;,</span><br><span class="line"> &quot;registry-mirrors&quot;: [&quot;https://dockerhub.icu&quot;]</span><br><span class="line">&#125;&#x27; &gt; /etc/docker/daemon.json</span><br></pre></td></tr></table></figure>
+<p>（4）启动Docker服务，并设置为开机自启动。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">systemctl start docker</span><br><span class="line">systemctl enable docker</span><br></pre></td></tr></table></figure>
+<h2 id="使用-register-注册可支持的架构解析器"><a href="#使用-register-注册可支持的架构解析器" class="headerlink" title="使用 register 注册可支持的架构解析器"></a>使用 <code>register</code> 注册可支持的架构解析器</h2><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker run --rm --privileged multiarch/qemu-user-static:register --reset</span><br></pre></td></tr></table></figure>
+<p>查看二进制格式的解释器是否启用，显示<code>enabled</code>，即为启用。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">ls  /proc/sys/fs/binfmt_misc/ </span><br><span class="line">cat /proc/sys/fs/binfmt_misc/qemu-aarch64</span><br></pre></td></tr></table></figure>
+<h2 id="拉取基础arm镜像"><a href="#拉取基础arm镜像" class="headerlink" title="拉取基础arm镜像"></a>拉取基础arm镜像</h2><p>此处以httpd镜像为例，在x86服务器上拉取arm64架构的httpd镜像，其中<code>--platform=arm64</code>指定拉取的镜像架构位arm64，<code>--platform=amd64</code>则是拉取x86架构的镜像。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker pull --platform=arm64 httpd:latest</span><br></pre></td></tr></table></figure>
+<h2 id="定义Dockerfile，创建新镜像"><a href="#定义Dockerfile，创建新镜像" class="headerlink" title="定义Dockerfile，创建新镜像"></a>定义Dockerfile，创建新镜像</h2><p>通过使用Dockerfile创建新arm镜像的方式有两种，一种是直接下载<code>qemu-aarch64-static</code>程序，在构建镜像时直接拷贝进镜像中；另一种是拉取<code>multiarch/qemu-user-static:x86_64-aarch64</code>镜像，通过多阶段构建，从<code>multiarch/qemu-user-static:x86_64-aarch64</code>镜像中复制 <code>qemu-aarch64-static</code>程序 到 <code>httpd</code> 镜像中。</p>
+<h3 id="方式一：下载程序，直接复制"><a href="#方式一：下载程序，直接复制" class="headerlink" title="方式一：下载程序，直接复制"></a>方式一：下载程序，直接复制</h3><p>（1）在下载<code>qemu-aarch64-static</code>程序时，可直接下载该程序，也可先下载其压缩包，再解压。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">直接下载程序（推荐）</span></span><br><span class="line">wget https://github.com/multiarch/qemu-user-static/releases/download/v7.2.0-1/qemu-aarch64-static</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">先下载其压缩包，再解压</span></span><br><span class="line">wget https://github.com/multiarch/qemu-user-static/releases/download/v7.2.0-1/qemu-aarch64-static.tar.gz</span><br><span class="line">tar -vzxf qemu-aarch64-static.tar.gz</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">赋予可执行权限</span></span><br><span class="line">chmod +x /usr/bin/qemu-aarch64-static</span><br></pre></td></tr></table></figure>
+<p>（2）创建Dockerfile文件，在httpd镜像的基础上构建新镜像，<code>qemu-aarch64-static</code><mark>程序必须和Dockerfile文件在同一目录下</mark>。Dockerfile文件的具体内容如下：</p>
+<figure class="highlight dockerfile"><table><tr><td class="code"><pre><span class="line"><span class="keyword">FROM</span> httpd:latest</span><br><span class="line"><span class="comment"># 将qemu-aarch64-static程序拷贝进镜像的/usr/bin/目录</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> ./qemu-aarch64-static /usr/bin/qemu-aarch64-static</span></span><br><span class="line"><span class="comment"># 将测试的html文件拷贝到镜像的相关目录</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> ./index.html  /usr/local/apache2/htdocs/</span></span><br></pre></td></tr></table></figure>
+<p>（3）指定构建的架构，执行命令开始构建新镜像，构建完成后，查看新镜像的架构并导出为tar文件，在arm服务器上进行验证。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">构建镜像</span></span><br><span class="line">docker build --platform arm64 -t httpd:1.00 .</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看新镜像的架构</span></span><br><span class="line"> docker inspect httpd:1.00 | grep Architecture</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">导出镜像为tar文件</span></span><br><span class="line">docker save -o httpd.tar httpd:1.00</span><br></pre></td></tr></table></figure>
+<h3 id="方式二：通过镜像多重构建复制"><a href="#方式二：通过镜像多重构建复制" class="headerlink" title="方式二：通过镜像多重构建复制"></a>方式二：通过镜像多重构建复制</h3><p>（1）创建Dockerfile文件，分两个阶段构建新镜像，第一阶段从 <code>multiarch/qemu-user-static</code> 镜像中获取<code>qemu-aarch64-static</code>程序，第二阶段在httpd镜像的基础上构建新镜像，Dockerfile文件的具体内容如下：</p>
+<figure class="highlight dockerfile"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 第一阶段：从multiarch/qemu-user-static镜像中获取qemu-aarch64-static程序  </span></span><br><span class="line"><span class="keyword">FROM</span> multiarch/qemu-<span class="keyword">user</span>-static:x86_64-aarch64 as qemu</span><br><span class="line"><span class="comment"># 第二阶段：在httpd镜像的基础上构建新镜像</span></span><br><span class="line"><span class="keyword">FROM</span> httpd:latest</span><br><span class="line"><span class="comment"># 将qemu-aarch64-static程序拷贝进镜像的/usr/bin/目录</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> --from=qemu /usr/bin/qemu-aarch64-static /usr/bin/</span></span><br><span class="line"><span class="comment"># 将测试的html文件拷贝到镜像的相关目录</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> ./index.html  /usr/local/apache2/htdocs/</span></span><br></pre></td></tr></table></figure>
+<p>（2）指定构建的架构，执行命令开始构建新镜像，构建完成后，查看新镜像的架构并导出为tar文件，在arm服务器上进行验证。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">构建镜像</span></span><br><span class="line">docker build --platform arm64 -t httpd:1.00 .</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看新镜像的架构</span></span><br><span class="line"> docker inspect httpd:1.00 | grep Architecture</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">导出镜像为tar文件</span></span><br><span class="line">docker save -o httpd.tar httpd:1.00</span><br></pre></td></tr></table></figure>
+<p><mark>扩展：通过镜像多重构建复制也可用该docker命令直接替代。</mark></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker build --rm --platform arm64 -t &quot;httpd:1.00&quot; -&lt;&lt;EOF</span><br><span class="line">FROM multiarch/qemu-user-static:x86_64-aarch64 as qemu</span><br><span class="line">FROM httpd:latest</span><br><span class="line">COPY --from=qemu /usr/bin/qemu-aarch64-static /usr/bin</span><br><span class="line">COPY ./index.html  /usr/local/apache2/htdocs/</span><br><span class="line">EOF</span><br></pre></td></tr></table></figure>
+<h2 id="在arm服务器上验证"><a href="#在arm服务器上验证" class="headerlink" title="在arm服务器上验证"></a>在arm服务器上验证</h2><p>将新的镜像tar文件导入到arm服务器上，创建新容器验证镜像是否可用及镜像中的html文件是否生效。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">导入新镜像</span></span><br><span class="line">docker load -i httpd.tar</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看新镜像的架构</span></span><br><span class="line">docker inspect httpd:1.00 | grep Architecture</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">运行新容器</span></span><br><span class="line">docker run -itd --name test httpd:1.00</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看运行状态</span></span><br><span class="line">docker ps</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看容器IP</span></span><br><span class="line">docker inspect test | grep IPAddress</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">访问测试上传的html文件是否生效</span></span><br><span class="line">curl 172.17.0.2</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>Linux运维</category>
+        <category>容器化</category>
+        <category>docker</category>
+        <category>容器管理</category>
+      </categories>
+      <tags>
+        <tag>运维</tag>
+        <tag>Linux</tag>
+        <tag>docker镜像</tag>
+        <tag>跨架构镜像</tag>
+        <tag>x86-ARM</tag>
       </tags>
   </entry>
   <entry>
@@ -1727,54 +1775,6 @@ Mastodon:  @Podman_io@fosstodon.org
       </tags>
   </entry>
   <entry>
-    <title>x86服务器构建ARM架构docker镜像</title>
-    <url>/yyg/4451cec/</url>
-    <content><![CDATA[<h2 id="基础环境"><a href="#基础环境" class="headerlink" title="基础环境"></a>基础环境</h2><p>操作系统：openEuler 22.03 (LTS-SP2)</p>
-<p>软件：Docker-26.1.2 、Docker Compose-v2.27.0</p>
-<h2 id="安装Docker"><a href="#安装Docker" class="headerlink" title="安装Docker"></a>安装Docker</h2><p>（1）配置yum源下载docker。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo</span><br><span class="line">sed -i &#x27;s/\$releasever/7/g&#x27; /etc/yum.repos.d/docker-ce.repo</span><br></pre></td></tr></table></figure>
-<p>（2）安装最新版docker和docker compose。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">下载依赖及docker、docker compose</span></span><br><span class="line">yum install -container-selinux</span><br><span class="line">yum install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin </span><br></pre></td></tr></table></figure>
-<p>（3）修改Docker的数据目录为“/data/dockerData”，并配置docker镜像源。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;&#123;</span><br><span class="line">  &quot;data-root&quot;: &quot;/data/dockerData&quot;,</span><br><span class="line"> &quot;registry-mirrors&quot;: [&quot;https://dockerhub.icu&quot;]</span><br><span class="line">&#125;&#x27; &gt; /etc/docker/daemon.json</span><br></pre></td></tr></table></figure>
-<p>（4）启动Docker服务，并设置为开机自启动。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">systemctl start docker</span><br><span class="line">systemctl enable docker</span><br></pre></td></tr></table></figure>
-<h2 id="使用-register-注册可支持的架构解析器"><a href="#使用-register-注册可支持的架构解析器" class="headerlink" title="使用 register 注册可支持的架构解析器"></a>使用 <code>register</code> 注册可支持的架构解析器</h2><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker run --rm --privileged multiarch/qemu-user-static:register --reset</span><br></pre></td></tr></table></figure>
-<p>查看二进制格式的解释器是否启用，显示<code>enabled</code>，即为启用。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">ls  /proc/sys/fs/binfmt_misc/ </span><br><span class="line">cat /proc/sys/fs/binfmt_misc/qemu-aarch64</span><br></pre></td></tr></table></figure>
-<h2 id="拉取基础arm镜像"><a href="#拉取基础arm镜像" class="headerlink" title="拉取基础arm镜像"></a>拉取基础arm镜像</h2><p>此处以httpd镜像为例，在x86服务器上拉取arm64架构的httpd镜像，其中<code>--platform=arm64</code>指定拉取的镜像架构位arm64，<code>--platform=amd64</code>则是拉取x86架构的镜像。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker pull --platform=arm64 httpd:latest</span><br></pre></td></tr></table></figure>
-<h2 id="定义Dockerfile，创建新镜像"><a href="#定义Dockerfile，创建新镜像" class="headerlink" title="定义Dockerfile，创建新镜像"></a>定义Dockerfile，创建新镜像</h2><p>通过使用Dockerfile创建新arm镜像的方式有两种，一种是直接下载<code>qemu-aarch64-static</code>程序，在构建镜像时直接拷贝进镜像中；另一种是拉取<code>multiarch/qemu-user-static:x86_64-aarch64</code>镜像，通过多阶段构建，从<code>multiarch/qemu-user-static:x86_64-aarch64</code>镜像中复制 <code>qemu-aarch64-static</code>程序 到 <code>httpd</code> 镜像中。</p>
-<h3 id="方式一：下载程序，直接复制"><a href="#方式一：下载程序，直接复制" class="headerlink" title="方式一：下载程序，直接复制"></a>方式一：下载程序，直接复制</h3><p>（1）在下载<code>qemu-aarch64-static</code>程序时，可直接下载该程序，也可先下载其压缩包，再解压。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">直接下载程序（推荐）</span></span><br><span class="line">wget https://github.com/multiarch/qemu-user-static/releases/download/v7.2.0-1/qemu-aarch64-static</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">先下载其压缩包，再解压</span></span><br><span class="line">wget https://github.com/multiarch/qemu-user-static/releases/download/v7.2.0-1/qemu-aarch64-static.tar.gz</span><br><span class="line">tar -vzxf qemu-aarch64-static.tar.gz</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">赋予可执行权限</span></span><br><span class="line">chmod +x /usr/bin/qemu-aarch64-static</span><br></pre></td></tr></table></figure>
-<p>（2）创建Dockerfile文件，在httpd镜像的基础上构建新镜像，<code>qemu-aarch64-static</code><mark>程序必须和Dockerfile文件在同一目录下</mark>。Dockerfile文件的具体内容如下：</p>
-<figure class="highlight dockerfile"><table><tr><td class="code"><pre><span class="line"><span class="keyword">FROM</span> httpd:latest</span><br><span class="line"><span class="comment"># 将qemu-aarch64-static程序拷贝进镜像的/usr/bin/目录</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> ./qemu-aarch64-static /usr/bin/qemu-aarch64-static</span></span><br><span class="line"><span class="comment"># 将测试的html文件拷贝到镜像的相关目录</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> ./index.html  /usr/local/apache2/htdocs/</span></span><br></pre></td></tr></table></figure>
-<p>（3）指定构建的架构，执行命令开始构建新镜像，构建完成后，查看新镜像的架构并导出为tar文件，在arm服务器上进行验证。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">构建镜像</span></span><br><span class="line">docker build --platform arm64 -t httpd:1.00 .</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看新镜像的架构</span></span><br><span class="line"> docker inspect httpd:1.00 | grep Architecture</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">导出镜像为tar文件</span></span><br><span class="line">docker save -o httpd.tar httpd:1.00</span><br></pre></td></tr></table></figure>
-<h3 id="方式二：通过镜像多重构建复制"><a href="#方式二：通过镜像多重构建复制" class="headerlink" title="方式二：通过镜像多重构建复制"></a>方式二：通过镜像多重构建复制</h3><p>（1）创建Dockerfile文件，分两个阶段构建新镜像，第一阶段从 <code>multiarch/qemu-user-static</code> 镜像中获取<code>qemu-aarch64-static</code>程序，第二阶段在httpd镜像的基础上构建新镜像，Dockerfile文件的具体内容如下：</p>
-<figure class="highlight dockerfile"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 第一阶段：从multiarch/qemu-user-static镜像中获取qemu-aarch64-static程序  </span></span><br><span class="line"><span class="keyword">FROM</span> multiarch/qemu-<span class="keyword">user</span>-static:x86_64-aarch64 as qemu</span><br><span class="line"><span class="comment"># 第二阶段：在httpd镜像的基础上构建新镜像</span></span><br><span class="line"><span class="keyword">FROM</span> httpd:latest</span><br><span class="line"><span class="comment"># 将qemu-aarch64-static程序拷贝进镜像的/usr/bin/目录</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> --from=qemu /usr/bin/qemu-aarch64-static /usr/bin/</span></span><br><span class="line"><span class="comment"># 将测试的html文件拷贝到镜像的相关目录</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> ./index.html  /usr/local/apache2/htdocs/</span></span><br></pre></td></tr></table></figure>
-<p>（2）指定构建的架构，执行命令开始构建新镜像，构建完成后，查看新镜像的架构并导出为tar文件，在arm服务器上进行验证。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">构建镜像</span></span><br><span class="line">docker build --platform arm64 -t httpd:1.00 .</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看新镜像的架构</span></span><br><span class="line"> docker inspect httpd:1.00 | grep Architecture</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">导出镜像为tar文件</span></span><br><span class="line">docker save -o httpd.tar httpd:1.00</span><br></pre></td></tr></table></figure>
-<p><mark>扩展：通过镜像多重构建复制也可用该docker命令直接替代。</mark></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker build --rm --platform arm64 -t &quot;httpd:1.00&quot; -&lt;&lt;EOF</span><br><span class="line">FROM multiarch/qemu-user-static:x86_64-aarch64 as qemu</span><br><span class="line">FROM httpd:latest</span><br><span class="line">COPY --from=qemu /usr/bin/qemu-aarch64-static /usr/bin</span><br><span class="line">COPY ./index.html  /usr/local/apache2/htdocs/</span><br><span class="line">EOF</span><br></pre></td></tr></table></figure>
-<h2 id="在arm服务器上验证"><a href="#在arm服务器上验证" class="headerlink" title="在arm服务器上验证"></a>在arm服务器上验证</h2><p>将新的镜像tar文件导入到arm服务器上，创建新容器验证镜像是否可用及镜像中的html文件是否生效。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">导入新镜像</span></span><br><span class="line">docker load -i httpd.tar</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看新镜像的架构</span></span><br><span class="line">docker inspect httpd:1.00 | grep Architecture</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">运行新容器</span></span><br><span class="line">docker run -itd --name test httpd:1.00</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看运行状态</span></span><br><span class="line">docker ps</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看容器IP</span></span><br><span class="line">docker inspect test | grep IPAddress</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">访问测试上传的html文件是否生效</span></span><br><span class="line">curl 172.17.0.2</span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>Linux运维</category>
-        <category>容器化</category>
-        <category>docker</category>
-        <category>容器管理</category>
-      </categories>
-      <tags>
-        <tag>运维</tag>
-        <tag>Linux</tag>
-        <tag>docker镜像</tag>
-        <tag>跨架构镜像</tag>
-        <tag>x86-ARM</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>ELK | 使用 docker部署三节点 Elasticsearch 集群</title>
     <url>/yyg/56088d5a/</url>
     <content><![CDATA[<h2 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h2><ol>
@@ -1855,6 +1855,65 @@ Mastodon:  @Podman_io@fosstodon.org
         <tag>Elasticsearch</tag>
         <tag>Kibana</tag>
         <tag>Logstash</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>使用portainer管理容器</title>
+    <url>/yyg/c60df0d6/</url>
+    <content><![CDATA[<h2 id="基础环境"><a href="#基础环境" class="headerlink" title="基础环境"></a>基础环境</h2><p>系统环境：</p>
+<p>操作系统：CentOS 7.9</p>
+<p>软件环境：</p>
+<p>Docker-26.1.4、Docker Compose-2.27.1 、portainer-2.20.3</p>
+<p>配置阿里yum源 :</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">cd /etc/yum.repos.d</span><br><span class="line">mv CentOS-Base.repo CentOS-Base.repo.bak</span><br><span class="line">curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo</span><br></pre></td></tr></table></figure>
+<p>配置防火墙策略：</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">firewall-cmd --add-port=9443/tcp --permanent</span><br><span class="line">sudo firewall-cmd --reload</span><br><span class="line">sudo firewall-cmd --list-all</span><br></pre></td></tr></table></figure>
+<h2 id="安装Docker"><a href="#安装Docker" class="headerlink" title="安装Docker"></a>安装Docker</h2><p>（1）安装 yum-utils 软件包（提供 yum-config-manager 实用程序）并设置存储库。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">安装 yum-utils 软件包</span></span><br><span class="line">yum install -y yum-utils</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">设置docker-ce存储库</span></span><br><span class="line">yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo</span><br></pre></td></tr></table></figure>
+<p>（2）安装最新版docker和docker compose。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin</span><br></pre></td></tr></table></figure>
+<p>（3）修改Docker的数据目录为“/data/dockerData”,并修改docker镜像源。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">创建Docker守护进程配置文件,编辑配置文件/etc/docker/daemon.json，配置docker数据目录，并修改docker镜像源</span></span><br><span class="line">echo &#x27;&#123;</span><br><span class="line">  &quot;data-root&quot;: &quot;/data/dockerData&quot;,</span><br><span class="line">    &quot;registry-mirrors&quot;: [</span><br><span class="line">    &quot;https://registry.docker-cn.com&quot;,</span><br><span class="line">    &quot;http://hub-mirror.c.163.com&quot;,</span><br><span class="line">    &quot;https://dockerhub.azk8s.cn&quot;,</span><br><span class="line">    &quot;https://mirror.ccs.tencentyun.com&quot;,</span><br><span class="line">    &quot;https://registry.cn-hangzhou.aliyuncs.com&quot;,</span><br><span class="line">    &quot;https://docker.mirrors.ustc.edu.cn&quot;,</span><br><span class="line">    &quot;https://docker.m.daocloud.io&quot;,</span><br><span class="line">    &quot;https://noohub.ru&quot;,</span><br><span class="line">    &quot;https://huecker.io&quot;,</span><br><span class="line">    &quot;https://dockerhub.timeweb.cloud&quot;</span><br><span class="line">  ]</span><br><span class="line">&#125;&#x27; &gt; /etc/docker/daemon.json</span><br></pre></td></tr></table></figure>
+<p>（4）启动Docker服务，并设置为开机自启动。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">启动Docker服务</span></span><br><span class="line">systemctl start docker</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">设置Docker为开机自启动</span></span><br><span class="line">systemctl enable docker</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看Docker服务状态</span></span><br><span class="line">systemctl status docker</span><br></pre></td></tr></table></figure>
+<h2 id="安装portainer"><a href="#安装portainer" class="headerlink" title="安装portainer"></a>安装portainer</h2><p>（1）拉取portainer镜像并创建容器</p>
+<p>方式一：使用docker命令</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">docker run -d -p 9443:9443 --name portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v /data/portainer:/data portainer/portainer-ce:2.20.3</span><br></pre></td></tr></table></figure>
+<p>方式二：使用compose文件安装</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">vi portainer.yml</span><br><span class="line">--------------------------------------------------</span><br><span class="line">services:</span><br><span class="line">  portainer:</span><br><span class="line">    image: portainer/portainer-ce:2.20.3</span><br><span class="line">    container_name: portainer</span><br><span class="line">    restart: always</span><br><span class="line">    ports:</span><br><span class="line">      - &quot;9443:9443&quot;</span><br><span class="line">    volumes:</span><br><span class="line">      - /var/run/docker.sock:/var/run/docker.sock</span><br><span class="line">      - /data/portainer:/data</span><br><span class="line">    user: &quot;0&quot;</span><br><span class="line">    networks:</span><br><span class="line">      net:</span><br><span class="line">        ipv4_address: 172.20.110.10</span><br><span class="line"></span><br><span class="line">networks:</span><br><span class="line"> net:</span><br><span class="line">  driver: bridge</span><br><span class="line">  ipam:</span><br><span class="line">   config:</span><br><span class="line">    - subnet: 172.20.110.0/24</span><br><span class="line">--------------------------------------------------</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">运行安装</span></span><br><span class="line">docker compose -f portainer.yml up -d</span><br></pre></td></tr></table></figure>
+<p>（2）初始化portainer，设置admin用户的密码</p>
+<img src="/yyg/c60df0d6/1.png" class="" title="image-20240718163227768">
+<p>（3）进入系统后，点击“Get Started”，查看本机的容器，如下图。</p>
+<img src="/yyg/c60df0d6/2.png" class="" title="image-20240718164748722">
+<h2 id="多实例环境管理"><a href="#多实例环境管理" class="headerlink" title="多实例环境管理"></a>多实例环境管理</h2><p>Portainer可以管理多个环境，包括Docker Standalone、Docker Swarm、Kubernetes、ACI等。</p>
+<p>使用Portainer管理多Docker Standalone实例，有两种方式，分别是api和客户端容器。</p>
+<h3 id="方式一：使用docker-api-管理Docker-Standalone实例"><a href="#方式一：使用docker-api-管理Docker-Standalone实例" class="headerlink" title="方式一：使用docker api 管理Docker Standalone实例"></a>方式一：使用docker api 管理Docker Standalone实例</h3><p>（1）在其他实例环境上，修改docker服务的配置文件，让Docker守护进程通过TCP在的2375端口监听连接，并通过UNIX套接字在本地监听连接。</p>
+<p>即在ExecStart后添加-H tcp://0.0.0.0:2375 -H unix:///var/run/docker.sock参数。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">vi /usr/lib/systemd/system/docker.service</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">修改内容如下</span></span><br><span class="line">[Service]</span><br><span class="line">ExecStart=/usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock -H tcp://0.0.0.0:2375 -H unix:///var/run/docker.sock</span><br></pre></td></tr></table></figure>
+<p>（2）重新加载配置，使配置生效。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#重新加载配置</span><br><span class="line">systemctl daemon-reload</span><br><span class="line">#重启docker</span><br><span class="line">systemctl restart docker</span><br></pre></td></tr></table></figure>
+<p>（3）设置防火墙策略</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#只允许Portainer主机访问该主机的2375端口</span><br><span class="line">sudo firewall-cmd --permanent --add-rich-rule=&quot;rule family=&quot;ipv4&quot; source address=&quot;192.168.22.23/32&quot; port protocol=&quot;tcp&quot; port=&quot;2357&quot; accept&quot;</span><br></pre></td></tr></table></figure>
+<p>（4）点击Environment-related菜单中的Environments，点击Add environment按钮，添加Docker Standalone，如下图。</p>
+<img src="/yyg/c60df0d6/3.png" class="" title="image-20240723122531889">
+<p>（5）选择API，填写名称和Docker Standalone实例的ip和端口（2375），点击Connect，连接成功后，点击Close，如下图。</p>
+<img src="/yyg/c60df0d6/4.png" class="" title="image-20240723122857044">
+<h3 id="方式二：使用agent容器管理Docker-Standalone实例"><a href="#方式二：使用agent容器管理Docker-Standalone实例" class="headerlink" title="方式二：使用agent容器管理Docker Standalone实例"></a>方式二：使用agent容器管理Docker Standalone实例</h3><p>（1）在其他实例环境上，部署agent容器进行连接，具体命令如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">docker run -d \</span><br><span class="line">  -p 9001:9001 \</span><br><span class="line">  --name portainer_agent \</span><br><span class="line">  --restart=always \</span><br><span class="line">  -v /var/run/docker.sock:/var/run/docker.sock \</span><br><span class="line">  -v /var/lib/docker/volumes:/var/lib/docker/volumes \</span><br><span class="line">  portainer/agent:2.20.3</span><br></pre></td></tr></table></figure>
+<p>（2）设置防火墙策略</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#只允许Portainer主机访问该主机的9001端口</span><br><span class="line">sudo firewall-cmd --permanent --add-rich-rule=&quot;rule family=&quot;ipv4&quot; source address=&quot;192.168.22.23/9001&quot; port protocol=&quot;tcp&quot; port=&quot;9001&quot; accept&quot;</span><br></pre></td></tr></table></figure>
+<p>连接成功后，在Home界面查看两种方式连接的Docker Standalone实例</p>
+<img src="/yyg/c60df0d6/5.png" class="" title="image-20240723124359442">
+]]></content>
+      <categories>
+        <category>Linux运维</category>
+        <category>容器化</category>
+        <category>docker</category>
+        <category>容器管理</category>
+      </categories>
+      <tags>
+        <tag>docker</tag>
+        <tag>portainer</tag>
       </tags>
   </entry>
   <entry>
@@ -1953,65 +2012,6 @@ Mastodon:  @Podman_io@fosstodon.org
       </tags>
   </entry>
   <entry>
-    <title>使用portainer管理容器</title>
-    <url>/yyg/c60df0d6/</url>
-    <content><![CDATA[<h2 id="基础环境"><a href="#基础环境" class="headerlink" title="基础环境"></a>基础环境</h2><p>系统环境：</p>
-<p>操作系统：CentOS 7.9</p>
-<p>软件环境：</p>
-<p>Docker-26.1.4、Docker Compose-2.27.1 、portainer-2.20.3</p>
-<p>配置阿里yum源 :</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">cd /etc/yum.repos.d</span><br><span class="line">mv CentOS-Base.repo CentOS-Base.repo.bak</span><br><span class="line">curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo</span><br></pre></td></tr></table></figure>
-<p>配置防火墙策略：</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">firewall-cmd --add-port=9443/tcp --permanent</span><br><span class="line">sudo firewall-cmd --reload</span><br><span class="line">sudo firewall-cmd --list-all</span><br></pre></td></tr></table></figure>
-<h2 id="安装Docker"><a href="#安装Docker" class="headerlink" title="安装Docker"></a>安装Docker</h2><p>（1）安装 yum-utils 软件包（提供 yum-config-manager 实用程序）并设置存储库。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">安装 yum-utils 软件包</span></span><br><span class="line">yum install -y yum-utils</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">设置docker-ce存储库</span></span><br><span class="line">yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo</span><br></pre></td></tr></table></figure>
-<p>（2）安装最新版docker和docker compose。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin</span><br></pre></td></tr></table></figure>
-<p>（3）修改Docker的数据目录为“/data/dockerData”,并修改docker镜像源。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">创建Docker守护进程配置文件,编辑配置文件/etc/docker/daemon.json，配置docker数据目录，并修改docker镜像源</span></span><br><span class="line">echo &#x27;&#123;</span><br><span class="line">  &quot;data-root&quot;: &quot;/data/dockerData&quot;,</span><br><span class="line">    &quot;registry-mirrors&quot;: [</span><br><span class="line">    &quot;https://registry.docker-cn.com&quot;,</span><br><span class="line">    &quot;http://hub-mirror.c.163.com&quot;,</span><br><span class="line">    &quot;https://dockerhub.azk8s.cn&quot;,</span><br><span class="line">    &quot;https://mirror.ccs.tencentyun.com&quot;,</span><br><span class="line">    &quot;https://registry.cn-hangzhou.aliyuncs.com&quot;,</span><br><span class="line">    &quot;https://docker.mirrors.ustc.edu.cn&quot;,</span><br><span class="line">    &quot;https://docker.m.daocloud.io&quot;,</span><br><span class="line">    &quot;https://noohub.ru&quot;,</span><br><span class="line">    &quot;https://huecker.io&quot;,</span><br><span class="line">    &quot;https://dockerhub.timeweb.cloud&quot;</span><br><span class="line">  ]</span><br><span class="line">&#125;&#x27; &gt; /etc/docker/daemon.json</span><br></pre></td></tr></table></figure>
-<p>（4）启动Docker服务，并设置为开机自启动。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">启动Docker服务</span></span><br><span class="line">systemctl start docker</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">设置Docker为开机自启动</span></span><br><span class="line">systemctl enable docker</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看Docker服务状态</span></span><br><span class="line">systemctl status docker</span><br></pre></td></tr></table></figure>
-<h2 id="安装portainer"><a href="#安装portainer" class="headerlink" title="安装portainer"></a>安装portainer</h2><p>（1）拉取portainer镜像并创建容器</p>
-<p>方式一：使用docker命令</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">docker run -d -p 9443:9443 --name portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v /data/portainer:/data portainer/portainer-ce:2.20.3</span><br></pre></td></tr></table></figure>
-<p>方式二：使用compose文件安装</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">vi portainer.yml</span><br><span class="line">--------------------------------------------------</span><br><span class="line">services:</span><br><span class="line">  portainer:</span><br><span class="line">    image: portainer/portainer-ce:2.20.3</span><br><span class="line">    container_name: portainer</span><br><span class="line">    restart: always</span><br><span class="line">    ports:</span><br><span class="line">      - &quot;9443:9443&quot;</span><br><span class="line">    volumes:</span><br><span class="line">      - /var/run/docker.sock:/var/run/docker.sock</span><br><span class="line">      - /data/portainer:/data</span><br><span class="line">    user: &quot;0&quot;</span><br><span class="line">    networks:</span><br><span class="line">      net:</span><br><span class="line">        ipv4_address: 172.20.110.10</span><br><span class="line"></span><br><span class="line">networks:</span><br><span class="line"> net:</span><br><span class="line">  driver: bridge</span><br><span class="line">  ipam:</span><br><span class="line">   config:</span><br><span class="line">    - subnet: 172.20.110.0/24</span><br><span class="line">--------------------------------------------------</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">运行安装</span></span><br><span class="line">docker compose -f portainer.yml up -d</span><br></pre></td></tr></table></figure>
-<p>（2）初始化portainer，设置admin用户的密码</p>
-<img src="/yyg/c60df0d6/1.png" class="" title="image-20240718163227768">
-<p>（3）进入系统后，点击“Get Started”，查看本机的容器，如下图。</p>
-<img src="/yyg/c60df0d6/2.png" class="" title="image-20240718164748722">
-<h2 id="多实例环境管理"><a href="#多实例环境管理" class="headerlink" title="多实例环境管理"></a>多实例环境管理</h2><p>Portainer可以管理多个环境，包括Docker Standalone、Docker Swarm、Kubernetes、ACI等。</p>
-<p>使用Portainer管理多Docker Standalone实例，有两种方式，分别是api和客户端容器。</p>
-<h3 id="方式一：使用docker-api-管理Docker-Standalone实例"><a href="#方式一：使用docker-api-管理Docker-Standalone实例" class="headerlink" title="方式一：使用docker api 管理Docker Standalone实例"></a>方式一：使用docker api 管理Docker Standalone实例</h3><p>（1）在其他实例环境上，修改docker服务的配置文件，让Docker守护进程通过TCP在的2375端口监听连接，并通过UNIX套接字在本地监听连接。</p>
-<p>即在ExecStart后添加-H tcp://0.0.0.0:2375 -H unix:///var/run/docker.sock参数。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">vi /usr/lib/systemd/system/docker.service</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">修改内容如下</span></span><br><span class="line">[Service]</span><br><span class="line">ExecStart=/usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock -H tcp://0.0.0.0:2375 -H unix:///var/run/docker.sock</span><br></pre></td></tr></table></figure>
-<p>（2）重新加载配置，使配置生效。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#重新加载配置</span><br><span class="line">systemctl daemon-reload</span><br><span class="line">#重启docker</span><br><span class="line">systemctl restart docker</span><br></pre></td></tr></table></figure>
-<p>（3）设置防火墙策略</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#只允许Portainer主机访问该主机的2375端口</span><br><span class="line">sudo firewall-cmd --permanent --add-rich-rule=&quot;rule family=&quot;ipv4&quot; source address=&quot;192.168.22.23/32&quot; port protocol=&quot;tcp&quot; port=&quot;2357&quot; accept&quot;</span><br></pre></td></tr></table></figure>
-<p>（4）点击Environment-related菜单中的Environments，点击Add environment按钮，添加Docker Standalone，如下图。</p>
-<img src="/yyg/c60df0d6/3.png" class="" title="image-20240723122531889">
-<p>（5）选择API，填写名称和Docker Standalone实例的ip和端口（2375），点击Connect，连接成功后，点击Close，如下图。</p>
-<img src="/yyg/c60df0d6/4.png" class="" title="image-20240723122857044">
-<h3 id="方式二：使用agent容器管理Docker-Standalone实例"><a href="#方式二：使用agent容器管理Docker-Standalone实例" class="headerlink" title="方式二：使用agent容器管理Docker Standalone实例"></a>方式二：使用agent容器管理Docker Standalone实例</h3><p>（1）在其他实例环境上，部署agent容器进行连接，具体命令如下：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">docker run -d \</span><br><span class="line">  -p 9001:9001 \</span><br><span class="line">  --name portainer_agent \</span><br><span class="line">  --restart=always \</span><br><span class="line">  -v /var/run/docker.sock:/var/run/docker.sock \</span><br><span class="line">  -v /var/lib/docker/volumes:/var/lib/docker/volumes \</span><br><span class="line">  portainer/agent:2.20.3</span><br></pre></td></tr></table></figure>
-<p>（2）设置防火墙策略</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#只允许Portainer主机访问该主机的9001端口</span><br><span class="line">sudo firewall-cmd --permanent --add-rich-rule=&quot;rule family=&quot;ipv4&quot; source address=&quot;192.168.22.23/9001&quot; port protocol=&quot;tcp&quot; port=&quot;9001&quot; accept&quot;</span><br></pre></td></tr></table></figure>
-<p>连接成功后，在Home界面查看两种方式连接的Docker Standalone实例</p>
-<img src="/yyg/c60df0d6/5.png" class="" title="image-20240723124359442">
-]]></content>
-      <categories>
-        <category>Linux运维</category>
-        <category>容器化</category>
-        <category>docker</category>
-        <category>容器管理</category>
-      </categories>
-      <tags>
-        <tag>docker</tag>
-        <tag>portainer</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>在Github上使用OsmosFeed搭建在线RSS阅读器（无需服务器）</title>
     <url>/yyg/5ea27f40/</url>
     <content><![CDATA[<h1 id="在Github上使用OsmosFeed搭建在线RSS阅读器（无需服务器）"><a href="#在Github上使用OsmosFeed搭建在线RSS阅读器（无需服务器）" class="headerlink" title="在Github上使用OsmosFeed搭建在线RSS阅读器（无需服务器）"></a>在Github上使用OsmosFeed搭建在线RSS阅读器（无需服务器）</h1><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在搭建<code>云野阁</code>博客网站期间，看了好多具有个人特色的博客网站，有不少都有RSS订阅功能，那RSS是什么呢？咱们先唠唠。</p>
@@ -2051,6 +2051,36 @@ Mastodon:  @Podman_io@fosstodon.org
         <tag>魔改</tag>
         <tag>在线rss阅读器</tag>
         <tag>GitHub Pages</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>安装Winlogbeat日志采集器</title>
+    <url>/yyg/f547e2a9/</url>
+    <content><![CDATA[<ol>
+<li>Winlogbeat安装程序可通过其官网（<a href="https://www.elastic.co/cn/beats/winlogbeat）下载。">https://www.elastic.co/cn/beats/winlogbeat）下载。</a></li>
+<li>双击启动安装程序，进入安装向导后勾选“I accept the terms in the License Agreement”，单击【Install】，如图所示。</li>
+</ol>
+<img src="/yyg/f547e2a9/4.png" class="" title="img">
+<ol>
+<li>按安装向导安装完成后，单击【Finish】，完成安装并打开安装目录。如图所示。</li>
+</ol>
+<img src="/yyg/f547e2a9/3.png" class="" title="img">
+<img src="/yyg/f547e2a9/2.png" class="" title="img">
+<ol>
+<li><p>以管理员身份打开 PowerShell 提示符（右键单击 PowerShell 图标，然后选择以管理员身份运行），允许在本地主机上创建winlogbeat服务，创建成功后允许winlogbeat服务并验证。如图所示。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PS C:\Windows\system32&gt; cd &quot;C:\Program Files\Elastic\Beats\8.13.2\winlogbeat&quot;</span><br><span class="line"># 允许在本地计算机上编写的未签名脚本自由运行</span><br><span class="line">PS C:\Program Files\Elastic\Beats\8.13.2\winlogbeat&gt; set-executionpolicy remotesigned</span><br><span class="line"></span><br><span class="line">执行策略更改</span><br><span class="line">执行策略可帮助你防止执行不信任的脚本。更改执行策略可能会产生安全风险，如 https:/go.microsoft.com/fwlink/?LinkID=135170</span><br><span class="line">中的 about_Execution_Policies 帮助主题所述。是否要更改执行策略?</span><br><span class="line">[Y] 是(Y)  [A] 全是(A)  [N] 否(N)  [L] 全否(L)  [S] 暂停(S)  [?] 帮助 (默认值为“N”): y</span><br><span class="line"># 允许脚本在系统上运行</span><br><span class="line">PS C:\Program Files\Elastic\Beats\8.13.2\winlogbeat&gt; set-executionpolicy Bypass</span><br><span class="line"></span><br><span class="line">执行策略更改</span><br><span class="line">执行策略可帮助你防止执行不信任的脚本。更改执行策略可能会产生安全风险，如 https:/go.microsoft.com/fwlink/?LinkID=135170</span><br><span class="line">中的 about_Execution_Policies 帮助主题所述。是否要更改执行策略?</span><br><span class="line">[Y] 是(Y)  [A] 全是(A)  [N] 否(N)  [L] 全否(L)  [S] 暂停(S)  [?] 帮助 (默认值为“N”): y</span><br><span class="line"># 创建winlogbeat服务</span><br><span class="line">PS C:\Program Files\Elastic\Beats\8.13.2\winlogbeat&gt; .\install-service-winlogbeat.ps1</span><br><span class="line">[SC] DeleteService 成功</span><br><span class="line"></span><br><span class="line">Status   Name               DisplayName</span><br><span class="line">------   ----               -----------</span><br><span class="line">Stopped  winlogbeat         winlogbeat</span><br><span class="line"></span><br><span class="line"># 启动winlogbeat服务</span><br><span class="line">PS C:\Program Files\Elastic\Beats\8.13.2\winlogbeat&gt; Start-Service winlogbeat</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<img src="/yyg/f547e2a9/1.png" class="" title="img">]]></content>
+      <categories>
+        <category>日志分析</category>
+        <category>ELK</category>
+      </categories>
+      <tags>
+        <tag>日志分析</tag>
+        <tag>ELK</tag>
+        <tag>日志采集器</tag>
+        <tag>Winlogbeat</tag>
       </tags>
   </entry>
   <entry>
@@ -2115,36 +2145,6 @@ Mastodon:  @Podman_io@fosstodon.org
       <tags>
         <tag>docker</tag>
         <tag>容器通信</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>安装Winlogbeat日志采集器</title>
-    <url>/yyg/f547e2a9/</url>
-    <content><![CDATA[<ol>
-<li>Winlogbeat安装程序可通过其官网（<a href="https://www.elastic.co/cn/beats/winlogbeat）下载。">https://www.elastic.co/cn/beats/winlogbeat）下载。</a></li>
-<li>双击启动安装程序，进入安装向导后勾选“I accept the terms in the License Agreement”，单击【Install】，如图所示。</li>
-</ol>
-<img src="/yyg/f547e2a9/4.png" class="" title="img">
-<ol>
-<li>按安装向导安装完成后，单击【Finish】，完成安装并打开安装目录。如图所示。</li>
-</ol>
-<img src="/yyg/f547e2a9/3.png" class="" title="img">
-<img src="/yyg/f547e2a9/2.png" class="" title="img">
-<ol>
-<li><p>以管理员身份打开 PowerShell 提示符（右键单击 PowerShell 图标，然后选择以管理员身份运行），允许在本地主机上创建winlogbeat服务，创建成功后允许winlogbeat服务并验证。如图所示。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PS C:\Windows\system32&gt; cd &quot;C:\Program Files\Elastic\Beats\8.13.2\winlogbeat&quot;</span><br><span class="line"># 允许在本地计算机上编写的未签名脚本自由运行</span><br><span class="line">PS C:\Program Files\Elastic\Beats\8.13.2\winlogbeat&gt; set-executionpolicy remotesigned</span><br><span class="line"></span><br><span class="line">执行策略更改</span><br><span class="line">执行策略可帮助你防止执行不信任的脚本。更改执行策略可能会产生安全风险，如 https:/go.microsoft.com/fwlink/?LinkID=135170</span><br><span class="line">中的 about_Execution_Policies 帮助主题所述。是否要更改执行策略?</span><br><span class="line">[Y] 是(Y)  [A] 全是(A)  [N] 否(N)  [L] 全否(L)  [S] 暂停(S)  [?] 帮助 (默认值为“N”): y</span><br><span class="line"># 允许脚本在系统上运行</span><br><span class="line">PS C:\Program Files\Elastic\Beats\8.13.2\winlogbeat&gt; set-executionpolicy Bypass</span><br><span class="line"></span><br><span class="line">执行策略更改</span><br><span class="line">执行策略可帮助你防止执行不信任的脚本。更改执行策略可能会产生安全风险，如 https:/go.microsoft.com/fwlink/?LinkID=135170</span><br><span class="line">中的 about_Execution_Policies 帮助主题所述。是否要更改执行策略?</span><br><span class="line">[Y] 是(Y)  [A] 全是(A)  [N] 否(N)  [L] 全否(L)  [S] 暂停(S)  [?] 帮助 (默认值为“N”): y</span><br><span class="line"># 创建winlogbeat服务</span><br><span class="line">PS C:\Program Files\Elastic\Beats\8.13.2\winlogbeat&gt; .\install-service-winlogbeat.ps1</span><br><span class="line">[SC] DeleteService 成功</span><br><span class="line"></span><br><span class="line">Status   Name               DisplayName</span><br><span class="line">------   ----               -----------</span><br><span class="line">Stopped  winlogbeat         winlogbeat</span><br><span class="line"></span><br><span class="line"># 启动winlogbeat服务</span><br><span class="line">PS C:\Program Files\Elastic\Beats\8.13.2\winlogbeat&gt; Start-Service winlogbeat</span><br></pre></td></tr></table></figure>
-</li>
-</ol>
-<img src="/yyg/f547e2a9/1.png" class="" title="img">]]></content>
-      <categories>
-        <category>日志分析</category>
-        <category>ELK</category>
-      </categories>
-      <tags>
-        <tag>日志分析</tag>
-        <tag>ELK</tag>
-        <tag>日志采集器</tag>
-        <tag>Winlogbeat</tag>
       </tags>
   </entry>
   <entry>
