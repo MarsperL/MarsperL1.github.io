@@ -15,8 +15,45 @@
     <atom:link href="https://marsperl.github.io/rss2.xml" rel="self" type="application/rss+xml"/>
     
     <description>闲云野鹤，八方逍遥</description>
-    <pubDate>Thu, 10 Oct 2024 13:45:47 GMT</pubDate>
+    <pubDate>Thu, 24 Oct 2024 14:20:02 GMT</pubDate>
     <generator>http://hexo.io/</generator>
+    
+    <item>
+      <title>eNSP模拟网络设备访问真实网络</title>
+      <link>https://marsperl.github.io/yyg/f5b762ea/</link>
+      <guid>https://marsperl.github.io/yyg/f5b762ea/</guid>
+      <pubDate>Thu, 24 Oct 2024 14:08:30 GMT</pubDate>
+      
+        
+        
+          
+          
+      <description>&lt;h2 id=&quot;添加Loopback环回网卡&quot;&gt;&lt;a href=&quot;#添加Loopback环回网卡&quot; class=&quot;headerlink&quot; title=&quot;添加Loopback环回网卡&quot;&gt;&lt;/a&gt;添加Loopback环回网卡&lt;/h2&gt;&lt;p&gt;（1）使用Win+ R调出”运行“，输入&lt;code&gt;hdwwiz&lt;/code&gt;，确定后开始添加新硬件向导。&lt;/p&gt;
+&lt;p&gt;（2）按向导操作，选择&lt;code&gt;安装我手动从列表选择的硬件(高级)(M)&lt;/code&gt;。&lt;/p&gt;
+&lt;img src=&quot;/yyg/f5b762ea/1.png&quot; class=&quot;&quot;</description>
+          
+        
+      
+      
+      
+      
+      <category domain="https://MarsperL.github.io/categories/Linux%E8%BF%90%E7%BB%B4/">Linux运维</category>
+      
+      <category domain="https://MarsperL.github.io/categories/%E6%A2%B3%E7%90%86%E6%80%BB%E7%BB%93/">梳理总结</category>
+      
+      <category domain="https://MarsperL.github.io/categories/Linux%E8%BF%90%E7%BB%B4/%E7%BD%91%E7%BB%9C%E5%88%86%E6%9E%90/">网络分析</category>
+      
+      <category domain="https://MarsperL.github.io/categories/%E6%A2%B3%E7%90%86%E6%80%BB%E7%BB%93/%E7%9F%A5%E8%AF%86%E6%A2%B3%E7%90%86/">知识梳理</category>
+      
+      
+      <category domain="https://MarsperL.github.io/tags/ensp%E6%A8%A1%E6%8B%9F%E4%BB%BF%E7%9C%9F/">ensp模拟仿真</category>
+      
+      <category domain="https://MarsperL.github.io/tags/%E7%BD%91%E7%BB%9C%E8%AE%BE%E5%A4%87/">网络设备</category>
+      
+      
+      <comments>https://marsperl.github.io/yyg/f5b762ea/#disqus_thread</comments>
+      
+    </item>
     
     <item>
       <title>Linux实现模拟IPMI</title>
@@ -736,45 +773,6 @@
       
       
       <comments>https://marsperl.github.io/yyg/e102aa73/#disqus_thread</comments>
-      
-    </item>
-    
-    <item>
-      <title>安装Winlogbeat日志采集器</title>
-      <link>https://marsperl.github.io/yyg/f547e2a9/</link>
-      <guid>https://marsperl.github.io/yyg/f547e2a9/</guid>
-      <pubDate>Sun, 21 Jul 2024 13:50:36 GMT</pubDate>
-      
-        
-        
-          
-          
-      <description>&lt;ol&gt;
-&lt;li&gt;Winlogbeat安装程序可通过其官网（&lt;a href=&quot;https://www.elastic.co/cn/beats/winlogbeat）下载。&quot;&gt;https://www.elastic.co/cn/beats/winlogbeat）下载。&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;双击启动安装程序，进入安装向导后勾选“I accept the terms in the License Agreement”，单击【Install】，如图所示。&lt;/li&gt;
-&lt;/ol&gt;
-&lt;img src=&quot;/yyg/f547e2a9/4.png&quot; class=&quot;&quot;</description>
-          
-        
-      
-      
-      
-      
-      <category domain="https://MarsperL.github.io/categories/%E6%97%A5%E5%BF%97%E5%88%86%E6%9E%90/">日志分析</category>
-      
-      <category domain="https://MarsperL.github.io/categories/%E6%97%A5%E5%BF%97%E5%88%86%E6%9E%90/ELK/">ELK</category>
-      
-      
-      <category domain="https://MarsperL.github.io/tags/%E6%97%A5%E5%BF%97%E5%88%86%E6%9E%90/">日志分析</category>
-      
-      <category domain="https://MarsperL.github.io/tags/ELK/">ELK</category>
-      
-      <category domain="https://MarsperL.github.io/tags/%E6%97%A5%E5%BF%97%E9%87%87%E9%9B%86%E5%99%A8/">日志采集器</category>
-      
-      <category domain="https://MarsperL.github.io/tags/Winlogbeat/">Winlogbeat</category>
-      
-      
-      <comments>https://marsperl.github.io/yyg/f547e2a9/#disqus_thread</comments>
       
     </item>
     
