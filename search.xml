@@ -1,38 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>DHCP服务器搭建</title>
-    <url>/yyg/97ec93b/</url>
-    <content><![CDATA[<h2 id="服务器端"><a href="#服务器端" class="headerlink" title="服务器端"></a>服务器端</h2><p>（1）通过在线方式安装dhcp-server</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">[root@dncp-103 ~]# yum -y install dhcp-server</span><br></pre></td></tr></table></figure>
-<p>（2）修改dhcpd服务配置文件，完成DHCP服务器的搭建</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">[root@dncp-103 ~]# vi /etc/dhcp/dhcpd.conf</span><br><span class="line">-------------------dhcpd.conf-------------------</span><br><span class="line"># DHCP Server Configuration file.</span><br><span class="line">#   see /usr/share/doc/dhcp-server/dhcpd.conf.example</span><br><span class="line">#   see dhcpd.conf(5) man page</span><br><span class="line">#</span><br><span class="line"># 设置域名为 &quot;elk.com&quot;</span><br><span class="line">option domain-name     &quot;elk.com&quot;;</span><br><span class="line"></span><br><span class="line"># 设置域名服务器为 10.10.2.103</span><br><span class="line">option domain-name-servers    10.10.2.103;</span><br><span class="line"></span><br><span class="line"># Declare DHCP Server</span><br><span class="line"># 声明此 DHCP 服务器</span><br><span class="line">authoritative;  </span><br><span class="line"></span><br><span class="line"># 设置默认租约时间为 600 秒</span><br><span class="line">default-lease-time 600;</span><br><span class="line"># 设置日志设施为 local4</span><br><span class="line">log-facility local4;</span><br><span class="line"># 设置最大租约时间为 7200 秒</span><br><span class="line">max-lease-time 7200;</span><br><span class="line"></span><br><span class="line"># Set Network address, subnet mask and gateway</span><br><span class="line">subnet 10.10.2.0 netmask 255.255.255.0 &#123;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"># 设置 IP 地址范围为 10.10.2.202 到 10.10.2.205</span><br><span class="line">subnet 10.10.2.0 netmask 255.255.255.0 &#123;</span><br><span class="line">  range 10.10.2.202 10.10.2.205;</span><br><span class="line">  # 设置网关为 10.10.2.1</span><br><span class="line">  option routers 10.10.2.1;</span><br><span class="line">  # 设置子网掩码为 255.255.255.0</span><br><span class="line">  option subnet-mask 255.255.255.0;</span><br><span class="line">  # 设置广播地址为 10.10.2.255</span><br><span class="line">  option broadcast-address 10.10.2.255;</span><br><span class="line">  # 设置默认租约时间为 600 秒</span><br><span class="line">  default-lease-time 600;</span><br><span class="line">  # 设置最大租约时间为 7200 秒</span><br><span class="line">  max-lease-time 7200;</span><br><span class="line">  # Add other DHCP options here</span><br><span class="line">&#125;</span><br><span class="line">-------------------dhcpd.conf-------------------</span><br></pre></td></tr></table></figure>
-<p>（3）在rsyslog.conf中配置dhcp日志路径</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">[root@dncp-103 ~]# vi /etc/rsyslog.conf</span><br><span class="line">-------------------rsyslog.conf-------------------</span><br><span class="line">#为排版方便此处省略部分提示信息</span><br><span class="line"># Don&#x27;t log private authentication messages!</span><br><span class="line">#将 local4 设施的日志消息排除在 /var/log/messages 文件之外</span><br><span class="line">*.info;mail.none;authpriv.none;cron.none;local4.none           /var/log/messages</span><br><span class="line"># 来自 local4 设施的所有级别的日志消息记录到 /var/log/dhcp/dhcp.log 文件中</span><br><span class="line">local4.* /var/log/dhcp/dhcp.log</span><br><span class="line">#为排版方便此处省略部分提示信息</span><br><span class="line">-------------------rsyslog.conf-------------------</span><br></pre></td></tr></table></figure>
-<p>（4）启动dhcpd服务并重启rsyslog服务，使得配置生效</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 启动dhcpd服务</span><br><span class="line">[root@dncp-103 ~]# systemctl start dhcpd</span><br><span class="line"># 重启rsyslog服务</span><br><span class="line">[root@dncp-103 ~]# systemctl restart rsyslog</span><br></pre></td></tr></table></figure>
-<p>（5）查看dhcpd服务状态</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">[root@dncp-103 ~]# systemctl status dhcpd</span><br></pre></td></tr></table></figure>
-<p>（6）配置dhcpd服务为开机自启动</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">[root@dncp-103 ~]# systemctl enable dhcpd</span><br></pre></td></tr></table></figure>
-<p>（7）配置防火墙，重启服务，使得配置生效</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 配置dhcp服务访问策略，使其能够正常访问</span><br><span class="line">[root@dncp-103 ~]# firewall-cmd --add-service=dhcp --permanent</span><br><span class="line">success</span><br><span class="line"># 重新加载防火墙策略</span><br><span class="line">[root@dncp-103 ~]# firewall-cmd --reload</span><br><span class="line">success</span><br></pre></td></tr></table></figure>
-<h2 id="客户机端"><a href="#客户机端" class="headerlink" title="客户机端"></a>客户机端</h2><p>（1）查看客户机原本ip</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">[root@dncp-113 ~]# ip a</span><br></pre></td></tr></table></figure>
-<p>（2）修改客户机ip为动态，验证DHCP服务器是否能动态的分配ip</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 修改网卡配置文件</span><br><span class="line">[root@dncp-113 ~]# vi /etc/NetworkManager/system-connections/ens32.nmconnection</span><br><span class="line">-------------------ens32.nmconnection-------------------</span><br><span class="line">[connection]</span><br><span class="line">id=ens32</span><br><span class="line">uuid=2bb0f492-19e2-37c0-b8fa-1781d3122a83</span><br><span class="line">type=ethernet</span><br><span class="line">autoconnect-priority=-999</span><br><span class="line">interface-name=ens32</span><br><span class="line">timestamp=1713841073</span><br><span class="line"></span><br><span class="line">[ethernet]</span><br><span class="line"></span><br><span class="line">[ipv4]</span><br><span class="line"># 注释设置静态IP信息</span><br><span class="line">#address1=10.10.2.113/24,10.10.2.1</span><br><span class="line">dns=10.10.2.103;</span><br><span class="line"># 通过 DHCP动态获取 IP 地址</span><br><span class="line">method=auto</span><br><span class="line"></span><br><span class="line">[ipv6]</span><br><span class="line">addr-gen-mode=eui64</span><br><span class="line">method=auto</span><br><span class="line"></span><br><span class="line">[proxy]</span><br><span class="line">-------------------ens32.nmconnection-------------------</span><br></pre></td></tr></table></figure>
-<p>（3）重新加载 NetworkManager 的连接配置，查看分配的动态ip</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 重新加载 NetworkManager 的连接配置</span><br><span class="line">[root@dncp-113 ~]# nmcli c reload</span><br><span class="line"># 连接网络接口 ens32</span><br><span class="line">[root@dncp-113 ~]# nmcli d connect ens32</span><br><span class="line">设备 &quot;ens32&quot; 成功以 &quot;2bb0f492-19e2-37c0-b8fa-1781d3122a83&quot; 激活。</span><br><span class="line"># 查看分配的动态ip</span><br><span class="line">[root@dncp-113 ~]# ip a</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Linux运维</category>
-        <category>网络服务搭建</category>
-      </categories>
-      <tags>
-        <tag>Linux运维</tag>
-        <tag>DHCP</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>DNS服务器搭建</title>
     <url>/yyg/37824039/</url>
     <content><![CDATA[<h2 id="服务器端"><a href="#服务器端" class="headerlink" title="服务器端"></a>服务器端</h2><p>（1）通过在线方式安装bind9</p>
@@ -69,6 +37,38 @@
       <tags>
         <tag>Linux运维</tag>
         <tag>DNS</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>DHCP服务器搭建</title>
+    <url>/yyg/97ec93b/</url>
+    <content><![CDATA[<h2 id="服务器端"><a href="#服务器端" class="headerlink" title="服务器端"></a>服务器端</h2><p>（1）通过在线方式安装dhcp-server</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">[root@dncp-103 ~]# yum -y install dhcp-server</span><br></pre></td></tr></table></figure>
+<p>（2）修改dhcpd服务配置文件，完成DHCP服务器的搭建</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">[root@dncp-103 ~]# vi /etc/dhcp/dhcpd.conf</span><br><span class="line">-------------------dhcpd.conf-------------------</span><br><span class="line"># DHCP Server Configuration file.</span><br><span class="line">#   see /usr/share/doc/dhcp-server/dhcpd.conf.example</span><br><span class="line">#   see dhcpd.conf(5) man page</span><br><span class="line">#</span><br><span class="line"># 设置域名为 &quot;elk.com&quot;</span><br><span class="line">option domain-name     &quot;elk.com&quot;;</span><br><span class="line"></span><br><span class="line"># 设置域名服务器为 10.10.2.103</span><br><span class="line">option domain-name-servers    10.10.2.103;</span><br><span class="line"></span><br><span class="line"># Declare DHCP Server</span><br><span class="line"># 声明此 DHCP 服务器</span><br><span class="line">authoritative;  </span><br><span class="line"></span><br><span class="line"># 设置默认租约时间为 600 秒</span><br><span class="line">default-lease-time 600;</span><br><span class="line"># 设置日志设施为 local4</span><br><span class="line">log-facility local4;</span><br><span class="line"># 设置最大租约时间为 7200 秒</span><br><span class="line">max-lease-time 7200;</span><br><span class="line"></span><br><span class="line"># Set Network address, subnet mask and gateway</span><br><span class="line">subnet 10.10.2.0 netmask 255.255.255.0 &#123;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"># 设置 IP 地址范围为 10.10.2.202 到 10.10.2.205</span><br><span class="line">subnet 10.10.2.0 netmask 255.255.255.0 &#123;</span><br><span class="line">  range 10.10.2.202 10.10.2.205;</span><br><span class="line">  # 设置网关为 10.10.2.1</span><br><span class="line">  option routers 10.10.2.1;</span><br><span class="line">  # 设置子网掩码为 255.255.255.0</span><br><span class="line">  option subnet-mask 255.255.255.0;</span><br><span class="line">  # 设置广播地址为 10.10.2.255</span><br><span class="line">  option broadcast-address 10.10.2.255;</span><br><span class="line">  # 设置默认租约时间为 600 秒</span><br><span class="line">  default-lease-time 600;</span><br><span class="line">  # 设置最大租约时间为 7200 秒</span><br><span class="line">  max-lease-time 7200;</span><br><span class="line">  # Add other DHCP options here</span><br><span class="line">&#125;</span><br><span class="line">-------------------dhcpd.conf-------------------</span><br></pre></td></tr></table></figure>
+<p>（3）在rsyslog.conf中配置dhcp日志路径</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">[root@dncp-103 ~]# vi /etc/rsyslog.conf</span><br><span class="line">-------------------rsyslog.conf-------------------</span><br><span class="line">#为排版方便此处省略部分提示信息</span><br><span class="line"># Don&#x27;t log private authentication messages!</span><br><span class="line">#将 local4 设施的日志消息排除在 /var/log/messages 文件之外</span><br><span class="line">*.info;mail.none;authpriv.none;cron.none;local4.none           /var/log/messages</span><br><span class="line"># 来自 local4 设施的所有级别的日志消息记录到 /var/log/dhcp/dhcp.log 文件中</span><br><span class="line">local4.* /var/log/dhcp/dhcp.log</span><br><span class="line">#为排版方便此处省略部分提示信息</span><br><span class="line">-------------------rsyslog.conf-------------------</span><br></pre></td></tr></table></figure>
+<p>（4）启动dhcpd服务并重启rsyslog服务，使得配置生效</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 启动dhcpd服务</span><br><span class="line">[root@dncp-103 ~]# systemctl start dhcpd</span><br><span class="line"># 重启rsyslog服务</span><br><span class="line">[root@dncp-103 ~]# systemctl restart rsyslog</span><br></pre></td></tr></table></figure>
+<p>（5）查看dhcpd服务状态</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">[root@dncp-103 ~]# systemctl status dhcpd</span><br></pre></td></tr></table></figure>
+<p>（6）配置dhcpd服务为开机自启动</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">[root@dncp-103 ~]# systemctl enable dhcpd</span><br></pre></td></tr></table></figure>
+<p>（7）配置防火墙，重启服务，使得配置生效</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 配置dhcp服务访问策略，使其能够正常访问</span><br><span class="line">[root@dncp-103 ~]# firewall-cmd --add-service=dhcp --permanent</span><br><span class="line">success</span><br><span class="line"># 重新加载防火墙策略</span><br><span class="line">[root@dncp-103 ~]# firewall-cmd --reload</span><br><span class="line">success</span><br></pre></td></tr></table></figure>
+<h2 id="客户机端"><a href="#客户机端" class="headerlink" title="客户机端"></a>客户机端</h2><p>（1）查看客户机原本ip</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">[root@dncp-113 ~]# ip a</span><br></pre></td></tr></table></figure>
+<p>（2）修改客户机ip为动态，验证DHCP服务器是否能动态的分配ip</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 修改网卡配置文件</span><br><span class="line">[root@dncp-113 ~]# vi /etc/NetworkManager/system-connections/ens32.nmconnection</span><br><span class="line">-------------------ens32.nmconnection-------------------</span><br><span class="line">[connection]</span><br><span class="line">id=ens32</span><br><span class="line">uuid=2bb0f492-19e2-37c0-b8fa-1781d3122a83</span><br><span class="line">type=ethernet</span><br><span class="line">autoconnect-priority=-999</span><br><span class="line">interface-name=ens32</span><br><span class="line">timestamp=1713841073</span><br><span class="line"></span><br><span class="line">[ethernet]</span><br><span class="line"></span><br><span class="line">[ipv4]</span><br><span class="line"># 注释设置静态IP信息</span><br><span class="line">#address1=10.10.2.113/24,10.10.2.1</span><br><span class="line">dns=10.10.2.103;</span><br><span class="line"># 通过 DHCP动态获取 IP 地址</span><br><span class="line">method=auto</span><br><span class="line"></span><br><span class="line">[ipv6]</span><br><span class="line">addr-gen-mode=eui64</span><br><span class="line">method=auto</span><br><span class="line"></span><br><span class="line">[proxy]</span><br><span class="line">-------------------ens32.nmconnection-------------------</span><br></pre></td></tr></table></figure>
+<p>（3）重新加载 NetworkManager 的连接配置，查看分配的动态ip</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 重新加载 NetworkManager 的连接配置</span><br><span class="line">[root@dncp-113 ~]# nmcli c reload</span><br><span class="line"># 连接网络接口 ens32</span><br><span class="line">[root@dncp-113 ~]# nmcli d connect ens32</span><br><span class="line">设备 &quot;ens32&quot; 成功以 &quot;2bb0f492-19e2-37c0-b8fa-1781d3122a83&quot; 激活。</span><br><span class="line"># 查看分配的动态ip</span><br><span class="line">[root@dncp-113 ~]# ip a</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Linux运维</category>
+        <category>网络服务搭建</category>
+      </categories>
+      <tags>
+        <tag>Linux运维</tag>
+        <tag>DHCP</tag>
       </tags>
   </entry>
   <entry>
@@ -420,50 +420,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Linux实现模拟IPMI</title>
-    <url>/yyg/9ec93abd/</url>
-    <content><![CDATA[<h2 id="环境准备："><a href="#环境准备：" class="headerlink" title="环境准备："></a>环境准备：</h2><p>（1）使用脚本安装docker、docker-compose</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">bash &lt;(curl -sSL https://linuxmirrors.cn/docker.sh)</span><br></pre></td></tr></table></figure>
-<p>（2）配置镜像加速</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">vi /etc/docker/daemon.json</span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">  &quot;data-root&quot;: &quot;/data/dockerData&quot;,</span><br><span class="line">  &quot;registry-mirrors&quot;: [&quot;https://registry.cn-hangzhou.aliyuncs.com&quot;,</span><br><span class="line">    &quot;https://huecker.io&quot;,</span><br><span class="line">    &quot;https://docker.rainbond.cc&quot;,</span><br><span class="line">    &quot;https://dockerhub.timeweb.cloud&quot;,</span><br><span class="line">    &quot;https://dockerhub.icu&quot;,</span><br><span class="line">    &quot;https://docker.registry.cyou&quot;,</span><br><span class="line">    &quot;https://docker-cf.registry.cyou&quot;,</span><br><span class="line">    &quot;https://dockercf.jsdelivr.fyi&quot;,</span><br><span class="line">    &quot;https://docker.jsdelivr.fyi&quot;,</span><br><span class="line">    &quot;https://dockertest.jsdelivr.fyi&quot;,</span><br><span class="line">    &quot;https://mirror.aliyuncs.com&quot;,</span><br><span class="line">    &quot;https://dockerproxy.com&quot;,</span><br><span class="line">    &quot;https://mirror.baidubce.com&quot;,</span><br><span class="line">    &quot;https://docker.m.daocloud.io&quot;,</span><br><span class="line">    &quot;https://docker.nju.edu.cn&quot;,</span><br><span class="line">    &quot;https://docker.mirrors.sjtug.sjtu.edu.cn&quot;,</span><br><span class="line">    &quot;https://docker.mirrors.ustc.edu.cn&quot;,</span><br><span class="line">    &quot;https://mirror.iscas.ac.cn&quot;,</span><br><span class="line">    &quot;https://docker.rainbond.cc&quot;,</span><br><span class="line">    &quot;https://docker.kubesre.xyz&quot;],</span><br><span class="line">    &quot;log-driver&quot;:&quot;json-file&quot;,</span><br><span class="line">    &quot;log-opts&quot;:&#123;&quot;max-size&quot; :&quot;50m&quot;,&quot;max-file&quot;:&quot;3&quot;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>（3）启动docker服务</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">systemctl start docker</span><br><span class="line">systemctl enable docker</span><br><span class="line">systemctl status docker</span><br></pre></td></tr></table></figure>
-<h2 id="部署IPMI-Simulator容器"><a href="#部署IPMI-Simulator容器" class="headerlink" title="部署IPMI Simulator容器"></a>部署IPMI Simulator容器</h2><p>（1）在IPMI Simulator官方仓库中下载源码包</p>
-<p><a href="https://github.com/vapor-ware/ipmi-simulator">https://github.com/vapor-ware/ipmi-simulator</a></p>
-<p>（2）下载完成并解压后，修改Dockerfile文件</p>
-<figure class="highlight dockerfile"><table><tr><td class="code"><pre><span class="line"><span class="keyword">FROM</span> alpine</span><br><span class="line"><span class="keyword">LABEL</span><span class="language-bash"> maintainer=<span class="string">&quot;vapor@vapor.io&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">RUN</span><span class="language-bash"> apk --update --no-cache add openipmi-lanserv</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Create the directories that will be used to persist state information</span></span><br><span class="line"><span class="comment"># for the IPMI simulator instance.</span></span><br><span class="line"><span class="keyword">RUN</span><span class="language-bash"> <span class="built_in">mkdir</span> -p /tmp/chassis</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> . /tmp/ipmisim</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 新加部分</span></span><br><span class="line"><span class="keyword">RUN</span><span class="language-bash"> <span class="built_in">chmod</span> +x /tmp/ipmisim/bin/chassis_control.sh</span></span><br><span class="line"><span class="comment"># 新加部分</span></span><br><span class="line"><span class="keyword">EXPOSE</span> <span class="number">623</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">EXPOSE</span> <span class="number">623</span>/udp</span><br><span class="line"></span><br><span class="line"><span class="keyword">CMD</span><span class="language-bash"> [<span class="string">&quot;ipmi_sim&quot;</span>, <span class="string">&quot;-n&quot;</span>, <span class="string">&quot;-c&quot;</span>, <span class="string">&quot;/tmp/ipmisim/lan.conf&quot;</span>, <span class="string">&quot;-f&quot;</span>, <span class="string">&quot;/tmp/ipmisim/sim.emu&quot;</span>]</span></span><br></pre></td></tr></table></figure>
-<p>（3）生成镜像文件，运行容器</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker build -f Dockerfile -t vaporio/ipmi-simulator .</span><br></pre></td></tr></table></figure>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker run -d --name ipmi-simulator --restart always -p 623:623/udp -p 623:623/tcp vaporio/ipmi-simulator</span><br></pre></td></tr></table></figure>
-<p>（4） 配置防火墙策略</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">firewall-cmd --add-port=623/tcp --permanent</span><br><span class="line">firewall-cmd --add-port=623/udp --permanent</span><br><span class="line">sudo firewall-cmd --reload</span><br><span class="line">sudo firewall-cmd --list-all</span><br></pre></td></tr></table></figure>
-<p>（5）在主机上查看模拟IPMI的底盘和电源状态</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">ipmitool -I lan -H 主机ip -p 623 -U ADMIN -P ADMIN chassis status</span><br></pre></td></tr></table></figure>
-<blockquote>
-<p>System Power         : on<br>Power Overload       : false<br>Power Interlock      : inactive<br>Main Power Fault     : false<br>Power Control Fault  : false<br>Power Restore Policy : always-off<br>Last Power Event     :<br>Chassis Intrusion    : inactive<br>Front-Panel Lockout  : inactive<br>Drive Fault          : false<br>Cooling/Fan Fault    : false</p>
-</blockquote>
-<p>扩展命令：</p>
-<p>IPMI设备的电源状态</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">打开</span></span><br><span class="line">ipmitool -I lan -H 主机ip -p 623 -U ADMIN -P ADMIN chassis power on</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">关闭</span></span><br><span class="line">ipmitool -I lan -H 主机ip -p 623 -U ADMIN -P ADMIN chassis power off</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重启</span></span><br><span class="line">ipmitool -I lan -H 主机ip -p 623 -U ADMIN -P ADMIN chassis power reset</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">标识机箱（使指示灯闪烁）</span></span><br><span class="line">ipmitool -I lan -H 主机ip -p 623 -U ADMIN -P ADMIN chassis identify 5</span><br></pre></td></tr></table></figure>
-<p>读取系统状态</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">显示系统传感器</span></span><br><span class="line">ipmitool -I lan -H 主机ip -p 623 -U ADMIN -P ADMIN sensor list</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">显示系统现有可替代器件列表</span></span><br><span class="line">ipmitool -I lan -H 主机ip -p 623 -U ADMIN -P ADMIN fru list</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">显示系统SDR Repository设备列表</span></span><br><span class="line">ipmitool -I lan -H 主机ip -p 623 -U ADMIN -P ADMIN sdr list</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">显示系统平台事件过滤的列表</span></span><br><span class="line">ipmitool -I lan -H 主机ip -p 623 -U ADMIN -P ADMIN pef filter list</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">显示系统平台策略列表</span></span><br><span class="line">ipmitool -I lan -H 主机ip -p 623 -U ADMIN -P ADMIN pef policy list</span><br></pre></td></tr></table></figure>
-<p>系统日志</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">显示所有系统事件日志</span></span><br><span class="line">ipmitool -I lan -H 主机ip -p 623 -U ADMIN -P ADMIN sel elist</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">显示当前BMC的时间</span></span><br><span class="line">ipmitool -I lan -H 主机ip -p 623 -U ADMIN -P ADMIN sel time get</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">修改当前BMC的时间</span></span><br><span class="line">ipmitool -I lan -H 主机ip -p 623 -U ADMIN -P ADMIN sel time set &quot;09/25/2024 18:29:20&quot;</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
-<p>系统相关</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看BMC信息</span></span><br><span class="line">ipmitool -I lan -H 主机ip -p 623 -U ADMIN -P ADMIN bmc info</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">BMC冷启动</span></span><br><span class="line">ipmitool -I lan -H 主机ip -p 623 -U ADMIN -P ADMIN bmc reset cold</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">BMC启动</span></span><br><span class="line">ipmitool -I lan -H 主机ip -p 623 -U ADMIN -P ADMIN bmc reset warm</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">显示系统默认通道</span></span><br><span class="line">ipmitool -I lan -H 主机ip -p 623 -U ADMIN -P ADMIN channel info</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">显示所有用户</span></span><br><span class="line">ipmitool -I lan -H 主机ip -p 623 -U ADMIN -P ADMIN user list</span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>容器化</category>
-        <category>docker</category>
-      </categories>
-      <tags>
-        <tag>docker</tag>
-        <tag>运维</tag>
-        <tag>Linux</tag>
-        <tag>IPMI</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>LNMP部署</title>
     <url>/yyg/776a1cd4/</url>
     <content><![CDATA[<h2 id="基础环境"><a href="#基础环境" class="headerlink" title="基础环境"></a>基础环境</h2><p>系统环境：CentOS Stream 9</p>
@@ -535,6 +491,87 @@
       </tags>
   </entry>
   <entry>
+    <title>Linux实现模拟IPMI</title>
+    <url>/yyg/9ec93abd/</url>
+    <content><![CDATA[<h2 id="环境准备："><a href="#环境准备：" class="headerlink" title="环境准备："></a>环境准备：</h2><p>（1）使用脚本安装docker、docker-compose</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">bash &lt;(curl -sSL https://linuxmirrors.cn/docker.sh)</span><br></pre></td></tr></table></figure>
+<p>（2）配置镜像加速</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">vi /etc/docker/daemon.json</span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">  &quot;data-root&quot;: &quot;/data/dockerData&quot;,</span><br><span class="line">  &quot;registry-mirrors&quot;: [&quot;https://registry.cn-hangzhou.aliyuncs.com&quot;,</span><br><span class="line">    &quot;https://huecker.io&quot;,</span><br><span class="line">    &quot;https://docker.rainbond.cc&quot;,</span><br><span class="line">    &quot;https://dockerhub.timeweb.cloud&quot;,</span><br><span class="line">    &quot;https://dockerhub.icu&quot;,</span><br><span class="line">    &quot;https://docker.registry.cyou&quot;,</span><br><span class="line">    &quot;https://docker-cf.registry.cyou&quot;,</span><br><span class="line">    &quot;https://dockercf.jsdelivr.fyi&quot;,</span><br><span class="line">    &quot;https://docker.jsdelivr.fyi&quot;,</span><br><span class="line">    &quot;https://dockertest.jsdelivr.fyi&quot;,</span><br><span class="line">    &quot;https://mirror.aliyuncs.com&quot;,</span><br><span class="line">    &quot;https://dockerproxy.com&quot;,</span><br><span class="line">    &quot;https://mirror.baidubce.com&quot;,</span><br><span class="line">    &quot;https://docker.m.daocloud.io&quot;,</span><br><span class="line">    &quot;https://docker.nju.edu.cn&quot;,</span><br><span class="line">    &quot;https://docker.mirrors.sjtug.sjtu.edu.cn&quot;,</span><br><span class="line">    &quot;https://docker.mirrors.ustc.edu.cn&quot;,</span><br><span class="line">    &quot;https://mirror.iscas.ac.cn&quot;,</span><br><span class="line">    &quot;https://docker.rainbond.cc&quot;,</span><br><span class="line">    &quot;https://docker.kubesre.xyz&quot;],</span><br><span class="line">    &quot;log-driver&quot;:&quot;json-file&quot;,</span><br><span class="line">    &quot;log-opts&quot;:&#123;&quot;max-size&quot; :&quot;50m&quot;,&quot;max-file&quot;:&quot;3&quot;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>（3）启动docker服务</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">systemctl start docker</span><br><span class="line">systemctl enable docker</span><br><span class="line">systemctl status docker</span><br></pre></td></tr></table></figure>
+<h2 id="部署IPMI-Simulator容器"><a href="#部署IPMI-Simulator容器" class="headerlink" title="部署IPMI Simulator容器"></a>部署IPMI Simulator容器</h2><p>（1）在IPMI Simulator官方仓库中下载源码包</p>
+<p><a href="https://github.com/vapor-ware/ipmi-simulator">https://github.com/vapor-ware/ipmi-simulator</a></p>
+<p>（2）下载完成并解压后，修改Dockerfile文件</p>
+<figure class="highlight dockerfile"><table><tr><td class="code"><pre><span class="line"><span class="keyword">FROM</span> alpine</span><br><span class="line"><span class="keyword">LABEL</span><span class="language-bash"> maintainer=<span class="string">&quot;vapor@vapor.io&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">RUN</span><span class="language-bash"> apk --update --no-cache add openipmi-lanserv</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Create the directories that will be used to persist state information</span></span><br><span class="line"><span class="comment"># for the IPMI simulator instance.</span></span><br><span class="line"><span class="keyword">RUN</span><span class="language-bash"> <span class="built_in">mkdir</span> -p /tmp/chassis</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> . /tmp/ipmisim</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 新加部分</span></span><br><span class="line"><span class="keyword">RUN</span><span class="language-bash"> <span class="built_in">chmod</span> +x /tmp/ipmisim/bin/chassis_control.sh</span></span><br><span class="line"><span class="comment"># 新加部分</span></span><br><span class="line"><span class="keyword">EXPOSE</span> <span class="number">623</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">EXPOSE</span> <span class="number">623</span>/udp</span><br><span class="line"></span><br><span class="line"><span class="keyword">CMD</span><span class="language-bash"> [<span class="string">&quot;ipmi_sim&quot;</span>, <span class="string">&quot;-n&quot;</span>, <span class="string">&quot;-c&quot;</span>, <span class="string">&quot;/tmp/ipmisim/lan.conf&quot;</span>, <span class="string">&quot;-f&quot;</span>, <span class="string">&quot;/tmp/ipmisim/sim.emu&quot;</span>]</span></span><br></pre></td></tr></table></figure>
+<p>（3）生成镜像文件，运行容器</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker build -f Dockerfile -t vaporio/ipmi-simulator .</span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker run -d --name ipmi-simulator --restart always -p 623:623/udp -p 623:623/tcp vaporio/ipmi-simulator</span><br></pre></td></tr></table></figure>
+<p>（4） 配置防火墙策略</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">firewall-cmd --add-port=623/tcp --permanent</span><br><span class="line">firewall-cmd --add-port=623/udp --permanent</span><br><span class="line">sudo firewall-cmd --reload</span><br><span class="line">sudo firewall-cmd --list-all</span><br></pre></td></tr></table></figure>
+<p>（5）在主机上查看模拟IPMI的底盘和电源状态</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">ipmitool -I lan -H 主机ip -p 623 -U ADMIN -P ADMIN chassis status</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>System Power         : on<br>Power Overload       : false<br>Power Interlock      : inactive<br>Main Power Fault     : false<br>Power Control Fault  : false<br>Power Restore Policy : always-off<br>Last Power Event     :<br>Chassis Intrusion    : inactive<br>Front-Panel Lockout  : inactive<br>Drive Fault          : false<br>Cooling/Fan Fault    : false</p>
+</blockquote>
+<p>扩展命令：</p>
+<p>IPMI设备的电源状态</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">打开</span></span><br><span class="line">ipmitool -I lan -H 主机ip -p 623 -U ADMIN -P ADMIN chassis power on</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">关闭</span></span><br><span class="line">ipmitool -I lan -H 主机ip -p 623 -U ADMIN -P ADMIN chassis power off</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重启</span></span><br><span class="line">ipmitool -I lan -H 主机ip -p 623 -U ADMIN -P ADMIN chassis power reset</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">标识机箱（使指示灯闪烁）</span></span><br><span class="line">ipmitool -I lan -H 主机ip -p 623 -U ADMIN -P ADMIN chassis identify 5</span><br></pre></td></tr></table></figure>
+<p>读取系统状态</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">显示系统传感器</span></span><br><span class="line">ipmitool -I lan -H 主机ip -p 623 -U ADMIN -P ADMIN sensor list</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">显示系统现有可替代器件列表</span></span><br><span class="line">ipmitool -I lan -H 主机ip -p 623 -U ADMIN -P ADMIN fru list</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">显示系统SDR Repository设备列表</span></span><br><span class="line">ipmitool -I lan -H 主机ip -p 623 -U ADMIN -P ADMIN sdr list</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">显示系统平台事件过滤的列表</span></span><br><span class="line">ipmitool -I lan -H 主机ip -p 623 -U ADMIN -P ADMIN pef filter list</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">显示系统平台策略列表</span></span><br><span class="line">ipmitool -I lan -H 主机ip -p 623 -U ADMIN -P ADMIN pef policy list</span><br></pre></td></tr></table></figure>
+<p>系统日志</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">显示所有系统事件日志</span></span><br><span class="line">ipmitool -I lan -H 主机ip -p 623 -U ADMIN -P ADMIN sel elist</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">显示当前BMC的时间</span></span><br><span class="line">ipmitool -I lan -H 主机ip -p 623 -U ADMIN -P ADMIN sel time get</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">修改当前BMC的时间</span></span><br><span class="line">ipmitool -I lan -H 主机ip -p 623 -U ADMIN -P ADMIN sel time set &quot;09/25/2024 18:29:20&quot;</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>系统相关</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看BMC信息</span></span><br><span class="line">ipmitool -I lan -H 主机ip -p 623 -U ADMIN -P ADMIN bmc info</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">BMC冷启动</span></span><br><span class="line">ipmitool -I lan -H 主机ip -p 623 -U ADMIN -P ADMIN bmc reset cold</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">BMC启动</span></span><br><span class="line">ipmitool -I lan -H 主机ip -p 623 -U ADMIN -P ADMIN bmc reset warm</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">显示系统默认通道</span></span><br><span class="line">ipmitool -I lan -H 主机ip -p 623 -U ADMIN -P ADMIN channel info</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">显示所有用户</span></span><br><span class="line">ipmitool -I lan -H 主机ip -p 623 -U ADMIN -P ADMIN user list</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>容器化</category>
+        <category>docker</category>
+      </categories>
+      <tags>
+        <tag>docker</tag>
+        <tag>运维</tag>
+        <tag>Linux</tag>
+        <tag>IPMI</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>NTP服务器搭建</title>
+    <url>/yyg/29b27760/</url>
+    <content><![CDATA[<h2 id="服务器端"><a href="#服务器端" class="headerlink" title="服务器端"></a>服务器端</h2><p>（1）通过在线方式安装chrony</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">yum install -y chrony</span><br></pre></td></tr></table></figure>
+<p>（2）启动chrony服务</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">systemctl start chronyd</span><br></pre></td></tr></table></figure>
+<p>（3）查看chrony服务状态</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">systemctl status chronyd</span><br></pre></td></tr></table></figure>
+<p>（4）配置chrony服务为开机自启动</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">systemctl enable chronyd</span><br></pre></td></tr></table></figure>
+<p>（5）修改chronyd服务配置文件，完成NTP服务器的搭建</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">vi /etc/chrony.conf</span><br><span class="line">-------------------chrony.conf-------------------</span><br><span class="line">pool 2.centos.pool.ntp.org iburst</span><br><span class="line">sourcedir /run/chrony-dhcp</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">配置的多个NTP服务器</span></span><br><span class="line">server ftp.aliyun.com iburst</span><br><span class="line">server time1.aliyun.com iburst</span><br><span class="line">server time2.aliyun.com iburst</span><br><span class="line">server time3.aliyun.com iburst</span><br><span class="line">server time4.aliyun.com iburst</span><br><span class="line">server time5.aliyun.com iburst</span><br><span class="line">server 10.10.2.103 iburst</span><br><span class="line">driftfile /var/lib/chrony/drift</span><br><span class="line">makestep 1.0 3</span><br><span class="line">rtcsync</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">允许访问的网段</span></span><br><span class="line">allow 10.10.0.0/16</span><br><span class="line">keyfile /etc/chrony.keys</span><br><span class="line">ntsdumpdir /var/lib/chrony</span><br><span class="line">leapsectz right/UTC</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">日志存储路径</span></span><br><span class="line">logdir /var/log/chrony</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">日志测量统计指标</span></span><br><span class="line">log measurements statistics tracking</span><br><span class="line">-------------------chrony.conf-------------------</span><br></pre></td></tr></table></figure>
+<p>（6）配置防火墙，重启服务，使得配置生效</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 配置ntp服务访问策略，使其能够正常访问</span><br><span class="line">firewall-cmd --permanent --add-service=ntp</span><br><span class="line"># 重新加载防火墙策略</span><br><span class="line">firewall-cmd --reload</span><br><span class="line"># 重启chronyd服务</span><br><span class="line">systemctl restart chronyd</span><br></pre></td></tr></table></figure>
+<p>（7）查看连接NTP服务的客户机</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">chronyc clients</span><br></pre></td></tr></table></figure>
+<h2 id="客户机端"><a href="#客户机端" class="headerlink" title="客户机端"></a>客户机端</h2><p>（1）通过在线方式安装chrony</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">yum install -y chrony</span><br></pre></td></tr></table></figure>
+<p>（2）配置访问chrony服务器</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 修改chrony的配置文件</span><br><span class="line">vi /etc/chrony.conf</span><br><span class="line">-------------------chrony.conf-------------------</span><br><span class="line"># Use public servers from the pool.ntp.org project.</span><br><span class="line"># Please consider joining the pool (https://www.pool.ntp.org/join.html).</span><br><span class="line">pool 2.centos.pool.ntp.org iburst</span><br><span class="line"></span><br><span class="line"># Use NTP servers from DHCP.</span><br><span class="line">sourcedir /run/chrony-dhcp</span><br><span class="line"></span><br><span class="line"># Record the rate at which the system clock gains/losses time.</span><br><span class="line">driftfile /var/lib/chrony/drift</span><br><span class="line"># 配置ntp服务器地址</span><br><span class="line">server 10.10.2.103 iburst</span><br><span class="line">#为排版方便此处省略部分提示信息</span><br><span class="line">-----------------------------------------------</span><br></pre></td></tr></table></figure>
+<p>（3）启动chronyd服务，连接NTP服务器</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 启动chrony服务</span><br><span class="line">systemctl start chronyd</span><br><span class="line"># 查看chrony服务状态</span><br><span class="line">systemctl status chronyd</span><br><span class="line"># 配置chrony服务为开机自启动</span><br><span class="line">systemctl enable chronyd</span><br></pre></td></tr></table></figure>
+<p>（4）配置防火墙，使得配置生效</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 配置ntp服务访问策略，使其能够正常访问</span><br><span class="line">firewall-cmd --permanent --add-service=ntp</span><br><span class="line"># 重新加载防火墙策略</span><br><span class="line">firewall-cmd --reload</span><br></pre></td></tr></table></figure>
+<p>（5）验证NTP服务器的连接情况</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 查看源服务器状态</span><br><span class="line"> chronyc sourcestats</span><br><span class="line"># 查看详细同步状态</span><br><span class="line">chronyc sources -v</span><br><span class="line"># 追踪同步情况</span><br><span class="line">chronyc tracking</span><br><span class="line"># 开启网络时间同步</span><br><span class="line">timedatectl set-ntp true</span><br><span class="line"># 查看时间同步状态</span><br><span class="line">timedatectl status</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>Linux运维</category>
+        <category>网络服务搭建</category>
+      </categories>
+      <tags>
+        <tag>Linux运维</tag>
+        <tag>NTP</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Slim缩小容器镜像大小</title>
     <url>/yyg/fd02fe22/</url>
     <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><details class="folding-tag" cyan><summary> 🔜Slim🔚 </summary>
@@ -585,43 +622,6 @@
         <tag>Linux</tag>
         <tag>Slim</tag>
         <tag>缩小容器镜像大小</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>NTP服务器搭建</title>
-    <url>/yyg/29b27760/</url>
-    <content><![CDATA[<h2 id="服务器端"><a href="#服务器端" class="headerlink" title="服务器端"></a>服务器端</h2><p>（1）通过在线方式安装chrony</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">yum install -y chrony</span><br></pre></td></tr></table></figure>
-<p>（2）启动chrony服务</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">systemctl start chronyd</span><br></pre></td></tr></table></figure>
-<p>（3）查看chrony服务状态</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">systemctl status chronyd</span><br></pre></td></tr></table></figure>
-<p>（4）配置chrony服务为开机自启动</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">systemctl enable chronyd</span><br></pre></td></tr></table></figure>
-<p>（5）修改chronyd服务配置文件，完成NTP服务器的搭建</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">vi /etc/chrony.conf</span><br><span class="line">-------------------chrony.conf-------------------</span><br><span class="line">pool 2.centos.pool.ntp.org iburst</span><br><span class="line">sourcedir /run/chrony-dhcp</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">配置的多个NTP服务器</span></span><br><span class="line">server ftp.aliyun.com iburst</span><br><span class="line">server time1.aliyun.com iburst</span><br><span class="line">server time2.aliyun.com iburst</span><br><span class="line">server time3.aliyun.com iburst</span><br><span class="line">server time4.aliyun.com iburst</span><br><span class="line">server time5.aliyun.com iburst</span><br><span class="line">server 10.10.2.103 iburst</span><br><span class="line">driftfile /var/lib/chrony/drift</span><br><span class="line">makestep 1.0 3</span><br><span class="line">rtcsync</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">允许访问的网段</span></span><br><span class="line">allow 10.10.0.0/16</span><br><span class="line">keyfile /etc/chrony.keys</span><br><span class="line">ntsdumpdir /var/lib/chrony</span><br><span class="line">leapsectz right/UTC</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">日志存储路径</span></span><br><span class="line">logdir /var/log/chrony</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">日志测量统计指标</span></span><br><span class="line">log measurements statistics tracking</span><br><span class="line">-------------------chrony.conf-------------------</span><br></pre></td></tr></table></figure>
-<p>（6）配置防火墙，重启服务，使得配置生效</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 配置ntp服务访问策略，使其能够正常访问</span><br><span class="line">firewall-cmd --permanent --add-service=ntp</span><br><span class="line"># 重新加载防火墙策略</span><br><span class="line">firewall-cmd --reload</span><br><span class="line"># 重启chronyd服务</span><br><span class="line">systemctl restart chronyd</span><br></pre></td></tr></table></figure>
-<p>（7）查看连接NTP服务的客户机</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">chronyc clients</span><br></pre></td></tr></table></figure>
-<h2 id="客户机端"><a href="#客户机端" class="headerlink" title="客户机端"></a>客户机端</h2><p>（1）通过在线方式安装chrony</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">yum install -y chrony</span><br></pre></td></tr></table></figure>
-<p>（2）配置访问chrony服务器</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 修改chrony的配置文件</span><br><span class="line">vi /etc/chrony.conf</span><br><span class="line">-------------------chrony.conf-------------------</span><br><span class="line"># Use public servers from the pool.ntp.org project.</span><br><span class="line"># Please consider joining the pool (https://www.pool.ntp.org/join.html).</span><br><span class="line">pool 2.centos.pool.ntp.org iburst</span><br><span class="line"></span><br><span class="line"># Use NTP servers from DHCP.</span><br><span class="line">sourcedir /run/chrony-dhcp</span><br><span class="line"></span><br><span class="line"># Record the rate at which the system clock gains/losses time.</span><br><span class="line">driftfile /var/lib/chrony/drift</span><br><span class="line"># 配置ntp服务器地址</span><br><span class="line">server 10.10.2.103 iburst</span><br><span class="line">#为排版方便此处省略部分提示信息</span><br><span class="line">-----------------------------------------------</span><br></pre></td></tr></table></figure>
-<p>（3）启动chronyd服务，连接NTP服务器</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 启动chrony服务</span><br><span class="line">systemctl start chronyd</span><br><span class="line"># 查看chrony服务状态</span><br><span class="line">systemctl status chronyd</span><br><span class="line"># 配置chrony服务为开机自启动</span><br><span class="line">systemctl enable chronyd</span><br></pre></td></tr></table></figure>
-<p>（4）配置防火墙，使得配置生效</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 配置ntp服务访问策略，使其能够正常访问</span><br><span class="line">firewall-cmd --permanent --add-service=ntp</span><br><span class="line"># 重新加载防火墙策略</span><br><span class="line">firewall-cmd --reload</span><br></pre></td></tr></table></figure>
-<p>（5）验证NTP服务器的连接情况</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 查看源服务器状态</span><br><span class="line"> chronyc sourcestats</span><br><span class="line"># 查看详细同步状态</span><br><span class="line">chronyc sources -v</span><br><span class="line"># 追踪同步情况</span><br><span class="line">chronyc tracking</span><br><span class="line"># 开启网络时间同步</span><br><span class="line">timedatectl set-ntp true</span><br><span class="line"># 查看时间同步状态</span><br><span class="line">timedatectl status</span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>Linux运维</category>
-        <category>网络服务搭建</category>
-      </categories>
-      <tags>
-        <tag>Linux运维</tag>
-        <tag>NTP</tag>
       </tags>
   </entry>
   <entry>
@@ -1277,6 +1277,14 @@
 <h4 id="安装-OpenTelemetry-Collector"><a href="#安装-OpenTelemetry-Collector" class="headerlink" title="安装 OpenTelemetry Collector"></a>安装 OpenTelemetry Collector</h4><p>创建OpenTelemetry Collector配置文件</p>
 <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">mkdir /data/opentelemetry-collector</span><br><span class="line">vi /data/opentelemetry-collector/config.yaml</span><br><span class="line"></span><br><span class="line">receivers:</span><br><span class="line">  prometheus:</span><br><span class="line">    config:</span><br><span class="line">     scrape_configs:</span><br><span class="line">       - job_name: &#x27;vm-monitoring&#x27; #要与skywalking-oap中的otel-rules的vm.yaml中的名称保持一致</span><br><span class="line">         scrape_interval: 5s</span><br><span class="line">         static_configs:</span><br><span class="line">           - targets: [&#x27;10.10.2.145:9100&#x27;]</span><br><span class="line">             labels:</span><br><span class="line">               host_name: 10.10.2.145</span><br><span class="line">               service: oap-server</span><br><span class="line">processors:</span><br><span class="line">  batch:</span><br><span class="line"></span><br><span class="line">exporters:</span><br><span class="line">  otlp:</span><br><span class="line">    endpoint: 10.10.2.145:11800</span><br><span class="line">    tls:</span><br><span class="line">      insecure: true</span><br><span class="line">  logging:</span><br><span class="line">    loglevel: debug</span><br><span class="line"></span><br><span class="line">service:</span><br><span class="line">  pipelines:</span><br><span class="line">    metrics:</span><br><span class="line">      receivers: [prometheus]</span><br><span class="line">      processors: [batch]</span><br><span class="line">      exporters: [otlp, logging]</span><br></pre></td></tr></table></figure>
 <figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="attr">otelcol:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">otel/opentelemetry-collector</span></span><br><span class="line">    <span class="attr">container_name:</span> <span class="string">otelcol</span></span><br><span class="line">    <span class="attr">restart:</span> <span class="string">always</span></span><br><span class="line">    <span class="attr">environment:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">TZ=Asia/Shanghai</span></span><br><span class="line">    <span class="attr">volumes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">/data/opentelemetry-collector/config.yaml:/etc/otelcol/config.yaml</span></span><br><span class="line">    <span class="attr">networks:</span></span><br><span class="line">       <span class="attr">opentelemetry:</span></span><br><span class="line">        <span class="attr">ipv4_address:</span> <span class="number">172.20</span><span class="number">.101</span><span class="number">.11</span></span><br><span class="line"></span><br><span class="line"><span class="attr">networks:</span></span><br><span class="line">  <span class="attr">opentelemetry:</span></span><br><span class="line">    <span class="attr">driver:</span> <span class="string">bridge</span></span><br><span class="line">    <span class="attr">ipam:</span></span><br><span class="line">      <span class="attr">config:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">subnet:</span> <span class="number">172.20</span><span class="number">.101</span><span class="number">.0</span><span class="string">/24</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>opentelemetry-collector最新镜像配置文件变更</p>
+<p>在最新版的容器镜像中（0.113.0）中使用导出器exporters中使用debug代替logging。</p>
+<p>即在v0.86.0版本之前使用logging</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">exporters:</span><br><span class="line">  otlp:</span><br><span class="line">    endpoint: ip+端口</span><br><span class="line">    tls:</span><br><span class="line">      insecure: true</span><br><span class="line">  logging:</span><br><span class="line">    loglevel: debug</span><br></pre></td></tr></table></figure>
+<p>之后使用debug</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">exporters:</span><br><span class="line">  otlp:</span><br><span class="line">    endpoint: ip+端口</span><br><span class="line">    tls:</span><br><span class="line">      insecure: true</span><br><span class="line">  debug:</span><br><span class="line">    verbosity: detailed</span><br></pre></td></tr></table></figure>
+</blockquote>
 <h3 id="SkyWalking服务自监控开启"><a href="#SkyWalking服务自监控开启" class="headerlink" title="SkyWalking服务自监控开启"></a>SkyWalking服务自监控开启</h3><p>开启后端遥测，在skywalking-oap的配置文件application.yml中，找到promethus的部分，修改参数。</p>
 <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">telemetry:</span><br><span class="line">  selector: $&#123;SW_TELEMETRY:prometheus&#125; #将none修改为prometheus</span><br><span class="line">  none:</span><br><span class="line">  prometheus:</span><br><span class="line">    host: $&#123;SW_TELEMETRY_PROMETHEUS_HOST:0.0.0.0&#125;</span><br><span class="line">    port: $&#123;SW_TELEMETRY_PROMETHEUS_PORT:1234&#125;</span><br><span class="line">    sslEnabled: $&#123;SW_TELEMETRY_PROMETHEUS_SSL_ENABLED:false&#125;</span><br><span class="line">    sslKeyPath: $&#123;SW_TELEMETRY_PROMETHEUS_SSL_KEY_PATH:&quot;&quot;&#125;</span><br><span class="line">    sslCertChainPath: $&#123;SW_TELEMETRY_PROMETHEUS_SSL_CERT_CHAIN_PATH:&quot;&quot;&#125;</span><br></pre></td></tr></table></figure>
 <p> 在OpenTelemetry Collector配置文件中加入自监控的参数</p>
@@ -1311,7 +1319,12 @@
 <figure class="highlight json"><table><tr><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;SkyWalking&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;ServiceName&quot;</span><span class="punctuation">:</span> <span class="string">&quot;服务名（与执行的dll程序的名称一致）&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;Namespace&quot;</span><span class="punctuation">:</span> <span class="string">&quot;&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;HeaderVersions&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">      <span class="string">&quot;sw8&quot;</span></span><br><span class="line">    <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;Sampling&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;SamplePer3Secs&quot;</span><span class="punctuation">:</span> <span class="number">-1</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;Percentage&quot;</span><span class="punctuation">:</span> <span class="number">-1.0</span></span><br><span class="line">    <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;Logging&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;Level&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Information&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;FilePath&quot;</span><span class="punctuation">:</span> <span class="string">&quot;logs\\skyapm-&#123;Date&#125;.log&quot;</span></span><br><span class="line">    <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;Transport&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;Interval&quot;</span><span class="punctuation">:</span> <span class="number">3000</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;ProtocolVersion&quot;</span><span class="punctuation">:</span> <span class="string">&quot;v8&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;QueueSize&quot;</span><span class="punctuation">:</span> <span class="number">30000</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;BatchSize&quot;</span><span class="punctuation">:</span> <span class="number">3000</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;gRPC&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;Servers&quot;</span><span class="punctuation">:</span> <span class="string">&quot;SkyWalking服务ip:11800&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;Timeout&quot;</span><span class="punctuation">:</span> <span class="number">10000</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;ConnectTimeout&quot;</span><span class="punctuation">:</span> <span class="number">10000</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;ReportTimeout&quot;</span><span class="punctuation">:</span> <span class="number">600000</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;Authentication&quot;</span><span class="punctuation">:</span> <span class="string">&quot;&quot;</span></span><br><span class="line">      <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
 <p>二是在Visual Studio的控制台中输入命令创建skyapm.json。</p>
 <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">dotnet tool install -g SkyAPM.DotNet.CLI</span><br><span class="line">dotnet skyapm config 服务名（与执行的dll程序的名称一致） SkyWalking服务ip:11800</span><br></pre></td></tr></table></figure>
-<p>（5）访问.NET项目，查看Skywalking中常规服务-服务中生成的服务监控。（效果图在最后）</p>
+<p>（5）配置完成后，在运行的服务器中加入环境变量</p>
+<p>方式一：在服务器添加</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">vi  ~/.bashrc</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">export ASPNETCORE_ENVIRONMENT=development</span><br><span class="line">export ASPNETCORE_HOSTINGSTARTUPASSEMBLIES=SkyAPM.Agent.AspNetCore</span><br><span class="line">export SKYWALKING__SERVICENAME=服务名</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">#使得配置生效</span><br><span class="line">source ~/.bashrc</span><br></pre></td></tr></table></figure>
+<p>方式二：在容器中添加，可在Dockerfile文件中添加</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base</span><br><span class="line">......</span><br><span class="line">ENV ASPNETCORE_ENVIRONMENT=development</span><br><span class="line">ENV ASPNETCORE_HOSTINGSTARTUPASSEMBLIES=SkyAPM.Agent.AspNetCore</span><br><span class="line">ENV SKYWALKING__SERVICENAME=服务名</span><br><span class="line">#容器入口点</span><br><span class="line">ENTRYPOINT [&quot;dotnet&quot;, &quot;xxx&quot;]</span><br></pre></td></tr></table></figure>
+<p>（6）访问.NET项目，查看Skywalking中常规服务-服务中生成的服务监控。（效果图在最后）</p>
 <h4 id="安装-SkyWalking-NET-Core-Agent（Linux环境）"><a href="#安装-SkyWalking-NET-Core-Agent（Linux环境）" class="headerlink" title="安装 SkyWalking .NET Core Agent（Linux环境）"></a>安装 SkyWalking .NET Core Agent（Linux环境）</h4><p>适用于在Linux上创建的.NET项目</p>
 <p>（1）安装 SkyWalking .NET Core Agent</p>
 <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">dotnet add package SkyAPM.Agent.AspNetCore</span><br><span class="line">export ASPNETCORE_HOSTINGSTARTUPASSEMBLIES=SkyAPM.Agent.AspNetCore</span><br><span class="line">export SKYWALKING__SERVICENAME=服务名（与执行的dll程序的名称一致）</span><br></pre></td></tr></table></figure>
@@ -1547,6 +1560,35 @@
       </tags>
   </entry>
   <entry>
+    <title>eNSP模拟网络设备访问真实网络</title>
+    <url>/yyg/f5b762ea/</url>
+    <content><![CDATA[<h2 id="添加Loopback环回网卡"><a href="#添加Loopback环回网卡" class="headerlink" title="添加Loopback环回网卡"></a>添加Loopback环回网卡</h2><p>（1）使用Win+ R调出”运行“，输入<code>hdwwiz</code>，确定后开始添加新硬件向导。</p>
+<p>（2）按向导操作，选择<code>安装我手动从列表选择的硬件(高级)(M)</code>。</p>
+<img src="/yyg/f5b762ea/1.png" class="" title="image.png">
+<p>（3）选择安装的硬件类型为<code>网络适配器</code>，选定设备驱动程序的厂商为<code>Microsoft</code>，型号为<code>Microsoft KM-TEST环回适配器</code>。</p>
+<img src="/yyg/f5b762ea/2.png" class="" title="image.png">
+<p>（4）按向导安装，点击完成即可。</p>
+<h2 id="共享主机网络"><a href="#共享主机网络" class="headerlink" title="共享主机网络"></a>共享主机网络</h2><p>（1）打开控制面板—网络和Internet—网络连接，找到新创建的环回网卡，本主机中为<code>以太网 8</code>。选择本机连接网络，此外为WLAN，在属性中选择共享，勾选<code>允许其他网络用户通过此计算机的Internet连接来连接(N)</code>，选择新创建的环回网卡<code>以太网 8</code>，保存即可。</p>
+<img src="/yyg/f5b762ea/3.png" class="" title="image.png">
+<p>（2）保存后，会默认给环回网卡分配ip地址<code>192.168.137.1</code>。重启网卡使得配置生效。</p>
+<img src="/yyg/f5b762ea/4.png" class="" title="image.png">
+<p>（3）打开eNSP软件，打开Cloud的设置，分别创建一个绑定信息为<code>UDP</code>和环回网卡<code>以太网 8 -- IP：192.168.137.1</code>的端口，并设置端口映射的入端口和出端口编号，勾选双向通道，点击增加。</p>
+<img src="/yyg/f5b762ea/5.png" class="" title="image.png">
+<p>（4）开启网络拓扑，设置主机为DHCP，等待主机分配出ip后，使用ping命令验证是否连接外部真实网络。</p>
+<img src="/yyg/f5b762ea/6.png" class="" title="image.png">
+<img src="/yyg/f5b762ea/7.png" class="" title="image.png">]]></content>
+      <categories>
+        <category>Linux运维</category>
+        <category>梳理总结</category>
+        <category>网络分析</category>
+        <category>知识梳理</category>
+      </categories>
+      <tags>
+        <tag>ensp模拟仿真</tag>
+        <tag>网络设备</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>k8s集群对接ceph集群部署指南</title>
     <url>/yyg/57e2a956/</url>
     <content><![CDATA[<h2 id="任务目标"><a href="#任务目标" class="headerlink" title="任务目标"></a>任务目标</h2><ol>
@@ -1622,35 +1664,6 @@
         <tag>ceph集群</tag>
         <tag>容器云</tag>
         <tag>k8s对接ceph</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>eNSP模拟网络设备访问真实网络</title>
-    <url>/yyg/f5b762ea/</url>
-    <content><![CDATA[<h2 id="添加Loopback环回网卡"><a href="#添加Loopback环回网卡" class="headerlink" title="添加Loopback环回网卡"></a>添加Loopback环回网卡</h2><p>（1）使用Win+ R调出”运行“，输入<code>hdwwiz</code>，确定后开始添加新硬件向导。</p>
-<p>（2）按向导操作，选择<code>安装我手动从列表选择的硬件(高级)(M)</code>。</p>
-<img src="/yyg/f5b762ea/1.png" class="" title="image.png">
-<p>（3）选择安装的硬件类型为<code>网络适配器</code>，选定设备驱动程序的厂商为<code>Microsoft</code>，型号为<code>Microsoft KM-TEST环回适配器</code>。</p>
-<img src="/yyg/f5b762ea/2.png" class="" title="image.png">
-<p>（4）按向导安装，点击完成即可。</p>
-<h2 id="共享主机网络"><a href="#共享主机网络" class="headerlink" title="共享主机网络"></a>共享主机网络</h2><p>（1）打开控制面板—网络和Internet—网络连接，找到新创建的环回网卡，本主机中为<code>以太网 8</code>。选择本机连接网络，此外为WLAN，在属性中选择共享，勾选<code>允许其他网络用户通过此计算机的Internet连接来连接(N)</code>，选择新创建的环回网卡<code>以太网 8</code>，保存即可。</p>
-<img src="/yyg/f5b762ea/3.png" class="" title="image.png">
-<p>（2）保存后，会默认给环回网卡分配ip地址<code>192.168.137.1</code>。重启网卡使得配置生效。</p>
-<img src="/yyg/f5b762ea/4.png" class="" title="image.png">
-<p>（3）打开eNSP软件，打开Cloud的设置，分别创建一个绑定信息为<code>UDP</code>和环回网卡<code>以太网 8 -- IP：192.168.137.1</code>的端口，并设置端口映射的入端口和出端口编号，勾选双向通道，点击增加。</p>
-<img src="/yyg/f5b762ea/5.png" class="" title="image.png">
-<p>（4）开启网络拓扑，设置主机为DHCP，等待主机分配出ip后，使用ping命令验证是否连接外部真实网络。</p>
-<img src="/yyg/f5b762ea/6.png" class="" title="image.png">
-<img src="/yyg/f5b762ea/7.png" class="" title="image.png">]]></content>
-      <categories>
-        <category>Linux运维</category>
-        <category>梳理总结</category>
-        <category>网络分析</category>
-        <category>知识梳理</category>
-      </categories>
-      <tags>
-        <tag>ensp模拟仿真</tag>
-        <tag>网络设备</tag>
       </tags>
   </entry>
   <entry>
@@ -1761,98 +1774,51 @@ Mastodon:  @Podman_io@fosstodon.org
       </tags>
   </entry>
   <entry>
-    <title>使用cephadm方式部署ceph集群</title>
-    <url>/yyg/89bdf9b5/</url>
-    <content><![CDATA[<h2 id="任务目标"><a href="#任务目标" class="headerlink" title="任务目标"></a>任务目标</h2><ol>
-<li>完成使用cephadm方式部署ceph集群</li>
-</ol>
-<h2 id="任务平台"><a href="#任务平台" class="headerlink" title="任务平台"></a>任务平台</h2><ol>
-<li>物理设备—</li>
-<li>操作系统：openEuler 22.03 LTS SP2</li>
-</ol>
-<h2 id="部署指南"><a href="#部署指南" class="headerlink" title="部署指南"></a>部署指南</h2><h3 id="任务一：配置准备"><a href="#任务一：配置准备" class="headerlink" title="任务一：配置准备"></a>任务一：配置准备</h3><ol>
-<li>重命名hostname</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">将10.10.3.117的主机名改为future-ceph-node0</span></span><br><span class="line">hostnamectl set-hostname future-ceph-node0 &amp;&amp; bash</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">将10.10.3.118的主机名改为future-ceph-node1</span></span><br><span class="line">hostnamectl set-hostname future-ceph-node1 &amp;&amp; bash</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">将10.10.3.119的主机名改为future-ceph-node2</span></span><br><span class="line">hostnamectl set-hostname future-ceph-node2 &amp;&amp; bash</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">将10.10.3.120的主机名改为future-ceph-node3</span></span><br><span class="line">hostnamectl set-hostname future-ceph-node3 &amp;&amp; bash</span><br></pre></td></tr></table></figure>
-<ol>
-<li>安装前的配置修改</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">关闭防火墙</span></span><br><span class="line">systemctl stop firewalld</span><br><span class="line">systemctl disable firewalld</span><br><span class="line">firewall-cmd --state</span><br><span class="line"><span class="meta prompt_"> </span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">selinux永久关闭</span></span><br><span class="line">setenforce 0</span><br><span class="line"> sed -i &#x27;s/^SELINUX=enforcing$/SELINUX=permissive/&#x27; /etc/selinux/config</span><br><span class="line">cat /etc/selinux/config</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">添加hosts</span></span><br><span class="line">cat &gt;&gt; /etc/hosts &lt;&lt; EOF</span><br><span class="line">10.10.3.117 future-ceph-node0</span><br><span class="line">10.10.3.118 future-ceph-node1</span><br><span class="line">10.10.3.119 future-ceph-node2</span><br><span class="line">10.10.3.120 future-ceph-node3</span><br><span class="line">EOF</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看</span></span><br><span class="line">cat /etc/hosts</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">同步时间</span></span><br><span class="line">yum install ntp -y</span><br><span class="line">systemctl start ntpd</span><br><span class="line">systemctl enable ntpd</span><br><span class="line">yum install chrony  -y</span><br><span class="line">systemctl start chronyd</span><br><span class="line">systemctl enable chronyd</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">修改配置，添加内容</span></span><br><span class="line">echo &quot;</span><br><span class="line">server 10.10.3.70 iburst</span><br><span class="line">allow 10.10.3.0/24</span><br><span class="line">&quot; &gt;&gt; /etc/chrony.conf</span><br><span class="line">timedatectl set-ntp true</span><br><span class="line">systemctl restart chronyd</span><br><span class="line">timedatectl status</span><br><span class="line">date</span><br></pre></td></tr></table></figure>
-<ol>
-<li>添加SSH免密通信</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">ssh-keygen -t rsa</span><br><span class="line">ssh-copy-id 10.10.3.118</span><br><span class="line">ssh-copy-id 10.10.3.119</span><br><span class="line">ssh-copy-id 10.10.3.120</span><br></pre></td></tr></table></figure>
-<h3 id="任务二：安装docker"><a href="#任务二：安装docker" class="headerlink" title="任务二：安装docker"></a>任务二：安装docker</h3><ol>
-<li>配置Docker CE的yum存储库。打开<code>docker-ce.repo</code>的文件，并将以下内容复制到文件中：</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">[docker-ce-stable]</span><br><span class="line">name=Docker CE Stable - $basearch</span><br><span class="line">baseurl=https://download.docker.com/linux/centos/7/$basearch/stable</span><br><span class="line">enabled=1</span><br><span class="line">gpgcheck=1</span><br><span class="line">gpgkey=https://download.docker.com/linux/centos/gpg &#x27; &gt; /etc/yum.repos.d/docker-ce.repo</span><br></pre></td></tr></table></figure>
-<p>保存并退出文件。</p>
-<ol>
-<li>安装Docker CE。运行以下命令来安装Docker CE：</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"> yum -y install docker-ce docker-ce-cli  containerd.io</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动docker并设置开机自启</span></span><br><span class="line">systemctl start docker  </span><br><span class="line">systemctl enable docker</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看版本</span></span><br><span class="line">docker -v</span><br><span class="line">docker compose version</span><br></pre></td></tr></table></figure>
-<ol>
-<li>Docker配置修改存储路径，配置修改为如下。</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">将配置写入daemon.json文件</span></span><br><span class="line">echo &#x27;&#123;</span><br><span class="line">  &quot;data-root&quot;: &quot;/data/docker&quot;</span><br><span class="line">&#125; &#x27; &gt; /etc/docker/daemon.json</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看</span></span><br><span class="line">cat /etc/docker/daemon.json</span><br><span class="line">systemctl daemon-reload</span><br><span class="line">systemctl restart docker</span><br><span class="line">docker info</span><br></pre></td></tr></table></figure>
-<h3 id="任务三：使用cephadm建设集群"><a href="#任务三：使用cephadm建设集群" class="headerlink" title="任务三：使用cephadm建设集群"></a>任务三：使用cephadm建设集群</h3><ol>
-<li><h4 id="安装ceph软件"><a href="#安装ceph软件" class="headerlink" title="安装ceph软件"></a>安装ceph软件</h4></li>
-</ol>
-<p>在所有主机上安装ceph软件</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum install -y cephadm ceph-common</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看版本</span></span><br><span class="line">ceph -v</span><br></pre></td></tr></table></figure>
-<ol>
-<li><h4 id="启用admin节点"><a href="#启用admin节点" class="headerlink" title="启用admin节点"></a>启用admin节点</h4></li>
-</ol>
-<p>在10.10.3.117上启用集群</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">cephadm bootstrap --mon-ip 10.10.3.117</span><br></pre></td></tr></table></figure>
-<p>访问dashboard修改默认密码</p>
-<blockquote>
-<p>Fetching dashboard port number…</p>
-<p>Ceph Dashboard is now available at:</p>
-<p>​             URL: <a href="https://future-ceph-node0:8443/">https://future-ceph-node0:8443/</a></p>
-<p>​            User: admin</p>
-<p>​        Password: p4csdavtmr</p>
-<p>Enabling client.admin keyring and conf on hosts with “admin” label</p>
-<p>You can access the Ceph CLI with:</p>
-<p>​        sudo /usr/sbin/cephadm shell —fsid 5f344e64-85e4-11ee-9181-0050569a1378 -c /etc/ceph/ceph.conf -k /etc/ceph/ceph.client.admin.keyring</p>
-</blockquote>
-<ol>
-<li><h4 id="添加节点"><a href="#添加节点" class="headerlink" title="添加节点"></a>添加节点</h4></li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启用ceph命令</span></span><br><span class="line">cephadm shell</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">添加ceph的免密访问</span></span><br><span class="line">ceph cephadm get-pub-key &gt; ~/ceph.pub</span><br><span class="line">ssh-copy-id -f -i ~/ceph.pub root@future-ceph-node1</span><br><span class="line">ssh-copy-id -f -i ~/ceph.pub root@future-ceph-node2</span><br><span class="line">ssh-copy-id -f -i ~/ceph.pub root@future-ceph-node3</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">添加ceph节点</span></span><br><span class="line">ceph orch host add future-ceph-node1 10.10.3.118</span><br><span class="line">ceph orch host add future-ceph-node2 10.10.3.119</span><br><span class="line">ceph orch host add future-ceph-node3 10.10.3.120</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看节点</span></span><br><span class="line">ceph orch host ls</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">添加_admin标签允许该节点运行ceph相关命令</span></span><br><span class="line">ceph orch host label add future-ceph-node1  _admin</span><br><span class="line">ceph orch host label add future-ceph-node2  _admin</span><br><span class="line">ceph orch host label add future-ceph-node3  _admin</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">将配置文件拷贝到其他节点</span></span><br><span class="line">scp /etc/ceph/ceph.conf future-ceph-node1:/etc/ceph/</span><br><span class="line">scp /etc/ceph/ceph.conf future-ceph-node2:/etc/ceph/</span><br><span class="line">scp /etc/ceph/ceph.conf future-ceph-node3:/etc/ceph/</span><br><span class="line">scp /etc/ceph/ceph.client.admin.keyring future-ceph-node1:/etc/ceph/</span><br><span class="line">scp /etc/ceph/ceph.client.admin.keyring future-ceph-node2:/etc/ceph/</span><br><span class="line">scp /etc/ceph/ceph.client.admin.keyring future-ceph-node3:/etc/ceph/</span><br></pre></td></tr></table></figure>
-<ol>
-<li><h4 id="设置mon节点（监控）"><a href="#设置mon节点（监控）" class="headerlink" title="设置mon节点（监控）"></a>设置mon节点（监控）</h4></li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">ceph orch apply mon --placement=&quot;4 future-ceph-node0 future-ceph-node1 future-ceph-node2 future-ceph-node3&quot;</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看mon的详细信息</span></span><br><span class="line">ceph mon dump</span><br></pre></td></tr></table></figure>
-<ol>
-<li><h4 id="设置mgr节点（管理）"><a href="#设置mgr节点（管理）" class="headerlink" title="设置mgr节点（管理）"></a>设置mgr节点（管理）</h4></li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">ceph orch apply mgr --placement=&quot;2 future-ceph-node0 future-ceph-node1 &quot;</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看详情</span></span><br><span class="line"> ceph orch ls</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">打上标签</span></span><br><span class="line"> ceph orch host label add future-ceph-node0 master</span><br><span class="line"> ceph orch host label add future-ceph-node1 master</span><br></pre></td></tr></table></figure>
-<ol>
-<li><h4 id="添加osd（存储数据）"><a href="#添加osd（存储数据）" class="headerlink" title="添加osd（存储数据）"></a>添加osd（存储数据）</h4></li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看要挂载的磁盘</span></span><br><span class="line">lsblk</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">所有节点</span></span><br><span class="line">ceph orch daemon add osd future-ceph-node0:/dev/sdb</span><br><span class="line">ceph orch daemon add osd future-ceph-node1:/dev/sdb</span><br><span class="line">ceph orch daemon add osd future-ceph-node2:/dev/sdb</span><br><span class="line">ceph orch daemon add osd future-ceph-node3:/dev/sdb</span><br></pre></td></tr></table></figure>
-<ol>
-<li><h4 id="创建mds（元数据）"><a href="#创建mds（元数据）" class="headerlink" title="创建mds（元数据）"></a>创建mds（元数据）</h4></li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">创建cephfs文件系统</span></span><br><span class="line">ceph osd pool create cephfs_data</span><br><span class="line">ceph osd pool create cephfs_metadata</span><br><span class="line">ceph fs new cephfs cephfs_metadata cephfs_data</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">设置mds组件</span></span><br><span class="line"> ceph orch apply mds cephfs --placement=&quot;4 future-ceph-node0 future-ceph-node1 future-ceph-node2 future-ceph-node3&quot;</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">查看mds状态</span></span><br><span class="line"> ceph orch ps --daemon-type mds</span><br></pre></td></tr></table></figure>
-<ol>
-<li><h4 id="配置rgw（对象网关）"><a href="#配置rgw（对象网关）" class="headerlink" title="配置rgw（对象网关）"></a>配置rgw（对象网关）</h4></li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">创建名为myorg的realm</span></span><br><span class="line">radosgw-admin realm create --rgw-realm=myorg </span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">创建名为default的区域组(设置为主区域组)</span></span><br><span class="line">radosgw-admin zonegroup create --rgw-zonegroup=default --master</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">创建名为cn-east-1的区域（设置为主区域）</span></span><br><span class="line"> radosgw-admin zone create --rgw-zonegroup=default --rgw-zone=cn-east-1 --master</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">为realm与区域配置radosgw</span></span><br><span class="line"> ceph orch apply rgw myorg cn-east-1 --placement=&quot;4 future-ceph-node0 future-ceph-node1 future-ceph-node2 future-ceph-node3&quot;</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">验证</span></span><br><span class="line"> ceph orch ps --daemon-type rgw</span><br><span class="line"> ceph -s</span><br></pre></td></tr></table></figure>
-<ol>
-<li><h4 id="访问测试"><a href="#访问测试" class="headerlink" title="访问测试"></a>访问测试</h4></li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">ceph-Dashboard</span></span><br><span class="line">https://10.10.3.117:8443</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">Prometheus</span></span><br><span class="line">http://10.10.3.117:9095/</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">Grafana</span></span><br><span class="line">https://10.10.3.117:3000/</span><br></pre></td></tr></table></figure>]]></content>
+    <title>x86服务器构建ARM架构docker镜像</title>
+    <url>/yyg/4451cec/</url>
+    <content><![CDATA[<h2 id="基础环境"><a href="#基础环境" class="headerlink" title="基础环境"></a>基础环境</h2><p>操作系统：openEuler 22.03 (LTS-SP2)</p>
+<p>软件：Docker-26.1.2 、Docker Compose-v2.27.0</p>
+<h2 id="安装Docker"><a href="#安装Docker" class="headerlink" title="安装Docker"></a>安装Docker</h2><p>（1）配置yum源下载docker。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo</span><br><span class="line">sed -i &#x27;s/\$releasever/7/g&#x27; /etc/yum.repos.d/docker-ce.repo</span><br></pre></td></tr></table></figure>
+<p>（2）安装最新版docker和docker compose。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">下载依赖及docker、docker compose</span></span><br><span class="line">yum install -container-selinux</span><br><span class="line">yum install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin </span><br></pre></td></tr></table></figure>
+<p>（3）修改Docker的数据目录为“/data/dockerData”，并配置docker镜像源。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;&#123;</span><br><span class="line">  &quot;data-root&quot;: &quot;/data/dockerData&quot;,</span><br><span class="line"> &quot;registry-mirrors&quot;: [&quot;https://dockerhub.icu&quot;]</span><br><span class="line">&#125;&#x27; &gt; /etc/docker/daemon.json</span><br></pre></td></tr></table></figure>
+<p>（4）启动Docker服务，并设置为开机自启动。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">systemctl start docker</span><br><span class="line">systemctl enable docker</span><br></pre></td></tr></table></figure>
+<h2 id="使用-register-注册可支持的架构解析器"><a href="#使用-register-注册可支持的架构解析器" class="headerlink" title="使用 register 注册可支持的架构解析器"></a>使用 <code>register</code> 注册可支持的架构解析器</h2><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker run --rm --privileged multiarch/qemu-user-static:register --reset</span><br></pre></td></tr></table></figure>
+<p>查看二进制格式的解释器是否启用，显示<code>enabled</code>，即为启用。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">ls  /proc/sys/fs/binfmt_misc/ </span><br><span class="line">cat /proc/sys/fs/binfmt_misc/qemu-aarch64</span><br></pre></td></tr></table></figure>
+<h2 id="拉取基础arm镜像"><a href="#拉取基础arm镜像" class="headerlink" title="拉取基础arm镜像"></a>拉取基础arm镜像</h2><p>此处以httpd镜像为例，在x86服务器上拉取arm64架构的httpd镜像，其中<code>--platform=arm64</code>指定拉取的镜像架构位arm64，<code>--platform=amd64</code>则是拉取x86架构的镜像。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker pull --platform=arm64 httpd:latest</span><br></pre></td></tr></table></figure>
+<h2 id="定义Dockerfile，创建新镜像"><a href="#定义Dockerfile，创建新镜像" class="headerlink" title="定义Dockerfile，创建新镜像"></a>定义Dockerfile，创建新镜像</h2><p>通过使用Dockerfile创建新arm镜像的方式有两种，一种是直接下载<code>qemu-aarch64-static</code>程序，在构建镜像时直接拷贝进镜像中；另一种是拉取<code>multiarch/qemu-user-static:x86_64-aarch64</code>镜像，通过多阶段构建，从<code>multiarch/qemu-user-static:x86_64-aarch64</code>镜像中复制 <code>qemu-aarch64-static</code>程序 到 <code>httpd</code> 镜像中。</p>
+<h3 id="方式一：下载程序，直接复制"><a href="#方式一：下载程序，直接复制" class="headerlink" title="方式一：下载程序，直接复制"></a>方式一：下载程序，直接复制</h3><p>（1）在下载<code>qemu-aarch64-static</code>程序时，可直接下载该程序，也可先下载其压缩包，再解压。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">直接下载程序（推荐）</span></span><br><span class="line">wget https://github.com/multiarch/qemu-user-static/releases/download/v7.2.0-1/qemu-aarch64-static</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">先下载其压缩包，再解压</span></span><br><span class="line">wget https://github.com/multiarch/qemu-user-static/releases/download/v7.2.0-1/qemu-aarch64-static.tar.gz</span><br><span class="line">tar -vzxf qemu-aarch64-static.tar.gz</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">赋予可执行权限</span></span><br><span class="line">chmod +x /usr/bin/qemu-aarch64-static</span><br></pre></td></tr></table></figure>
+<p>（2）创建Dockerfile文件，在httpd镜像的基础上构建新镜像，<code>qemu-aarch64-static</code><mark>程序必须和Dockerfile文件在同一目录下</mark>。Dockerfile文件的具体内容如下：</p>
+<figure class="highlight dockerfile"><table><tr><td class="code"><pre><span class="line"><span class="keyword">FROM</span> httpd:latest</span><br><span class="line"><span class="comment"># 将qemu-aarch64-static程序拷贝进镜像的/usr/bin/目录</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> ./qemu-aarch64-static /usr/bin/qemu-aarch64-static</span></span><br><span class="line"><span class="comment"># 将测试的html文件拷贝到镜像的相关目录</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> ./index.html  /usr/local/apache2/htdocs/</span></span><br></pre></td></tr></table></figure>
+<p>（3）指定构建的架构，执行命令开始构建新镜像，构建完成后，查看新镜像的架构并导出为tar文件，在arm服务器上进行验证。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">构建镜像</span></span><br><span class="line">docker build --platform arm64 -t httpd:1.00 .</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看新镜像的架构</span></span><br><span class="line"> docker inspect httpd:1.00 | grep Architecture</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">导出镜像为tar文件</span></span><br><span class="line">docker save -o httpd.tar httpd:1.00</span><br></pre></td></tr></table></figure>
+<h3 id="方式二：通过镜像多重构建复制"><a href="#方式二：通过镜像多重构建复制" class="headerlink" title="方式二：通过镜像多重构建复制"></a>方式二：通过镜像多重构建复制</h3><p>（1）创建Dockerfile文件，分两个阶段构建新镜像，第一阶段从 <code>multiarch/qemu-user-static</code> 镜像中获取<code>qemu-aarch64-static</code>程序，第二阶段在httpd镜像的基础上构建新镜像，Dockerfile文件的具体内容如下：</p>
+<figure class="highlight dockerfile"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 第一阶段：从multiarch/qemu-user-static镜像中获取qemu-aarch64-static程序  </span></span><br><span class="line"><span class="keyword">FROM</span> multiarch/qemu-<span class="keyword">user</span>-static:x86_64-aarch64 as qemu</span><br><span class="line"><span class="comment"># 第二阶段：在httpd镜像的基础上构建新镜像</span></span><br><span class="line"><span class="keyword">FROM</span> httpd:latest</span><br><span class="line"><span class="comment"># 将qemu-aarch64-static程序拷贝进镜像的/usr/bin/目录</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> --from=qemu /usr/bin/qemu-aarch64-static /usr/bin/</span></span><br><span class="line"><span class="comment"># 将测试的html文件拷贝到镜像的相关目录</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> ./index.html  /usr/local/apache2/htdocs/</span></span><br></pre></td></tr></table></figure>
+<p>（2）指定构建的架构，执行命令开始构建新镜像，构建完成后，查看新镜像的架构并导出为tar文件，在arm服务器上进行验证。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">构建镜像</span></span><br><span class="line">docker build --platform arm64 -t httpd:1.00 .</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看新镜像的架构</span></span><br><span class="line"> docker inspect httpd:1.00 | grep Architecture</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">导出镜像为tar文件</span></span><br><span class="line">docker save -o httpd.tar httpd:1.00</span><br></pre></td></tr></table></figure>
+<p><mark>扩展：通过镜像多重构建复制也可用该docker命令直接替代。</mark></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker build --rm --platform arm64 -t &quot;httpd:1.00&quot; -&lt;&lt;EOF</span><br><span class="line">FROM multiarch/qemu-user-static:x86_64-aarch64 as qemu</span><br><span class="line">FROM httpd:latest</span><br><span class="line">COPY --from=qemu /usr/bin/qemu-aarch64-static /usr/bin</span><br><span class="line">COPY ./index.html  /usr/local/apache2/htdocs/</span><br><span class="line">EOF</span><br></pre></td></tr></table></figure>
+<h2 id="在arm服务器上验证"><a href="#在arm服务器上验证" class="headerlink" title="在arm服务器上验证"></a>在arm服务器上验证</h2><p>将新的镜像tar文件导入到arm服务器上，创建新容器验证镜像是否可用及镜像中的html文件是否生效。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">导入新镜像</span></span><br><span class="line">docker load -i httpd.tar</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看新镜像的架构</span></span><br><span class="line">docker inspect httpd:1.00 | grep Architecture</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">运行新容器</span></span><br><span class="line">docker run -itd --name test httpd:1.00</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看运行状态</span></span><br><span class="line">docker ps</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看容器IP</span></span><br><span class="line">docker inspect test | grep IPAddress</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">访问测试上传的html文件是否生效</span></span><br><span class="line">curl 172.17.0.2</span><br></pre></td></tr></table></figure>
+]]></content>
       <categories>
-        <category>存储系统</category>
-        <category>ceph</category>
+        <category>Linux运维</category>
+        <category>容器化</category>
+        <category>docker</category>
+        <category>容器管理</category>
       </categories>
       <tags>
-        <tag>ceph</tag>
-        <tag>共享存储</tag>
-        <tag>ceph集群</tag>
-        <tag>cephadm</tag>
+        <tag>运维</tag>
+        <tag>Linux</tag>
+        <tag>x86-ARM</tag>
+        <tag>docker镜像</tag>
+        <tag>跨架构镜像</tag>
       </tags>
   </entry>
   <entry>
@@ -2050,51 +2016,98 @@ Mastodon:  @Podman_io@fosstodon.org
       </tags>
   </entry>
   <entry>
-    <title>x86服务器构建ARM架构docker镜像</title>
-    <url>/yyg/4451cec/</url>
-    <content><![CDATA[<h2 id="基础环境"><a href="#基础环境" class="headerlink" title="基础环境"></a>基础环境</h2><p>操作系统：openEuler 22.03 (LTS-SP2)</p>
-<p>软件：Docker-26.1.2 、Docker Compose-v2.27.0</p>
-<h2 id="安装Docker"><a href="#安装Docker" class="headerlink" title="安装Docker"></a>安装Docker</h2><p>（1）配置yum源下载docker。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo</span><br><span class="line">sed -i &#x27;s/\$releasever/7/g&#x27; /etc/yum.repos.d/docker-ce.repo</span><br></pre></td></tr></table></figure>
-<p>（2）安装最新版docker和docker compose。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">下载依赖及docker、docker compose</span></span><br><span class="line">yum install -container-selinux</span><br><span class="line">yum install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin </span><br></pre></td></tr></table></figure>
-<p>（3）修改Docker的数据目录为“/data/dockerData”，并配置docker镜像源。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;&#123;</span><br><span class="line">  &quot;data-root&quot;: &quot;/data/dockerData&quot;,</span><br><span class="line"> &quot;registry-mirrors&quot;: [&quot;https://dockerhub.icu&quot;]</span><br><span class="line">&#125;&#x27; &gt; /etc/docker/daemon.json</span><br></pre></td></tr></table></figure>
-<p>（4）启动Docker服务，并设置为开机自启动。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">systemctl start docker</span><br><span class="line">systemctl enable docker</span><br></pre></td></tr></table></figure>
-<h2 id="使用-register-注册可支持的架构解析器"><a href="#使用-register-注册可支持的架构解析器" class="headerlink" title="使用 register 注册可支持的架构解析器"></a>使用 <code>register</code> 注册可支持的架构解析器</h2><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker run --rm --privileged multiarch/qemu-user-static:register --reset</span><br></pre></td></tr></table></figure>
-<p>查看二进制格式的解释器是否启用，显示<code>enabled</code>，即为启用。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">ls  /proc/sys/fs/binfmt_misc/ </span><br><span class="line">cat /proc/sys/fs/binfmt_misc/qemu-aarch64</span><br></pre></td></tr></table></figure>
-<h2 id="拉取基础arm镜像"><a href="#拉取基础arm镜像" class="headerlink" title="拉取基础arm镜像"></a>拉取基础arm镜像</h2><p>此处以httpd镜像为例，在x86服务器上拉取arm64架构的httpd镜像，其中<code>--platform=arm64</code>指定拉取的镜像架构位arm64，<code>--platform=amd64</code>则是拉取x86架构的镜像。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker pull --platform=arm64 httpd:latest</span><br></pre></td></tr></table></figure>
-<h2 id="定义Dockerfile，创建新镜像"><a href="#定义Dockerfile，创建新镜像" class="headerlink" title="定义Dockerfile，创建新镜像"></a>定义Dockerfile，创建新镜像</h2><p>通过使用Dockerfile创建新arm镜像的方式有两种，一种是直接下载<code>qemu-aarch64-static</code>程序，在构建镜像时直接拷贝进镜像中；另一种是拉取<code>multiarch/qemu-user-static:x86_64-aarch64</code>镜像，通过多阶段构建，从<code>multiarch/qemu-user-static:x86_64-aarch64</code>镜像中复制 <code>qemu-aarch64-static</code>程序 到 <code>httpd</code> 镜像中。</p>
-<h3 id="方式一：下载程序，直接复制"><a href="#方式一：下载程序，直接复制" class="headerlink" title="方式一：下载程序，直接复制"></a>方式一：下载程序，直接复制</h3><p>（1）在下载<code>qemu-aarch64-static</code>程序时，可直接下载该程序，也可先下载其压缩包，再解压。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">直接下载程序（推荐）</span></span><br><span class="line">wget https://github.com/multiarch/qemu-user-static/releases/download/v7.2.0-1/qemu-aarch64-static</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">先下载其压缩包，再解压</span></span><br><span class="line">wget https://github.com/multiarch/qemu-user-static/releases/download/v7.2.0-1/qemu-aarch64-static.tar.gz</span><br><span class="line">tar -vzxf qemu-aarch64-static.tar.gz</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">赋予可执行权限</span></span><br><span class="line">chmod +x /usr/bin/qemu-aarch64-static</span><br></pre></td></tr></table></figure>
-<p>（2）创建Dockerfile文件，在httpd镜像的基础上构建新镜像，<code>qemu-aarch64-static</code><mark>程序必须和Dockerfile文件在同一目录下</mark>。Dockerfile文件的具体内容如下：</p>
-<figure class="highlight dockerfile"><table><tr><td class="code"><pre><span class="line"><span class="keyword">FROM</span> httpd:latest</span><br><span class="line"><span class="comment"># 将qemu-aarch64-static程序拷贝进镜像的/usr/bin/目录</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> ./qemu-aarch64-static /usr/bin/qemu-aarch64-static</span></span><br><span class="line"><span class="comment"># 将测试的html文件拷贝到镜像的相关目录</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> ./index.html  /usr/local/apache2/htdocs/</span></span><br></pre></td></tr></table></figure>
-<p>（3）指定构建的架构，执行命令开始构建新镜像，构建完成后，查看新镜像的架构并导出为tar文件，在arm服务器上进行验证。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">构建镜像</span></span><br><span class="line">docker build --platform arm64 -t httpd:1.00 .</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看新镜像的架构</span></span><br><span class="line"> docker inspect httpd:1.00 | grep Architecture</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">导出镜像为tar文件</span></span><br><span class="line">docker save -o httpd.tar httpd:1.00</span><br></pre></td></tr></table></figure>
-<h3 id="方式二：通过镜像多重构建复制"><a href="#方式二：通过镜像多重构建复制" class="headerlink" title="方式二：通过镜像多重构建复制"></a>方式二：通过镜像多重构建复制</h3><p>（1）创建Dockerfile文件，分两个阶段构建新镜像，第一阶段从 <code>multiarch/qemu-user-static</code> 镜像中获取<code>qemu-aarch64-static</code>程序，第二阶段在httpd镜像的基础上构建新镜像，Dockerfile文件的具体内容如下：</p>
-<figure class="highlight dockerfile"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 第一阶段：从multiarch/qemu-user-static镜像中获取qemu-aarch64-static程序  </span></span><br><span class="line"><span class="keyword">FROM</span> multiarch/qemu-<span class="keyword">user</span>-static:x86_64-aarch64 as qemu</span><br><span class="line"><span class="comment"># 第二阶段：在httpd镜像的基础上构建新镜像</span></span><br><span class="line"><span class="keyword">FROM</span> httpd:latest</span><br><span class="line"><span class="comment"># 将qemu-aarch64-static程序拷贝进镜像的/usr/bin/目录</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> --from=qemu /usr/bin/qemu-aarch64-static /usr/bin/</span></span><br><span class="line"><span class="comment"># 将测试的html文件拷贝到镜像的相关目录</span></span><br><span class="line"><span class="keyword">COPY</span><span class="language-bash"> ./index.html  /usr/local/apache2/htdocs/</span></span><br></pre></td></tr></table></figure>
-<p>（2）指定构建的架构，执行命令开始构建新镜像，构建完成后，查看新镜像的架构并导出为tar文件，在arm服务器上进行验证。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">构建镜像</span></span><br><span class="line">docker build --platform arm64 -t httpd:1.00 .</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看新镜像的架构</span></span><br><span class="line"> docker inspect httpd:1.00 | grep Architecture</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">导出镜像为tar文件</span></span><br><span class="line">docker save -o httpd.tar httpd:1.00</span><br></pre></td></tr></table></figure>
-<p><mark>扩展：通过镜像多重构建复制也可用该docker命令直接替代。</mark></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker build --rm --platform arm64 -t &quot;httpd:1.00&quot; -&lt;&lt;EOF</span><br><span class="line">FROM multiarch/qemu-user-static:x86_64-aarch64 as qemu</span><br><span class="line">FROM httpd:latest</span><br><span class="line">COPY --from=qemu /usr/bin/qemu-aarch64-static /usr/bin</span><br><span class="line">COPY ./index.html  /usr/local/apache2/htdocs/</span><br><span class="line">EOF</span><br></pre></td></tr></table></figure>
-<h2 id="在arm服务器上验证"><a href="#在arm服务器上验证" class="headerlink" title="在arm服务器上验证"></a>在arm服务器上验证</h2><p>将新的镜像tar文件导入到arm服务器上，创建新容器验证镜像是否可用及镜像中的html文件是否生效。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">导入新镜像</span></span><br><span class="line">docker load -i httpd.tar</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看新镜像的架构</span></span><br><span class="line">docker inspect httpd:1.00 | grep Architecture</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">运行新容器</span></span><br><span class="line">docker run -itd --name test httpd:1.00</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看运行状态</span></span><br><span class="line">docker ps</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看容器IP</span></span><br><span class="line">docker inspect test | grep IPAddress</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">访问测试上传的html文件是否生效</span></span><br><span class="line">curl 172.17.0.2</span><br></pre></td></tr></table></figure>
-]]></content>
+    <title>使用cephadm方式部署ceph集群</title>
+    <url>/yyg/89bdf9b5/</url>
+    <content><![CDATA[<h2 id="任务目标"><a href="#任务目标" class="headerlink" title="任务目标"></a>任务目标</h2><ol>
+<li>完成使用cephadm方式部署ceph集群</li>
+</ol>
+<h2 id="任务平台"><a href="#任务平台" class="headerlink" title="任务平台"></a>任务平台</h2><ol>
+<li>物理设备—</li>
+<li>操作系统：openEuler 22.03 LTS SP2</li>
+</ol>
+<h2 id="部署指南"><a href="#部署指南" class="headerlink" title="部署指南"></a>部署指南</h2><h3 id="任务一：配置准备"><a href="#任务一：配置准备" class="headerlink" title="任务一：配置准备"></a>任务一：配置准备</h3><ol>
+<li>重命名hostname</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">将10.10.3.117的主机名改为future-ceph-node0</span></span><br><span class="line">hostnamectl set-hostname future-ceph-node0 &amp;&amp; bash</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">将10.10.3.118的主机名改为future-ceph-node1</span></span><br><span class="line">hostnamectl set-hostname future-ceph-node1 &amp;&amp; bash</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">将10.10.3.119的主机名改为future-ceph-node2</span></span><br><span class="line">hostnamectl set-hostname future-ceph-node2 &amp;&amp; bash</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">将10.10.3.120的主机名改为future-ceph-node3</span></span><br><span class="line">hostnamectl set-hostname future-ceph-node3 &amp;&amp; bash</span><br></pre></td></tr></table></figure>
+<ol>
+<li>安装前的配置修改</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">关闭防火墙</span></span><br><span class="line">systemctl stop firewalld</span><br><span class="line">systemctl disable firewalld</span><br><span class="line">firewall-cmd --state</span><br><span class="line"><span class="meta prompt_"> </span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">selinux永久关闭</span></span><br><span class="line">setenforce 0</span><br><span class="line"> sed -i &#x27;s/^SELINUX=enforcing$/SELINUX=permissive/&#x27; /etc/selinux/config</span><br><span class="line">cat /etc/selinux/config</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">添加hosts</span></span><br><span class="line">cat &gt;&gt; /etc/hosts &lt;&lt; EOF</span><br><span class="line">10.10.3.117 future-ceph-node0</span><br><span class="line">10.10.3.118 future-ceph-node1</span><br><span class="line">10.10.3.119 future-ceph-node2</span><br><span class="line">10.10.3.120 future-ceph-node3</span><br><span class="line">EOF</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看</span></span><br><span class="line">cat /etc/hosts</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">同步时间</span></span><br><span class="line">yum install ntp -y</span><br><span class="line">systemctl start ntpd</span><br><span class="line">systemctl enable ntpd</span><br><span class="line">yum install chrony  -y</span><br><span class="line">systemctl start chronyd</span><br><span class="line">systemctl enable chronyd</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">修改配置，添加内容</span></span><br><span class="line">echo &quot;</span><br><span class="line">server 10.10.3.70 iburst</span><br><span class="line">allow 10.10.3.0/24</span><br><span class="line">&quot; &gt;&gt; /etc/chrony.conf</span><br><span class="line">timedatectl set-ntp true</span><br><span class="line">systemctl restart chronyd</span><br><span class="line">timedatectl status</span><br><span class="line">date</span><br></pre></td></tr></table></figure>
+<ol>
+<li>添加SSH免密通信</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">ssh-keygen -t rsa</span><br><span class="line">ssh-copy-id 10.10.3.118</span><br><span class="line">ssh-copy-id 10.10.3.119</span><br><span class="line">ssh-copy-id 10.10.3.120</span><br></pre></td></tr></table></figure>
+<h3 id="任务二：安装docker"><a href="#任务二：安装docker" class="headerlink" title="任务二：安装docker"></a>任务二：安装docker</h3><ol>
+<li>配置Docker CE的yum存储库。打开<code>docker-ce.repo</code>的文件，并将以下内容复制到文件中：</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">[docker-ce-stable]</span><br><span class="line">name=Docker CE Stable - $basearch</span><br><span class="line">baseurl=https://download.docker.com/linux/centos/7/$basearch/stable</span><br><span class="line">enabled=1</span><br><span class="line">gpgcheck=1</span><br><span class="line">gpgkey=https://download.docker.com/linux/centos/gpg &#x27; &gt; /etc/yum.repos.d/docker-ce.repo</span><br></pre></td></tr></table></figure>
+<p>保存并退出文件。</p>
+<ol>
+<li>安装Docker CE。运行以下命令来安装Docker CE：</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"> yum -y install docker-ce docker-ce-cli  containerd.io</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动docker并设置开机自启</span></span><br><span class="line">systemctl start docker  </span><br><span class="line">systemctl enable docker</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看版本</span></span><br><span class="line">docker -v</span><br><span class="line">docker compose version</span><br></pre></td></tr></table></figure>
+<ol>
+<li>Docker配置修改存储路径，配置修改为如下。</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">将配置写入daemon.json文件</span></span><br><span class="line">echo &#x27;&#123;</span><br><span class="line">  &quot;data-root&quot;: &quot;/data/docker&quot;</span><br><span class="line">&#125; &#x27; &gt; /etc/docker/daemon.json</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看</span></span><br><span class="line">cat /etc/docker/daemon.json</span><br><span class="line">systemctl daemon-reload</span><br><span class="line">systemctl restart docker</span><br><span class="line">docker info</span><br></pre></td></tr></table></figure>
+<h3 id="任务三：使用cephadm建设集群"><a href="#任务三：使用cephadm建设集群" class="headerlink" title="任务三：使用cephadm建设集群"></a>任务三：使用cephadm建设集群</h3><ol>
+<li><h4 id="安装ceph软件"><a href="#安装ceph软件" class="headerlink" title="安装ceph软件"></a>安装ceph软件</h4></li>
+</ol>
+<p>在所有主机上安装ceph软件</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum install -y cephadm ceph-common</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看版本</span></span><br><span class="line">ceph -v</span><br></pre></td></tr></table></figure>
+<ol>
+<li><h4 id="启用admin节点"><a href="#启用admin节点" class="headerlink" title="启用admin节点"></a>启用admin节点</h4></li>
+</ol>
+<p>在10.10.3.117上启用集群</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">cephadm bootstrap --mon-ip 10.10.3.117</span><br></pre></td></tr></table></figure>
+<p>访问dashboard修改默认密码</p>
+<blockquote>
+<p>Fetching dashboard port number…</p>
+<p>Ceph Dashboard is now available at:</p>
+<p>​             URL: <a href="https://future-ceph-node0:8443/">https://future-ceph-node0:8443/</a></p>
+<p>​            User: admin</p>
+<p>​        Password: p4csdavtmr</p>
+<p>Enabling client.admin keyring and conf on hosts with “admin” label</p>
+<p>You can access the Ceph CLI with:</p>
+<p>​        sudo /usr/sbin/cephadm shell —fsid 5f344e64-85e4-11ee-9181-0050569a1378 -c /etc/ceph/ceph.conf -k /etc/ceph/ceph.client.admin.keyring</p>
+</blockquote>
+<ol>
+<li><h4 id="添加节点"><a href="#添加节点" class="headerlink" title="添加节点"></a>添加节点</h4></li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启用ceph命令</span></span><br><span class="line">cephadm shell</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">添加ceph的免密访问</span></span><br><span class="line">ceph cephadm get-pub-key &gt; ~/ceph.pub</span><br><span class="line">ssh-copy-id -f -i ~/ceph.pub root@future-ceph-node1</span><br><span class="line">ssh-copy-id -f -i ~/ceph.pub root@future-ceph-node2</span><br><span class="line">ssh-copy-id -f -i ~/ceph.pub root@future-ceph-node3</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">添加ceph节点</span></span><br><span class="line">ceph orch host add future-ceph-node1 10.10.3.118</span><br><span class="line">ceph orch host add future-ceph-node2 10.10.3.119</span><br><span class="line">ceph orch host add future-ceph-node3 10.10.3.120</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看节点</span></span><br><span class="line">ceph orch host ls</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">添加_admin标签允许该节点运行ceph相关命令</span></span><br><span class="line">ceph orch host label add future-ceph-node1  _admin</span><br><span class="line">ceph orch host label add future-ceph-node2  _admin</span><br><span class="line">ceph orch host label add future-ceph-node3  _admin</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">将配置文件拷贝到其他节点</span></span><br><span class="line">scp /etc/ceph/ceph.conf future-ceph-node1:/etc/ceph/</span><br><span class="line">scp /etc/ceph/ceph.conf future-ceph-node2:/etc/ceph/</span><br><span class="line">scp /etc/ceph/ceph.conf future-ceph-node3:/etc/ceph/</span><br><span class="line">scp /etc/ceph/ceph.client.admin.keyring future-ceph-node1:/etc/ceph/</span><br><span class="line">scp /etc/ceph/ceph.client.admin.keyring future-ceph-node2:/etc/ceph/</span><br><span class="line">scp /etc/ceph/ceph.client.admin.keyring future-ceph-node3:/etc/ceph/</span><br></pre></td></tr></table></figure>
+<ol>
+<li><h4 id="设置mon节点（监控）"><a href="#设置mon节点（监控）" class="headerlink" title="设置mon节点（监控）"></a>设置mon节点（监控）</h4></li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">ceph orch apply mon --placement=&quot;4 future-ceph-node0 future-ceph-node1 future-ceph-node2 future-ceph-node3&quot;</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看mon的详细信息</span></span><br><span class="line">ceph mon dump</span><br></pre></td></tr></table></figure>
+<ol>
+<li><h4 id="设置mgr节点（管理）"><a href="#设置mgr节点（管理）" class="headerlink" title="设置mgr节点（管理）"></a>设置mgr节点（管理）</h4></li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">ceph orch apply mgr --placement=&quot;2 future-ceph-node0 future-ceph-node1 &quot;</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看详情</span></span><br><span class="line"> ceph orch ls</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">打上标签</span></span><br><span class="line"> ceph orch host label add future-ceph-node0 master</span><br><span class="line"> ceph orch host label add future-ceph-node1 master</span><br></pre></td></tr></table></figure>
+<ol>
+<li><h4 id="添加osd（存储数据）"><a href="#添加osd（存储数据）" class="headerlink" title="添加osd（存储数据）"></a>添加osd（存储数据）</h4></li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看要挂载的磁盘</span></span><br><span class="line">lsblk</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">所有节点</span></span><br><span class="line">ceph orch daemon add osd future-ceph-node0:/dev/sdb</span><br><span class="line">ceph orch daemon add osd future-ceph-node1:/dev/sdb</span><br><span class="line">ceph orch daemon add osd future-ceph-node2:/dev/sdb</span><br><span class="line">ceph orch daemon add osd future-ceph-node3:/dev/sdb</span><br></pre></td></tr></table></figure>
+<ol>
+<li><h4 id="创建mds（元数据）"><a href="#创建mds（元数据）" class="headerlink" title="创建mds（元数据）"></a>创建mds（元数据）</h4></li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">创建cephfs文件系统</span></span><br><span class="line">ceph osd pool create cephfs_data</span><br><span class="line">ceph osd pool create cephfs_metadata</span><br><span class="line">ceph fs new cephfs cephfs_metadata cephfs_data</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">设置mds组件</span></span><br><span class="line"> ceph orch apply mds cephfs --placement=&quot;4 future-ceph-node0 future-ceph-node1 future-ceph-node2 future-ceph-node3&quot;</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">查看mds状态</span></span><br><span class="line"> ceph orch ps --daemon-type mds</span><br></pre></td></tr></table></figure>
+<ol>
+<li><h4 id="配置rgw（对象网关）"><a href="#配置rgw（对象网关）" class="headerlink" title="配置rgw（对象网关）"></a>配置rgw（对象网关）</h4></li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">创建名为myorg的realm</span></span><br><span class="line">radosgw-admin realm create --rgw-realm=myorg </span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">创建名为default的区域组(设置为主区域组)</span></span><br><span class="line">radosgw-admin zonegroup create --rgw-zonegroup=default --master</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">创建名为cn-east-1的区域（设置为主区域）</span></span><br><span class="line"> radosgw-admin zone create --rgw-zonegroup=default --rgw-zone=cn-east-1 --master</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">为realm与区域配置radosgw</span></span><br><span class="line"> ceph orch apply rgw myorg cn-east-1 --placement=&quot;4 future-ceph-node0 future-ceph-node1 future-ceph-node2 future-ceph-node3&quot;</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">验证</span></span><br><span class="line"> ceph orch ps --daemon-type rgw</span><br><span class="line"> ceph -s</span><br></pre></td></tr></table></figure>
+<ol>
+<li><h4 id="访问测试"><a href="#访问测试" class="headerlink" title="访问测试"></a>访问测试</h4></li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">ceph-Dashboard</span></span><br><span class="line">https://10.10.3.117:8443</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">Prometheus</span></span><br><span class="line">http://10.10.3.117:9095/</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">Grafana</span></span><br><span class="line">https://10.10.3.117:3000/</span><br></pre></td></tr></table></figure>]]></content>
       <categories>
-        <category>Linux运维</category>
-        <category>容器化</category>
-        <category>docker</category>
-        <category>容器管理</category>
+        <category>存储系统</category>
+        <category>ceph</category>
       </categories>
       <tags>
-        <tag>运维</tag>
-        <tag>Linux</tag>
-        <tag>x86-ARM</tag>
-        <tag>docker镜像</tag>
-        <tag>跨架构镜像</tag>
+        <tag>ceph</tag>
+        <tag>共享存储</tag>
+        <tag>ceph集群</tag>
+        <tag>cephadm</tag>
       </tags>
   </entry>
   <entry>
@@ -2229,6 +2242,37 @@ Mastodon:  @Podman_io@fosstodon.org
       </tags>
   </entry>
   <entry>
+    <title>实现Nextcloud私有云盘</title>
+    <url>/yyg/f7b8055d/</url>
+    <content><![CDATA[<h2 id="任务目标"><a href="#任务目标" class="headerlink" title="任务目标"></a>任务目标</h2><ol>
+<li>完成Nextcloud私有云盘的搭建</li>
+</ol>
+<h2 id="部署指南"><a href="#部署指南" class="headerlink" title="部署指南"></a>部署指南</h2><h3 id="基础环境准备"><a href="#基础环境准备" class="headerlink" title="基础环境准备"></a>基础环境准备</h3><p>配置防火墙策略</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">firewall-cmd --zone=public --add-service=http --permanent</span><br><span class="line">firewall-cmd --reload</span><br></pre></td></tr></table></figure>
+<p>配置SELinux策略</p>
+<p>设置SELinux为permissive或disabled。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">修改</span></span><br><span class="line">setenforce 0</span><br><span class="line">sudo sed -i &#x27;s/^SELINUX=enforcing/SELINUX=disabled/&#x27; /etc/selinux/config</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">或</span></span><br><span class="line">setenforce 0</span><br><span class="line">sudo sed -i &#x27;s/^SELINUX=enforcing/SELINUX=permissive/&#x27; /etc/selinux/config</span><br></pre></td></tr></table></figure>
+<h3 id="安装Apache"><a href="#安装Apache" class="headerlink" title="安装Apache"></a>安装Apache</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum -y install httpd</span><br></pre></td></tr></table></figure>
+<h3 id="安装PHP"><a href="#安装PHP" class="headerlink" title="安装PHP"></a>安装PHP</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum -y install php</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装php模块依赖</span></span><br><span class="line">yum -y install php-zip php-dom php-xml php-mbstring php-pdo php-gd</span><br></pre></td></tr></table></figure>
+<h3 id="添加Nextcloud站点配置文件"><a href="#添加Nextcloud站点配置文件" class="headerlink" title="添加Nextcloud站点配置文件"></a>添加Nextcloud站点配置文件</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">mkdir /var/www/html/nextcloud/</span><br><span class="line">chmod 777 /var/www/html/nextcloud/</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">新建文件</span></span><br><span class="line">vi /etc/httpd/conf.d/nextcloud.conf</span><br><span class="line">&lt;VirtualHost *:80&gt;</span><br><span class="line">  DocumentRoot /var/www/html/nextcloud/</span><br><span class="line">  ServerName  your.server.com</span><br><span class="line"></span><br><span class="line">  &lt;Directory /var/www/html/nextcloud/&gt;</span><br><span class="line">    Require all granted</span><br><span class="line">    AllowOverride All</span><br><span class="line">    Options FollowSymLinks MultiViews</span><br><span class="line"></span><br><span class="line">    &lt;IfModule mod_dav.c&gt;</span><br><span class="line">      Dav off</span><br><span class="line">    &lt;/IfModule&gt;</span><br><span class="line"></span><br><span class="line">  &lt;/Directory&gt;</span><br><span class="line">&lt;/VirtualHost&gt;</span><br></pre></td></tr></table></figure>
+<h3 id="下载Nextcloud安装文件"><a href="#下载Nextcloud安装文件" class="headerlink" title="下载Nextcloud安装文件"></a>下载Nextcloud安装文件</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">wget -P /var/www/html/nextcloud/ https://download.nextcloud.com/server/installer/setup-nextcloud.php</span><br></pre></td></tr></table></figure>
+<h3 id="启动服务"><a href="#启动服务" class="headerlink" title="启动服务"></a>启动服务</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">systemctl start httpd</span><br><span class="line">systemctl enable httpd</span><br></pre></td></tr></table></figure>
+<h3 id="通过浏览器访问"><a href="#通过浏览器访问" class="headerlink" title="通过浏览器访问"></a>通过浏览器访问</h3><p>在浏览器中输入<code>http://172.20.1.51/setup-nextcloud.php</code>，按引导进行设置。如下图所示。</p>
+<img src="/yyg/f7b8055d/2.jpg" class="" title="img">
+<p>设置用户名和密码，安装数据库如下图所示。</p>
+<img src="/yyg/f7b8055d/4.png" class="" title="img">
+<p>成功进入内容界面，部署完成，如下图所示。</p>
+<img src="/yyg/f7b8055d/3.png" class="" title="img">]]></content>
+      <categories>
+        <category>Linux运维</category>
+      </categories>
+      <tags>
+        <tag>Linux</tag>
+        <tag>Nextcloud</tag>
+        <tag>私有云盘</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>实现Docker 容器跨主机通讯</title>
     <url>/yyg/60ed202a/</url>
     <content><![CDATA[<p>[TOC]</p>
@@ -2290,37 +2334,6 @@ Mastodon:  @Podman_io@fosstodon.org
       <tags>
         <tag>docker</tag>
         <tag>容器通信</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>实现Nextcloud私有云盘</title>
-    <url>/yyg/f7b8055d/</url>
-    <content><![CDATA[<h2 id="任务目标"><a href="#任务目标" class="headerlink" title="任务目标"></a>任务目标</h2><ol>
-<li>完成Nextcloud私有云盘的搭建</li>
-</ol>
-<h2 id="部署指南"><a href="#部署指南" class="headerlink" title="部署指南"></a>部署指南</h2><h3 id="基础环境准备"><a href="#基础环境准备" class="headerlink" title="基础环境准备"></a>基础环境准备</h3><p>配置防火墙策略</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">firewall-cmd --zone=public --add-service=http --permanent</span><br><span class="line">firewall-cmd --reload</span><br></pre></td></tr></table></figure>
-<p>配置SELinux策略</p>
-<p>设置SELinux为permissive或disabled。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">修改</span></span><br><span class="line">setenforce 0</span><br><span class="line">sudo sed -i &#x27;s/^SELINUX=enforcing/SELINUX=disabled/&#x27; /etc/selinux/config</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">或</span></span><br><span class="line">setenforce 0</span><br><span class="line">sudo sed -i &#x27;s/^SELINUX=enforcing/SELINUX=permissive/&#x27; /etc/selinux/config</span><br></pre></td></tr></table></figure>
-<h3 id="安装Apache"><a href="#安装Apache" class="headerlink" title="安装Apache"></a>安装Apache</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum -y install httpd</span><br></pre></td></tr></table></figure>
-<h3 id="安装PHP"><a href="#安装PHP" class="headerlink" title="安装PHP"></a>安装PHP</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum -y install php</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装php模块依赖</span></span><br><span class="line">yum -y install php-zip php-dom php-xml php-mbstring php-pdo php-gd</span><br></pre></td></tr></table></figure>
-<h3 id="添加Nextcloud站点配置文件"><a href="#添加Nextcloud站点配置文件" class="headerlink" title="添加Nextcloud站点配置文件"></a>添加Nextcloud站点配置文件</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">mkdir /var/www/html/nextcloud/</span><br><span class="line">chmod 777 /var/www/html/nextcloud/</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">新建文件</span></span><br><span class="line">vi /etc/httpd/conf.d/nextcloud.conf</span><br><span class="line">&lt;VirtualHost *:80&gt;</span><br><span class="line">  DocumentRoot /var/www/html/nextcloud/</span><br><span class="line">  ServerName  your.server.com</span><br><span class="line"></span><br><span class="line">  &lt;Directory /var/www/html/nextcloud/&gt;</span><br><span class="line">    Require all granted</span><br><span class="line">    AllowOverride All</span><br><span class="line">    Options FollowSymLinks MultiViews</span><br><span class="line"></span><br><span class="line">    &lt;IfModule mod_dav.c&gt;</span><br><span class="line">      Dav off</span><br><span class="line">    &lt;/IfModule&gt;</span><br><span class="line"></span><br><span class="line">  &lt;/Directory&gt;</span><br><span class="line">&lt;/VirtualHost&gt;</span><br></pre></td></tr></table></figure>
-<h3 id="下载Nextcloud安装文件"><a href="#下载Nextcloud安装文件" class="headerlink" title="下载Nextcloud安装文件"></a>下载Nextcloud安装文件</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">wget -P /var/www/html/nextcloud/ https://download.nextcloud.com/server/installer/setup-nextcloud.php</span><br></pre></td></tr></table></figure>
-<h3 id="启动服务"><a href="#启动服务" class="headerlink" title="启动服务"></a>启动服务</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">systemctl start httpd</span><br><span class="line">systemctl enable httpd</span><br></pre></td></tr></table></figure>
-<h3 id="通过浏览器访问"><a href="#通过浏览器访问" class="headerlink" title="通过浏览器访问"></a>通过浏览器访问</h3><p>在浏览器中输入<code>http://172.20.1.51/setup-nextcloud.php</code>，按引导进行设置。如下图所示。</p>
-<img src="/yyg/f7b8055d/2.jpg" class="" title="img">
-<p>设置用户名和密码，安装数据库如下图所示。</p>
-<img src="/yyg/f7b8055d/4.png" class="" title="img">
-<p>成功进入内容界面，部署完成，如下图所示。</p>
-<img src="/yyg/f7b8055d/3.png" class="" title="img">]]></content>
-      <categories>
-        <category>Linux运维</category>
-      </categories>
-      <tags>
-        <tag>Linux</tag>
-        <tag>Nextcloud</tag>
-        <tag>私有云盘</tag>
       </tags>
   </entry>
   <entry>
