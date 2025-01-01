@@ -354,48 +354,6 @@
     </item>
     
     <item>
-      <title>使用cephadm方式部署ceph集群</title>
-      <link>https://marsperl.github.io/yyg/89bdf9b5/</link>
-      <guid>https://marsperl.github.io/yyg/89bdf9b5/</guid>
-      <pubDate>Tue, 31 Dec 2024 13:26:18 GMT</pubDate>
-      
-        
-        
-          
-          
-      <description>&lt;h2 id=&quot;任务目标&quot;&gt;&lt;a href=&quot;#任务目标&quot; class=&quot;headerlink&quot; title=&quot;任务目标&quot;&gt;&lt;/a&gt;任务目标&lt;/h2&gt;&lt;ol&gt;
-&lt;li&gt;完成使用cephadm方式部署ceph集群&lt;/li&gt;
-&lt;/ol&gt;
-&lt;h2 id=&quot;任务平台&quot;&gt;&lt;a href=&quot;#任务平台&quot; class=&quot;headerlink&quot; title=&quot;任务平台&quot;&gt;&lt;/a&gt;任务平台&lt;/h2&gt;&lt;ol&gt;
-&lt;li&gt;物理设备—&lt;/li&gt;
-&lt;li&gt;操作系统：openEuler 22.03 LTS SP2&lt;/li&gt;
-&lt;/ol&gt;
-&lt;h2 id=&quot;部署指南&quot;&gt;&lt;a href=&quot;#部署指南&quot;</description>
-          
-        
-      
-      
-      
-      
-      <category domain="https://MarsperL.github.io/categories/%E5%AD%98%E5%82%A8%E7%B3%BB%E7%BB%9F/">存储系统</category>
-      
-      <category domain="https://MarsperL.github.io/categories/%E5%AD%98%E5%82%A8%E7%B3%BB%E7%BB%9F/ceph/">ceph</category>
-      
-      
-      <category domain="https://MarsperL.github.io/tags/ceph/">ceph</category>
-      
-      <category domain="https://MarsperL.github.io/tags/%E5%85%B1%E4%BA%AB%E5%AD%98%E5%82%A8/">共享存储</category>
-      
-      <category domain="https://MarsperL.github.io/tags/ceph%E9%9B%86%E7%BE%A4/">ceph集群</category>
-      
-      <category domain="https://MarsperL.github.io/tags/cephadm/">cephadm</category>
-      
-      
-      <comments>https://marsperl.github.io/yyg/89bdf9b5/#disqus_thread</comments>
-      
-    </item>
-    
-    <item>
       <title>ELK | 使用 docker部署三节点 Elasticsearch 集群</title>
       <link>https://marsperl.github.io/yyg/56088d5a/</link>
       <guid>https://marsperl.github.io/yyg/56088d5a/</guid>
@@ -447,6 +405,48 @@
     </item>
     
     <item>
+      <title>使用cephadm方式部署ceph集群</title>
+      <link>https://marsperl.github.io/yyg/89bdf9b5/</link>
+      <guid>https://marsperl.github.io/yyg/89bdf9b5/</guid>
+      <pubDate>Tue, 31 Dec 2024 13:26:18 GMT</pubDate>
+      
+        
+        
+          
+          
+      <description>&lt;h2 id=&quot;任务目标&quot;&gt;&lt;a href=&quot;#任务目标&quot; class=&quot;headerlink&quot; title=&quot;任务目标&quot;&gt;&lt;/a&gt;任务目标&lt;/h2&gt;&lt;ol&gt;
+&lt;li&gt;完成使用cephadm方式部署ceph集群&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&quot;任务平台&quot;&gt;&lt;a href=&quot;#任务平台&quot; class=&quot;headerlink&quot; title=&quot;任务平台&quot;&gt;&lt;/a&gt;任务平台&lt;/h2&gt;&lt;ol&gt;
+&lt;li&gt;物理设备—&lt;/li&gt;
+&lt;li&gt;操作系统：openEuler 22.03 LTS SP2&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&quot;部署指南&quot;&gt;&lt;a href=&quot;#部署指南&quot;</description>
+          
+        
+      
+      
+      
+      
+      <category domain="https://MarsperL.github.io/categories/%E5%AD%98%E5%82%A8%E7%B3%BB%E7%BB%9F/">存储系统</category>
+      
+      <category domain="https://MarsperL.github.io/categories/%E5%AD%98%E5%82%A8%E7%B3%BB%E7%BB%9F/ceph/">ceph</category>
+      
+      
+      <category domain="https://MarsperL.github.io/tags/ceph/">ceph</category>
+      
+      <category domain="https://MarsperL.github.io/tags/%E5%85%B1%E4%BA%AB%E5%AD%98%E5%82%A8/">共享存储</category>
+      
+      <category domain="https://MarsperL.github.io/tags/ceph%E9%9B%86%E7%BE%A4/">ceph集群</category>
+      
+      <category domain="https://MarsperL.github.io/tags/cephadm/">cephadm</category>
+      
+      
+      <comments>https://marsperl.github.io/yyg/89bdf9b5/#disqus_thread</comments>
+      
+    </item>
+    
+    <item>
       <title>Windows 10（x86_64）使用QEMU安装ARM虚拟机</title>
       <link>https://marsperl.github.io/yyg/a785f75e/</link>
       <guid>https://marsperl.github.io/yyg/a785f75e/</guid>
@@ -485,6 +485,43 @@
       
       
       <comments>https://marsperl.github.io/yyg/a785f75e/#disqus_thread</comments>
+      
+    </item>
+    
+    <item>
+      <title>一些免费的gpt网站</title>
+      <link>https://marsperl.github.io/yyg/30035ff1/</link>
+      <guid>https://marsperl.github.io/yyg/30035ff1/</guid>
+      <pubDate>Tue, 31 Dec 2024 13:26:18 GMT</pubDate>
+      
+        
+        
+          
+          
+      <description>&lt;div title=&quot;CodeNews&quot; referrerPolicy=&quot;no-referrer&quot; class=&quot;card_box&quot; style=&quot;background-color: #333; width:96px; height:80px;&quot;&gt;
+    &lt;div class=&quot;card_mask&quot;&gt;
+      &lt;span class=&quot;tooltiptext&quot;&gt;免费免登录&lt;/span&gt;
+      &lt;a href=&quot;https://codenews.cc/chatgpt&quot;&gt;查看详情&lt;/a&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;card_top&quot;&gt;
+      &lt;i</description>
+          
+        
+      
+      
+      
+      
+      <category domain="https://MarsperL.github.io/categories/%E6%BC%AB%E8%B0%88/">漫谈</category>
+      
+      <category domain="https://MarsperL.github.io/categories/%E6%BC%AB%E8%B0%88/%E5%85%8D%E8%B4%B9gpt%E7%BD%91%E7%AB%99/">免费gpt网站</category>
+      
+      
+      <category domain="https://MarsperL.github.io/tags/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD%E5%8A%A9%E6%89%8B/">人工智能助手</category>
+      
+      <category domain="https://MarsperL.github.io/tags/%E5%85%8D%E8%B4%B9gpt/">免费gpt</category>
+      
+      
+      <comments>https://marsperl.github.io/yyg/30035ff1/#disqus_thread</comments>
       
     </item>
     
@@ -529,43 +566,6 @@
       
       
       <comments>https://marsperl.github.io/yyg/4451cec/#disqus_thread</comments>
-      
-    </item>
-    
-    <item>
-      <title>一些免费的gpt网站</title>
-      <link>https://marsperl.github.io/yyg/30035ff1/</link>
-      <guid>https://marsperl.github.io/yyg/30035ff1/</guid>
-      <pubDate>Tue, 31 Dec 2024 13:26:18 GMT</pubDate>
-      
-        
-        
-          
-          
-      <description>&lt;div title=&quot;CodeNews&quot; referrerPolicy=&quot;no-referrer&quot; class=&quot;card_box&quot; style=&quot;background-color: #333; width:96px; height:80px;&quot;&gt;
-    &lt;div class=&quot;card_mask&quot;&gt;
-      &lt;span class=&quot;tooltiptext&quot;&gt;免费免登录&lt;/span&gt;
-      &lt;a href=&quot;https://codenews.cc/chatgpt&quot;&gt;查看详情&lt;/a&gt;
-    &lt;/div&gt;
-    &lt;div class=&quot;card_top&quot;&gt;
-      &lt;i</description>
-          
-        
-      
-      
-      
-      
-      <category domain="https://MarsperL.github.io/categories/%E6%BC%AB%E8%B0%88/">漫谈</category>
-      
-      <category domain="https://MarsperL.github.io/categories/%E6%BC%AB%E8%B0%88/%E5%85%8D%E8%B4%B9gpt%E7%BD%91%E7%AB%99/">免费gpt网站</category>
-      
-      
-      <category domain="https://MarsperL.github.io/tags/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD%E5%8A%A9%E6%89%8B/">人工智能助手</category>
-      
-      <category domain="https://MarsperL.github.io/tags/%E5%85%8D%E8%B4%B9gpt/">免费gpt</category>
-      
-      
-      <comments>https://marsperl.github.io/yyg/30035ff1/#disqus_thread</comments>
       
     </item>
     
