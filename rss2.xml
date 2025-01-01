@@ -170,41 +170,6 @@
     </item>
     
     <item>
-      <title>实现Docker 容器跨主机通讯</title>
-      <link>https://marsperl.github.io/yyg/60ed202a/</link>
-      <guid>https://marsperl.github.io/yyg/60ed202a/</guid>
-      <pubDate>Tue, 31 Dec 2024 13:26:18 GMT</pubDate>
-      
-        
-        
-          
-          
-      <description>&lt;p&gt;[TOC]&lt;/p&gt;
-&lt;h3 id=&quot;方案一：docker-swarm集群&quot;&gt;&lt;a href=&quot;#方案一：docker-swarm集群&quot; class=&quot;headerlink&quot; title=&quot;方案一：docker swarm集群&quot;&gt;&lt;/a&gt;方案一：docker swarm集群&lt;/h3&gt;&lt;p&gt;&lt;a href=&quot;https://blog.csdn.net/AMCUL/article/details/132913280&quot;&gt;https://blog.csdn.net/AMCUL/article/details/132913280&lt;/a&gt;&lt;/p&gt;
-&lt;h3 id=&quot;方案二：直接路由法&quot;&gt;&lt;a</description>
-          
-        
-      
-      
-      
-      
-      <category domain="https://MarsperL.github.io/categories/%E5%AE%B9%E5%99%A8%E5%8C%96/">容器化</category>
-      
-      <category domain="https://MarsperL.github.io/categories/%E5%AE%B9%E5%99%A8%E5%8C%96/docker/">docker</category>
-      
-      <category domain="https://MarsperL.github.io/categories/%E6%A2%B3%E7%90%86%E6%80%BB%E7%BB%93/">梳理总结</category>
-      
-      
-      <category domain="https://MarsperL.github.io/tags/docker/">docker</category>
-      
-      <category domain="https://MarsperL.github.io/tags/%E5%AE%B9%E5%99%A8%E9%80%9A%E4%BF%A1/">容器通信</category>
-      
-      
-      <comments>https://marsperl.github.io/yyg/60ed202a/#disqus_thread</comments>
-      
-    </item>
-    
-    <item>
       <title>实现Nextcloud私有云盘</title>
       <link>https://marsperl.github.io/yyg/f7b8055d/</link>
       <guid>https://marsperl.github.io/yyg/f7b8055d/</guid>
@@ -236,6 +201,41 @@
       
       
       <comments>https://marsperl.github.io/yyg/f7b8055d/#disqus_thread</comments>
+      
+    </item>
+    
+    <item>
+      <title>实现Docker 容器跨主机通讯</title>
+      <link>https://marsperl.github.io/yyg/60ed202a/</link>
+      <guid>https://marsperl.github.io/yyg/60ed202a/</guid>
+      <pubDate>Tue, 31 Dec 2024 13:26:18 GMT</pubDate>
+      
+        
+        
+          
+          
+      <description>&lt;p&gt;[TOC]&lt;/p&gt;
+&lt;h3 id=&quot;方案一：docker-swarm集群&quot;&gt;&lt;a href=&quot;#方案一：docker-swarm集群&quot; class=&quot;headerlink&quot; title=&quot;方案一：docker swarm集群&quot;&gt;&lt;/a&gt;方案一：docker swarm集群&lt;/h3&gt;&lt;p&gt;&lt;a href=&quot;https://blog.csdn.net/AMCUL/article/details/132913280&quot;&gt;https://blog.csdn.net/AMCUL/article/details/132913280&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id=&quot;方案二：直接路由法&quot;&gt;&lt;a</description>
+          
+        
+      
+      
+      
+      
+      <category domain="https://MarsperL.github.io/categories/%E5%AE%B9%E5%99%A8%E5%8C%96/">容器化</category>
+      
+      <category domain="https://MarsperL.github.io/categories/%E5%AE%B9%E5%99%A8%E5%8C%96/docker/">docker</category>
+      
+      <category domain="https://MarsperL.github.io/categories/%E6%A2%B3%E7%90%86%E6%80%BB%E7%BB%93/">梳理总结</category>
+      
+      
+      <category domain="https://MarsperL.github.io/tags/docker/">docker</category>
+      
+      <category domain="https://MarsperL.github.io/tags/%E5%AE%B9%E5%99%A8%E9%80%9A%E4%BF%A1/">容器通信</category>
+      
+      
+      <comments>https://marsperl.github.io/yyg/60ed202a/#disqus_thread</comments>
       
     </item>
     
@@ -489,43 +489,6 @@
     </item>
     
     <item>
-      <title>一些免费的gpt网站</title>
-      <link>https://marsperl.github.io/yyg/30035ff1/</link>
-      <guid>https://marsperl.github.io/yyg/30035ff1/</guid>
-      <pubDate>Tue, 31 Dec 2024 13:26:18 GMT</pubDate>
-      
-        
-        
-          
-          
-      <description>&lt;div title=&quot;CodeNews&quot; referrerPolicy=&quot;no-referrer&quot; class=&quot;card_box&quot; style=&quot;background-color: #333; width:96px; height:80px;&quot;&gt;
-    &lt;div class=&quot;card_mask&quot;&gt;
-      &lt;span class=&quot;tooltiptext&quot;&gt;免费免登录&lt;/span&gt;
-      &lt;a href=&quot;https://codenews.cc/chatgpt&quot;&gt;查看详情&lt;/a&gt;
-    &lt;/div&gt;
-    &lt;div class=&quot;card_top&quot;&gt;
-      &lt;i</description>
-          
-        
-      
-      
-      
-      
-      <category domain="https://MarsperL.github.io/categories/%E6%BC%AB%E8%B0%88/">漫谈</category>
-      
-      <category domain="https://MarsperL.github.io/categories/%E6%BC%AB%E8%B0%88/%E5%85%8D%E8%B4%B9gpt%E7%BD%91%E7%AB%99/">免费gpt网站</category>
-      
-      
-      <category domain="https://MarsperL.github.io/tags/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD%E5%8A%A9%E6%89%8B/">人工智能助手</category>
-      
-      <category domain="https://MarsperL.github.io/tags/%E5%85%8D%E8%B4%B9gpt/">免费gpt</category>
-      
-      
-      <comments>https://marsperl.github.io/yyg/30035ff1/#disqus_thread</comments>
-      
-    </item>
-    
-    <item>
       <title>x86服务器构建ARM架构docker镜像</title>
       <link>https://marsperl.github.io/yyg/4451cec/</link>
       <guid>https://marsperl.github.io/yyg/4451cec/</guid>
@@ -566,6 +529,43 @@
       
       
       <comments>https://marsperl.github.io/yyg/4451cec/#disqus_thread</comments>
+      
+    </item>
+    
+    <item>
+      <title>一些免费的gpt网站</title>
+      <link>https://marsperl.github.io/yyg/30035ff1/</link>
+      <guid>https://marsperl.github.io/yyg/30035ff1/</guid>
+      <pubDate>Tue, 31 Dec 2024 13:26:18 GMT</pubDate>
+      
+        
+        
+          
+          
+      <description>&lt;div title=&quot;CodeNews&quot; referrerPolicy=&quot;no-referrer&quot; class=&quot;card_box&quot; style=&quot;background-color: #333; width:96px; height:80px;&quot;&gt;
+    &lt;div class=&quot;card_mask&quot;&gt;
+      &lt;span class=&quot;tooltiptext&quot;&gt;免费免登录&lt;/span&gt;
+      &lt;a href=&quot;https://codenews.cc/chatgpt&quot;&gt;查看详情&lt;/a&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;card_top&quot;&gt;
+      &lt;i</description>
+          
+        
+      
+      
+      
+      
+      <category domain="https://MarsperL.github.io/categories/%E6%BC%AB%E8%B0%88/">漫谈</category>
+      
+      <category domain="https://MarsperL.github.io/categories/%E6%BC%AB%E8%B0%88/%E5%85%8D%E8%B4%B9gpt%E7%BD%91%E7%AB%99/">免费gpt网站</category>
+      
+      
+      <category domain="https://MarsperL.github.io/tags/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD%E5%8A%A9%E6%89%8B/">人工智能助手</category>
+      
+      <category domain="https://MarsperL.github.io/tags/%E5%85%8D%E8%B4%B9gpt/">免费gpt</category>
+      
+      
+      <comments>https://marsperl.github.io/yyg/30035ff1/#disqus_thread</comments>
       
     </item>
     
@@ -769,11 +769,11 @@
       <category domain="https://MarsperL.github.io/categories/%E6%A2%B3%E7%90%86%E6%80%BB%E7%BB%93/">梳理总结</category>
       
       
-      <category domain="https://MarsperL.github.io/tags/k8s/">k8s</category>
-      
       <category domain="https://MarsperL.github.io/tags/%E8%BF%90%E7%BB%B4/">运维</category>
       
       <category domain="https://MarsperL.github.io/tags/Linux/">Linux</category>
+      
+      <category domain="https://MarsperL.github.io/tags/k8s/">k8s</category>
       
       <category domain="https://MarsperL.github.io/tags/%E6%80%BB%E7%BB%93/">总结</category>
       
