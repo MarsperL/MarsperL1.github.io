@@ -80,41 +80,42 @@
       </tags>
   </entry>
   <entry>
-    <title>Hexo-Butterfly美化教程 | 基础环境</title>
-    <url>/yyg/e102aa73/</url>
-    <content><![CDATA[<h2 id="基础环境："><a href="#基础环境：" class="headerlink" title="基础环境："></a>基础环境：</h2><ol>
-<li>操作系统：Windows10/11</li>
-<li>运行环境：node.js</li>
-</ol>
-<h2 id="实现过程："><a href="#实现过程：" class="headerlink" title="实现过程："></a>实现过程：</h2><h3 id="安装node-js"><a href="#安装node-js" class="headerlink" title="安装node.js"></a>安装node.js</h3><p>在node.js中文官网<code>https://www.nodejs.com.cn/download_current.html</code>，下载适用于Windows的64位安装包，安装JavaScript运行环境。下载完成后，双击安装程序，按引导进行安装，在安装过程中需勾选”Automatically install the necessary tools. ……“，如图所示。安装过程中，弹出命令指示符，回车下载依赖工具。</p>
-<img src="/yyg/e102aa73/1.png" class="" title="img">
-<p>安装完成后，使用快捷键<code>win+r</code>,调用运行窗口，输入<code>cmd</code>，在命令指示符中输入命令，验证node和npm版本号。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">node -v</span><br><span class="line">npm -v</span><br></pre></td></tr></table></figure>
-<img src="/yyg/e102aa73/2.png" class="" title="img">
-<h3 id="安装git"><a href="#安装git" class="headerlink" title="安装git"></a>安装git</h3><p>从官网<code>https://git-scm.com/download/win</code>下载安装程序，按安装引导一直点击下一步即可。</p>
-<h3 id="安装hexo"><a href="#安装hexo" class="headerlink" title="安装hexo"></a>安装hexo</h3><p>在命令指示符中输入命令安装hexo。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">npm install hexo-cli -g </span><br></pre></td></tr></table></figure>
-<p>创建博客存放目录</p>
-<p>进入要存放博客目录的磁盘，以“F”盘为例，在如下图所示的磁盘路径框中输入“cmd”，点击回车，打开命名指示符。</p>
-<img src="/yyg/e102aa73/3.png" class="" title="img">
-<p>在其中输入如下命令创建博客目录，此处的“blog”为自定义名称。等待博客目录初始化完成。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">hexo init blog</span><br></pre></td></tr></table></figure>
-<p>初始化完成后，进入blog目录，在磁盘路径框中输入“cmd”，点击回车，输入以下命令下载依赖和测试博客是否部署成功。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#下载依赖</span><br><span class="line">npm install</span><br><span class="line"></span><br><span class="line">#本地测试</span><br><span class="line">hexo clean &amp;&amp; hexo g &amp;&amp; hexo s</span><br></pre></td></tr></table></figure>
-<p>成功显示的命令细节如下：</p>
-<blockquote>
-<p>F:\blog&gt;hexo clean &amp;&amp; hexo g &amp;&amp; hexo s<br>INFO Validating config<br>INFO Deleted database.<br>INFO Validating config<br>INFO Start processing<br>INFO Files loaded in 463 ms<br>INFO Generated: archives/index.html<br>INFO Generated: archives/2024/index.html<br>INFO Generated: archives/2024/04/index.html<br>INFO Generated: index.html<br>INFO Generated: css/style.css<br>INFO Generated: fancybox/jquery.fancybox.min.css<br>INFO Generated: fancybox/jquery.fancybox.min.js<br>INFO Generated: js/jquery-3.6.4.min.js<br>INFO Generated: js/script.js<br>INFO Generated: css/images/banner.jpg<br>INFO Generated: 2024/04/18/hello-world/index.html<br>INFO 11 files generated in 660 ms<br>INFO Validating config<br>INFO Start processing<br>INFO Hexo is running at <a href="http://localhost:4000/">http://localhost:4000/</a> . Press Ctrl+C to stop.</p>
-</blockquote>
-<p>在浏览器中访问 <code>http://localhost:4000/</code> ，查看默认博客界面。</p>
-]]></content>
+    <title>DNS服务器搭建</title>
+    <url>/yyg/37824039/</url>
+    <content><![CDATA[<h2 id="服务器端"><a href="#服务器端" class="headerlink" title="服务器端"></a>服务器端</h2><p>（1）通过在线方式安装bind9</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">yum install -y bind bind-utils</span><br></pre></td></tr></table></figure>
+<p>（2）启动服务</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">systemctl start named</span><br></pre></td></tr></table></figure>
+<p>（3）查看服务状态</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">systemctl status named</span><br></pre></td></tr></table></figure>
+<p>（4）配置服务为开机自启动</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">systemctl enable named</span><br></pre></td></tr></table></figure>
+<p>（5）修改named服务配置文件，配置DNS日志路径</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">vi /etc/named.conf</span><br><span class="line">-------------------named.conf-------------------</span><br><span class="line">options &#123;</span><br><span class="line">        // 接受来自任何网络接口的DNS请求</span><br><span class="line">        listen-on port 53 &#123; any; &#125;;</span><br><span class="line">        listen-on-v6 port 53 &#123; ::1; &#125;;</span><br><span class="line">        directory       &quot;/var/named&quot;;</span><br><span class="line">        dump-file       &quot;/var/named/data/cache_dump.db&quot;;</span><br><span class="line">        statistics-file &quot;/var/named/data/named_stats.txt&quot;;</span><br><span class="line">        memstatistics-file &quot;/var/named/data/named_mem_stats.txt&quot;;</span><br><span class="line">        secroots-file   &quot;/var/named/data/named.secroots&quot;;</span><br><span class="line">        recursing-file  &quot;/var/named/data/named.recursing&quot;;</span><br><span class="line">        // 允许访问的ip范围</span><br><span class="line">        allow-query     &#123; 10.10.0.0/16; &#125;;</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">为排版方便此处省略部分提示信息</span></span><br><span class="line">&#125;;</span><br><span class="line">logging &#123;</span><br><span class="line">    //    channel default_debug &#123;</span><br><span class="line">    //            file &quot;data/named.run&quot;;</span><br><span class="line">    //            severity dynamic;</span><br><span class="line">    //    &#125;;</span><br><span class="line">        </span><br><span class="line">        channel named_log &#123;</span><br><span class="line">                // 指定日志文件的路径,设置日志文件的版本数量限制为5个，每个文件的最大大小为50m</span><br><span class="line">                file &quot;/var/log/dns/named.log&quot; versions 5 size 50m;</span><br><span class="line">                // 日志记录的时间格式采用ISO 8601标准</span><br><span class="line">                print-time iso8601;</span><br><span class="line">                // 打印日志条目的类别</span><br><span class="line">                print-category yes;</span><br><span class="line">               // 打印日志条目的严重性</span><br><span class="line">                print-severity yes;</span><br><span class="line">                severity info;</span><br><span class="line">        &#125;;</span><br><span class="line">        // 定义多个日志记录类别</span><br><span class="line">        category default   &#123; named_log; &#125;;</span><br><span class="line">        category general   &#123; named_log; &#125;;</span><br><span class="line">        category config   &#123; named_log; &#125;;</span><br><span class="line">        category client   &#123; named_log; &#125;;</span><br><span class="line">        category network   &#123; named_log; &#125;;</span><br><span class="line">        category notify   &#123; named_log; &#125;;</span><br><span class="line">        category queries   &#123; named_log; &#125;;</span><br><span class="line">        category update   &#123; named_log; &#125;;</span><br><span class="line">        category query-errors  &#123; named_log; &#125;;</span><br><span class="line">        category resolver   &#123; named_log; &#125;;</span><br><span class="line">        category xfer-in   &#123; named_log; &#125;;</span><br><span class="line">        category xfer-out   &#123; named_log; &#125;;</span><br><span class="line">        category dnssec   &#123; named_log; &#125;;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">为排版方便此处省略部分提示信息</span></span><br><span class="line">-------------------named.conf-------------------</span><br></pre></td></tr></table></figure>
+<p>（6）配置DNS区域，完成DNS服务器的搭建</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">vi /etc/named.rfc1912.zones</span><br><span class="line">-------------------named.rfc1912.zones-------------------</span><br><span class="line">// If private ranges should be forwarded, add</span><br><span class="line">// disable-empty-zone &quot;.&quot;; into options</span><br><span class="line">//</span><br><span class="line"></span><br><span class="line">zone &quot;localhost.localdomain&quot; IN &#123;</span><br><span class="line">        type master;</span><br><span class="line">        file &quot;named.localhost&quot;;</span><br><span class="line">        allow-update &#123; none; &#125;;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">zone &quot;localhost&quot; IN &#123;</span><br><span class="line">        type master;</span><br><span class="line">        file &quot;named.localhost&quot;;</span><br><span class="line">        allow-update &#123; none; &#125;;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">zone &quot;1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa&quot; IN &#123;</span><br><span class="line">        type master;</span><br><span class="line">        file &quot;named.loopback&quot;;</span><br><span class="line">        allow-update &#123; none; &#125;;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">zone &quot;1.0.0.127.in-addr.arpa&quot; IN &#123;</span><br><span class="line">        type master;</span><br><span class="line">        file &quot;named.loopback&quot;;</span><br><span class="line">        allow-update &#123; none; &#125;;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">zone &quot;0.in-addr.arpa&quot; IN &#123;</span><br><span class="line">        type master;</span><br><span class="line">        file &quot;named.empty&quot;;</span><br><span class="line">        allow-update &#123; none; &#125;;</span><br><span class="line">&#125;;</span><br><span class="line">// 自定义域名区域和DNS记录集合</span><br><span class="line">zone &quot;elk.com&quot; IN &#123;</span><br><span class="line">        type master;</span><br><span class="line">        file &quot;/var/named/elk.com.zone&quot;;</span><br><span class="line">        allow-update &#123; none; &#125;;</span><br><span class="line">&#125;;</span><br><span class="line">-----------------------------------------------</span><br></pre></td></tr></table></figure>
+<p>（7）创建”elk.com”的区域数据文件，并定义DNS服务器的域名为“<a href="https://dns.elk.com/">dns.elk.com</a>”和客户机的域名为“<a href="https://test.elk.com/">test.elk.com</a>”。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 创建&quot;elk.com&quot;的区域数据文件</span><br><span class="line">vi /var/named/elk.com.zone</span><br><span class="line"># 定义DNS服务器和客户机的域名</span><br><span class="line">-------------------named.rfc1912.zones-------------------</span><br><span class="line">$TTL 1D</span><br><span class="line">@       IN SOA  dns.elk.com. admin.elk.com. (</span><br><span class="line">                                        0       ; serial</span><br><span class="line">                                        1D      ; refresh</span><br><span class="line">                                        1H      ; retry</span><br><span class="line">                                        1W      ; expire</span><br><span class="line">                                        3H )    ; minimum</span><br><span class="line">@   IN  NS      dns.elk.com.</span><br><span class="line">dns     IN      A   10.10.2.103</span><br><span class="line">test    IN      A   10.10.2.113</span><br><span class="line">-------------------------------------------------------</span><br></pre></td></tr></table></figure>
+<p>（8）设置日志服务权限，配置防火墙，重启服务使得配置生效</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 创建存放日志的目录并赋权</span><br><span class="line">mkdir /var/log/dns</span><br><span class="line">chmod -R 777 /var/log/dns/</span><br><span class="line"># 配置dns服务访问策略，使其能够正常访问</span><br><span class="line">firewall-cmd --permanent --add-service=dns</span><br><span class="line"># 重新加载防火墙策略</span><br><span class="line">firewall-cmd --reload</span><br><span class="line"># 重启named服务，让配置生效</span><br><span class="line"> systemctl restart named</span><br></pre></td></tr></table></figure>
+<p>（9）修改DNS为“10.10.2.103”，并重启网络生效。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 使用nmtui管理网络连接</span><br><span class="line">nmtui</span><br></pre></td></tr></table></figure>
+<p>选择“编辑连接”，回车，选择网卡“ens32”，在“编辑连接”界面中将DNS服务器修改为“10.10.2.103”，保存退出。如图6-1-1、6-1-2所示。</p>
+<p><a href="https://marsperl.github.io/yyg/37824039/image-20240422191810676.png"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="img"></a><a href="https://marsperl.github.io/yyg/37824039/2.png"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="img"></a></p>
+<p>保存退出后，重启网络让DNS服务器配置生效。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">systemctl restart NetworkManager</span><br></pre></td></tr></table></figure>
+<p>（10）验证DNS服务器是否配置成功。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">ping www.baidu.com</span><br><span class="line">ping dns.elk.com</span><br><span class="line">ping test.elk.com</span><br></pre></td></tr></table></figure>
+<h2 id="客户机端"><a href="#客户机端" class="headerlink" title="客户机端"></a>客户机端</h2><p>修改DNS配置为“10.10.2.103”，具体步骤参照《步骤1：虚拟机规划》的“（9）”。</p>
+<p>重启网络网络后，验证DNS配置是否生效。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">ping www.baidu.com</span><br><span class="line">ping dns.elk.com</span><br><span class="line">ping test.elk.com</span><br></pre></td></tr></table></figure>]]></content>
       <categories>
-        <category>博客教程</category>
-        <category>博客搭建</category>
+        <category>Linux运维</category>
+        <category>网络服务搭建</category>
       </categories>
       <tags>
-        <tag>Hexo</tag>
-        <tag>Butterfly</tag>
-        <tag>博客教程</tag>
+        <tag>Linux运维</tag>
+        <tag>DNS</tag>
       </tags>
   </entry>
   <entry>
@@ -172,42 +173,74 @@
       </tags>
   </entry>
   <entry>
-    <title>DNS服务器搭建</title>
-    <url>/yyg/37824039/</url>
-    <content><![CDATA[<h2 id="服务器端"><a href="#服务器端" class="headerlink" title="服务器端"></a>服务器端</h2><p>（1）通过在线方式安装bind9</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">yum install -y bind bind-utils</span><br></pre></td></tr></table></figure>
-<p>（2）启动服务</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">systemctl start named</span><br></pre></td></tr></table></figure>
-<p>（3）查看服务状态</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">systemctl status named</span><br></pre></td></tr></table></figure>
-<p>（4）配置服务为开机自启动</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">systemctl enable named</span><br></pre></td></tr></table></figure>
-<p>（5）修改named服务配置文件，配置DNS日志路径</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">vi /etc/named.conf</span><br><span class="line">-------------------named.conf-------------------</span><br><span class="line">options &#123;</span><br><span class="line">        // 接受来自任何网络接口的DNS请求</span><br><span class="line">        listen-on port 53 &#123; any; &#125;;</span><br><span class="line">        listen-on-v6 port 53 &#123; ::1; &#125;;</span><br><span class="line">        directory       &quot;/var/named&quot;;</span><br><span class="line">        dump-file       &quot;/var/named/data/cache_dump.db&quot;;</span><br><span class="line">        statistics-file &quot;/var/named/data/named_stats.txt&quot;;</span><br><span class="line">        memstatistics-file &quot;/var/named/data/named_mem_stats.txt&quot;;</span><br><span class="line">        secroots-file   &quot;/var/named/data/named.secroots&quot;;</span><br><span class="line">        recursing-file  &quot;/var/named/data/named.recursing&quot;;</span><br><span class="line">        // 允许访问的ip范围</span><br><span class="line">        allow-query     &#123; 10.10.0.0/16; &#125;;</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">为排版方便此处省略部分提示信息</span></span><br><span class="line">&#125;;</span><br><span class="line">logging &#123;</span><br><span class="line">    //    channel default_debug &#123;</span><br><span class="line">    //            file &quot;data/named.run&quot;;</span><br><span class="line">    //            severity dynamic;</span><br><span class="line">    //    &#125;;</span><br><span class="line">        </span><br><span class="line">        channel named_log &#123;</span><br><span class="line">                // 指定日志文件的路径,设置日志文件的版本数量限制为5个，每个文件的最大大小为50m</span><br><span class="line">                file &quot;/var/log/dns/named.log&quot; versions 5 size 50m;</span><br><span class="line">                // 日志记录的时间格式采用ISO 8601标准</span><br><span class="line">                print-time iso8601;</span><br><span class="line">                // 打印日志条目的类别</span><br><span class="line">                print-category yes;</span><br><span class="line">               // 打印日志条目的严重性</span><br><span class="line">                print-severity yes;</span><br><span class="line">                severity info;</span><br><span class="line">        &#125;;</span><br><span class="line">        // 定义多个日志记录类别</span><br><span class="line">        category default   &#123; named_log; &#125;;</span><br><span class="line">        category general   &#123; named_log; &#125;;</span><br><span class="line">        category config   &#123; named_log; &#125;;</span><br><span class="line">        category client   &#123; named_log; &#125;;</span><br><span class="line">        category network   &#123; named_log; &#125;;</span><br><span class="line">        category notify   &#123; named_log; &#125;;</span><br><span class="line">        category queries   &#123; named_log; &#125;;</span><br><span class="line">        category update   &#123; named_log; &#125;;</span><br><span class="line">        category query-errors  &#123; named_log; &#125;;</span><br><span class="line">        category resolver   &#123; named_log; &#125;;</span><br><span class="line">        category xfer-in   &#123; named_log; &#125;;</span><br><span class="line">        category xfer-out   &#123; named_log; &#125;;</span><br><span class="line">        category dnssec   &#123; named_log; &#125;;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">为排版方便此处省略部分提示信息</span></span><br><span class="line">-------------------named.conf-------------------</span><br></pre></td></tr></table></figure>
-<p>（6）配置DNS区域，完成DNS服务器的搭建</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">vi /etc/named.rfc1912.zones</span><br><span class="line">-------------------named.rfc1912.zones-------------------</span><br><span class="line">// If private ranges should be forwarded, add</span><br><span class="line">// disable-empty-zone &quot;.&quot;; into options</span><br><span class="line">//</span><br><span class="line"></span><br><span class="line">zone &quot;localhost.localdomain&quot; IN &#123;</span><br><span class="line">        type master;</span><br><span class="line">        file &quot;named.localhost&quot;;</span><br><span class="line">        allow-update &#123; none; &#125;;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">zone &quot;localhost&quot; IN &#123;</span><br><span class="line">        type master;</span><br><span class="line">        file &quot;named.localhost&quot;;</span><br><span class="line">        allow-update &#123; none; &#125;;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">zone &quot;1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa&quot; IN &#123;</span><br><span class="line">        type master;</span><br><span class="line">        file &quot;named.loopback&quot;;</span><br><span class="line">        allow-update &#123; none; &#125;;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">zone &quot;1.0.0.127.in-addr.arpa&quot; IN &#123;</span><br><span class="line">        type master;</span><br><span class="line">        file &quot;named.loopback&quot;;</span><br><span class="line">        allow-update &#123; none; &#125;;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">zone &quot;0.in-addr.arpa&quot; IN &#123;</span><br><span class="line">        type master;</span><br><span class="line">        file &quot;named.empty&quot;;</span><br><span class="line">        allow-update &#123; none; &#125;;</span><br><span class="line">&#125;;</span><br><span class="line">// 自定义域名区域和DNS记录集合</span><br><span class="line">zone &quot;elk.com&quot; IN &#123;</span><br><span class="line">        type master;</span><br><span class="line">        file &quot;/var/named/elk.com.zone&quot;;</span><br><span class="line">        allow-update &#123; none; &#125;;</span><br><span class="line">&#125;;</span><br><span class="line">-----------------------------------------------</span><br></pre></td></tr></table></figure>
-<p>（7）创建”elk.com”的区域数据文件，并定义DNS服务器的域名为“<a href="https://dns.elk.com/">dns.elk.com</a>”和客户机的域名为“<a href="https://test.elk.com/">test.elk.com</a>”。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 创建&quot;elk.com&quot;的区域数据文件</span><br><span class="line">vi /var/named/elk.com.zone</span><br><span class="line"># 定义DNS服务器和客户机的域名</span><br><span class="line">-------------------named.rfc1912.zones-------------------</span><br><span class="line">$TTL 1D</span><br><span class="line">@       IN SOA  dns.elk.com. admin.elk.com. (</span><br><span class="line">                                        0       ; serial</span><br><span class="line">                                        1D      ; refresh</span><br><span class="line">                                        1H      ; retry</span><br><span class="line">                                        1W      ; expire</span><br><span class="line">                                        3H )    ; minimum</span><br><span class="line">@   IN  NS      dns.elk.com.</span><br><span class="line">dns     IN      A   10.10.2.103</span><br><span class="line">test    IN      A   10.10.2.113</span><br><span class="line">-------------------------------------------------------</span><br></pre></td></tr></table></figure>
-<p>（8）设置日志服务权限，配置防火墙，重启服务使得配置生效</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 创建存放日志的目录并赋权</span><br><span class="line">mkdir /var/log/dns</span><br><span class="line">chmod -R 777 /var/log/dns/</span><br><span class="line"># 配置dns服务访问策略，使其能够正常访问</span><br><span class="line">firewall-cmd --permanent --add-service=dns</span><br><span class="line"># 重新加载防火墙策略</span><br><span class="line">firewall-cmd --reload</span><br><span class="line"># 重启named服务，让配置生效</span><br><span class="line"> systemctl restart named</span><br></pre></td></tr></table></figure>
-<p>（9）修改DNS为“10.10.2.103”，并重启网络生效。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># 使用nmtui管理网络连接</span><br><span class="line">nmtui</span><br></pre></td></tr></table></figure>
-<p>选择“编辑连接”，回车，选择网卡“ens32”，在“编辑连接”界面中将DNS服务器修改为“10.10.2.103”，保存退出。如图6-1-1、6-1-2所示。</p>
-<p><a href="https://marsperl.github.io/yyg/37824039/image-20240422191810676.png"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="img"></a><a href="https://marsperl.github.io/yyg/37824039/2.png"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="img"></a></p>
-<p>保存退出后，重启网络让DNS服务器配置生效。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">systemctl restart NetworkManager</span><br></pre></td></tr></table></figure>
-<p>（10）验证DNS服务器是否配置成功。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">ping www.baidu.com</span><br><span class="line">ping dns.elk.com</span><br><span class="line">ping test.elk.com</span><br></pre></td></tr></table></figure>
-<h2 id="客户机端"><a href="#客户机端" class="headerlink" title="客户机端"></a>客户机端</h2><p>修改DNS配置为“10.10.2.103”，具体步骤参照《步骤1：虚拟机规划》的“（9）”。</p>
-<p>重启网络网络后，验证DNS配置是否生效。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">ping www.baidu.com</span><br><span class="line">ping dns.elk.com</span><br><span class="line">ping test.elk.com</span><br></pre></td></tr></table></figure>]]></content>
+    <title>Hexo-Butterfly美化教程 | 基础环境</title>
+    <url>/yyg/e102aa73/</url>
+    <content><![CDATA[<h2 id="基础环境："><a href="#基础环境：" class="headerlink" title="基础环境："></a>基础环境：</h2><ol>
+<li>操作系统：Windows10/11</li>
+<li>运行环境：node.js</li>
+</ol>
+<h2 id="实现过程："><a href="#实现过程：" class="headerlink" title="实现过程："></a>实现过程：</h2><h3 id="安装node-js"><a href="#安装node-js" class="headerlink" title="安装node.js"></a>安装node.js</h3><p>在node.js中文官网<code>https://www.nodejs.com.cn/download_current.html</code>，下载适用于Windows的64位安装包，安装JavaScript运行环境。下载完成后，双击安装程序，按引导进行安装，在安装过程中需勾选”Automatically install the necessary tools. ……“，如图所示。安装过程中，弹出命令指示符，回车下载依赖工具。</p>
+<img src="/yyg/e102aa73/1.png" class="" title="img">
+<p>安装完成后，使用快捷键<code>win+r</code>,调用运行窗口，输入<code>cmd</code>，在命令指示符中输入命令，验证node和npm版本号。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">node -v</span><br><span class="line">npm -v</span><br></pre></td></tr></table></figure>
+<img src="/yyg/e102aa73/2.png" class="" title="img">
+<h3 id="安装git"><a href="#安装git" class="headerlink" title="安装git"></a>安装git</h3><p>从官网<code>https://git-scm.com/download/win</code>下载安装程序，按安装引导一直点击下一步即可。</p>
+<h3 id="安装hexo"><a href="#安装hexo" class="headerlink" title="安装hexo"></a>安装hexo</h3><p>在命令指示符中输入命令安装hexo。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">npm install hexo-cli -g </span><br></pre></td></tr></table></figure>
+<p>创建博客存放目录</p>
+<p>进入要存放博客目录的磁盘，以“F”盘为例，在如下图所示的磁盘路径框中输入“cmd”，点击回车，打开命名指示符。</p>
+<img src="/yyg/e102aa73/3.png" class="" title="img">
+<p>在其中输入如下命令创建博客目录，此处的“blog”为自定义名称。等待博客目录初始化完成。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">hexo init blog</span><br></pre></td></tr></table></figure>
+<p>初始化完成后，进入blog目录，在磁盘路径框中输入“cmd”，点击回车，输入以下命令下载依赖和测试博客是否部署成功。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#下载依赖</span><br><span class="line">npm install</span><br><span class="line"></span><br><span class="line">#本地测试</span><br><span class="line">hexo clean &amp;&amp; hexo g &amp;&amp; hexo s</span><br></pre></td></tr></table></figure>
+<p>成功显示的命令细节如下：</p>
+<blockquote>
+<p>F:\blog&gt;hexo clean &amp;&amp; hexo g &amp;&amp; hexo s<br>INFO Validating config<br>INFO Deleted database.<br>INFO Validating config<br>INFO Start processing<br>INFO Files loaded in 463 ms<br>INFO Generated: archives/index.html<br>INFO Generated: archives/2024/index.html<br>INFO Generated: archives/2024/04/index.html<br>INFO Generated: index.html<br>INFO Generated: css/style.css<br>INFO Generated: fancybox/jquery.fancybox.min.css<br>INFO Generated: fancybox/jquery.fancybox.min.js<br>INFO Generated: js/jquery-3.6.4.min.js<br>INFO Generated: js/script.js<br>INFO Generated: css/images/banner.jpg<br>INFO Generated: 2024/04/18/hello-world/index.html<br>INFO 11 files generated in 660 ms<br>INFO Validating config<br>INFO Start processing<br>INFO Hexo is running at <a href="http://localhost:4000/">http://localhost:4000/</a> . Press Ctrl+C to stop.</p>
+</blockquote>
+<p>在浏览器中访问 <code>http://localhost:4000/</code> ，查看默认博客界面。</p>
+]]></content>
       <categories>
-        <category>Linux运维</category>
-        <category>网络服务搭建</category>
+        <category>博客教程</category>
+        <category>博客搭建</category>
       </categories>
       <tags>
-        <tag>Linux运维</tag>
-        <tag>DNS</tag>
+        <tag>Hexo</tag>
+        <tag>Butterfly</tag>
+        <tag>博客教程</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Hexo-Butterfly美化教程 | 繁沙</title>
+    <url>/yyg/ca46b09/</url>
+    <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>平时在工作和生活中，有一些很好用的软件、网站，就想着找一个地方都给记下来。在创建hexo博客时，看到了有在博客里添加网站导航的，感觉这样挺不错的，也就有了<code>繁沙</code>：一个搜录（个人）好用软件和网站的地方。样式借用了<a href="https://blog.leonus.cn/">Leonus </a>博主的<a href="https://blog.leonus.cn/2022/butterflyTag.html">作品推荐卡片—标签外挂 | Leonus</a>，做了一点修改适配：</p>
+<ul>
+<li><p><code>卡片盒子可一行放多个</code></p>
+</li>
+<li><p><code>盒内的提示文本内容转成了一个外部独立显示的提示框文本</code><br>（尚待优化，若有好的优化方式，请Q我一下），具体效果可以点击下面的按钮预览。</p>
+</li>
+</ul>
+<div class="hide-block"><button type="button" class="hide-button" style="background-color: #386768;color: color">点击预览效果
+    </button><div class="hide-content"><p><img src="/yyg/ca46b09/1.png" class="" title="image-20240810223933689"></p>
+</div></div>
+<h2 id="教程"><a href="#教程" class="headerlink" title="教程"></a>教程</h2><p>（1）在<code>博客根目录\themes\butterfly\scripts\tag</code>中创建<code>card.js</code> 并粘入以下代码：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * card</span></span><br><span class="line"><span class="comment"> * &#123;% card name,url,bg,star,text,icon,tag,w,h %&#125;</span></span><br><span class="line"><span class="comment"> * &#123;% card 标题,链接,背景,评分,评价,图标,标签,宽度,高度 %&#125;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">&#x27;use strict&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 分数转成星星</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">tostar</span>(<span class="params">num</span>) &#123;</span><br><span class="line">    <span class="keyword">let</span> tmp = <span class="string">&#x27;&#x27;</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; <span class="title class_">Math</span>.<span class="title function_">floor</span>(num); i++) &#123; tmp += <span class="string">&#x27;&lt;i class=&quot;fa-solid fa-star&quot;&gt;&lt;/i&gt;&#x27;</span> &#125; <span class="comment">// 整数部分加实心星星</span></span><br><span class="line">    <span class="keyword">if</span> (num - <span class="title class_">Math</span>.<span class="title function_">floor</span>(num) != <span class="number">0</span>) tmp += <span class="string">&#x27;&lt;i class=&quot;fa-solid fa-star-half-alt&quot;&gt;&lt;/i&gt;&#x27;</span> <span class="comment">// 小数部分转成半星</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; <span class="number">5</span> - <span class="title class_">Math</span>.<span class="title function_">ceil</span>(num); i++) &#123; tmp += <span class="string">&#x27;&lt;i class=&quot;fa-regular fa-star&quot;&gt;&lt;/i&gt;&#x27;</span> &#125; <span class="comment">// 不够5个补空心星星</span></span><br><span class="line">    <span class="keyword">return</span> tmp</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">card</span>(<span class="params">args</span>) &#123;</span><br><span class="line">    args = args.<span class="title function_">join</span>(<span class="string">&#x27; &#x27;</span>).<span class="title function_">split</span>(<span class="string">&#x27;,&#x27;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 获取参数</span></span><br><span class="line">    <span class="keyword">let</span> name = (args[<span class="number">0</span>] || <span class="string">&#x27;未知&#x27;</span>).<span class="title function_">trim</span>()</span><br><span class="line">    <span class="keyword">let</span> url = (args[<span class="number">1</span>] || <span class="string">&#x27;&#x27;</span>).<span class="title function_">trim</span>()</span><br><span class="line">    <span class="keyword">let</span> bg = (args[<span class="number">2</span>] ? <span class="string">`background-image: url(<span class="subst">$&#123;args[<span class="number">2</span>]&#125;</span>);`</span> : <span class="string">&#x27;background-color: #333;&#x27;</span>).<span class="title function_">trim</span>()</span><br><span class="line">    <span class="keyword">let</span> star = <span class="title function_">tostar</span>(<span class="title class_">Number</span>(args[<span class="number">3</span>]) || <span class="number">0</span>)</span><br><span class="line">    <span class="keyword">let</span> text = (args[<span class="number">4</span>] || <span class="string">&#x27;暂无说明&#x27;</span>).<span class="title function_">trim</span>()   </span><br><span class="line">    <span class="keyword">let</span> icon = (args[<span class="number">5</span>] || <span class="string">&#x27;&#x27;</span>).<span class="title function_">trim</span>()</span><br><span class="line">    <span class="keyword">let</span> tag = (args[<span class="number">6</span>] || <span class="string">&#x27;&#x27;</span>).<span class="title function_">trim</span>()</span><br><span class="line">    <span class="keyword">let</span> w = args[<span class="number">7</span>] || <span class="string">&#x27;200px&#x27;</span></span><br><span class="line">    <span class="keyword">let</span> h = args[<span class="number">8</span>] || <span class="string">&#x27;275px&#x27;</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="string">`&lt;div title=&quot;<span class="subst">$&#123;name&#125;</span>&quot; referrerPolicy=&quot;no-referrer&quot; class=&quot;card_box&quot; style=&quot;<span class="subst">$&#123;bg&#125;</span> width:<span class="subst">$&#123;w&#125;</span>; height:<span class="subst">$&#123;h&#125;</span>;&quot;&gt;</span></span><br><span class="line"><span class="string">    &lt;div class=&quot;card_mask&quot;&gt;</span></span><br><span class="line"><span class="string">      &lt;span class=&quot;tooltiptext&quot;&gt;<span class="subst">$&#123;text&#125;</span>&lt;/span&gt;  //此处新添加了tooltiptext类名，添加了新css样式</span></span><br><span class="line"><span class="string">      <span class="subst">$&#123;url?<span class="string">&#x27;&lt;a href=&quot;&#x27;</span>+url+<span class="string">&#x27;&quot;&gt;查看详情&lt;/a&gt;&#x27;</span>:<span class="string">&#x27;&#x27;</span>&#125;</span></span></span><br><span class="line"><span class="string">    &lt;/div&gt;</span></span><br><span class="line"><span class="string">    &lt;div class=&quot;card_top&quot;&gt;</span></span><br><span class="line"><span class="string">      &lt;i class=&quot;<span class="subst">$&#123;icon&#125;</span>&quot;&gt;&lt;/i&gt;</span></span><br><span class="line"><span class="string">      &lt;span&gt;<span class="subst">$&#123;tag&#125;</span>&lt;/span&gt;</span></span><br><span class="line"><span class="string">    &lt;/div&gt;</span></span><br><span class="line"><span class="string">    &lt;div class=&quot;card_content&quot;&gt;</span></span><br><span class="line"><span class="string">      &lt;span&gt;<span class="subst">$&#123;name&#125;</span>&lt;/span&gt;</span></span><br><span class="line"><span class="string">      &lt;div&gt;<span class="subst">$&#123;star&#125;</span>&lt;/div&gt;</span></span><br><span class="line"><span class="string">    &lt;/div&gt;</span></span><br><span class="line"><span class="string">  &lt;/div&gt;`</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">hexo.<span class="property">extend</span>.<span class="property">tag</span>.<span class="title function_">register</span>(<span class="string">&#x27;card&#x27;</span>, card, &#123; <span class="attr">ends</span>: <span class="literal">false</span> &#125;)</span><br></pre></td></tr></table></figure>
+<p>（2）在 <code>博客根目录\themes\butterfly\source\css\_tags</code> 中创建 <code>card.styl</code> 并粘入以下代码：</p>
+<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">.<span class="property">card_box</span></span><br><span class="line">  <span class="attr">display</span>: inline-flex       <span class="comment">//此处将flex改为inline-flex，使得card盒子可以一行放多个</span></span><br><span class="line">  justify-<span class="attr">content</span>: space-between</span><br><span class="line">  flex-<span class="attr">direction</span>: column</span><br><span class="line">  background-<span class="attr">position</span>: center</span><br><span class="line">  background-<span class="attr">size</span>: cover</span><br><span class="line">  border-<span class="attr">radius</span>: 12px</span><br><span class="line">  <span class="attr">position</span>: relative</span><br><span class="line">  <span class="attr">overflow</span>: hidden</span><br><span class="line">  <span class="attr">padding</span>: 10px</span><br><span class="line">  <span class="attr">color</span>: #fff !important</span><br><span class="line">  <span class="attr">margin</span>: 10px auto</span><br><span class="line">  &amp;::after</span><br><span class="line">    <span class="attr">content</span>: <span class="string">&#x27;&#x27;</span></span><br><span class="line">    <span class="attr">position</span>: absolute</span><br><span class="line">    <span class="attr">height</span>: <span class="number">100</span>%</span><br><span class="line">    <span class="attr">width</span>: <span class="number">100</span>%</span><br><span class="line">    <span class="attr">left</span>: <span class="number">0</span></span><br><span class="line">    <span class="attr">top</span>: <span class="number">0</span></span><br><span class="line">    <span class="attr">background</span>: <span class="title function_">rgba</span>(<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0.1</span>)</span><br><span class="line">    <span class="attr">transition</span>: .5s</span><br><span class="line">    z-<span class="attr">index</span>: <span class="number">0</span></span><br><span class="line">  &amp;:hover</span><br><span class="line">    .<span class="property">card_mask</span></span><br><span class="line">      <span class="attr">opacity</span>: <span class="number">1</span></span><br><span class="line">      pointer-<span class="attr">events</span>: auto</span><br><span class="line">  .<span class="property">card_top</span></span><br><span class="line">    <span class="attr">display</span>: flex</span><br><span class="line">    z-<span class="attr">index</span>: <span class="number">1</span></span><br><span class="line">    align-<span class="attr">items</span>: center</span><br><span class="line">    justify-<span class="attr">content</span>: space-between</span><br><span class="line">  .<span class="property">card_mask</span></span><br><span class="line">    <span class="attr">position</span>: absolute</span><br><span class="line">    pointer-<span class="attr">events</span>: none</span><br><span class="line">    z-<span class="attr">index</span>: <span class="number">2</span></span><br><span class="line">    <span class="attr">transition</span>: .5s</span><br><span class="line">    <span class="attr">opacity</span>: <span class="number">0</span></span><br><span class="line">    <span class="attr">width</span>: <span class="number">100</span>%</span><br><span class="line">    <span class="attr">height</span>: <span class="number">100</span>%</span><br><span class="line">    <span class="attr">left</span>: <span class="number">0</span></span><br><span class="line">    <span class="attr">top</span>: <span class="number">0</span></span><br><span class="line">    <span class="attr">padding</span>: 20px</span><br><span class="line">    <span class="attr">background</span>: #<span class="number">333</span></span><br><span class="line">    span</span><br><span class="line">      <span class="attr">display</span>: block</span><br><span class="line">      <span class="attr">height</span>: <span class="title function_">calc</span>(<span class="number">100</span>% - 40px)</span><br><span class="line">      <span class="attr">overflow</span>: auto</span><br><span class="line">    a</span><br><span class="line">      text-<span class="attr">align</span>: center</span><br><span class="line">      <span class="attr">background</span>: #fff</span><br><span class="line">      <span class="attr">color</span>: #<span class="number">333</span> !important</span><br><span class="line">      border-<span class="attr">radius</span>: 5px</span><br><span class="line">      <span class="attr">position</span>: absolute</span><br><span class="line">      <span class="attr">width</span>: <span class="title function_">calc</span>(<span class="number">100</span>% - 40px)</span><br><span class="line">      <span class="attr">bottom</span>: 20px</span><br><span class="line">      <span class="attr">left</span>: 20px</span><br><span class="line">      &amp;:hover</span><br><span class="line">        text-<span class="attr">decoration</span>: none !important</span><br><span class="line">        <span class="attr">color</span>: white !important</span><br><span class="line">        <span class="attr">background</span>: #49b1f5</span><br><span class="line"></span><br><span class="line">  .<span class="property">card_content</span></span><br><span class="line">    z-<span class="attr">index</span>: <span class="number">1</span></span><br><span class="line">    span</span><br><span class="line">      font-<span class="attr">size</span>: 18px</span><br><span class="line">      font-<span class="attr">weight</span>: bold</span><br><span class="line"></span><br><span class="line"><span class="comment">/* ##################这部分为新加样式代码################## */</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* card_mask 文本 */</span></span><br><span class="line">.<span class="property">card_mask</span> .<span class="property">tooltiptext</span> &#123;</span><br><span class="line">    <span class="attr">visibility</span>: hidden;</span><br><span class="line">    background-<span class="attr">color</span>: #f5f9fc;</span><br><span class="line">    <span class="attr">color</span>: #<span class="number">000</span>;</span><br><span class="line">    text-<span class="attr">align</span>: center;</span><br><span class="line">    <span class="attr">padding</span>: 5px <span class="number">0</span>;</span><br><span class="line">    border-<span class="attr">radius</span>: 6px;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 定位 */</span></span><br><span class="line">    <span class="attr">position</span>: fixed;</span><br><span class="line">    z-<span class="attr">index</span>: <span class="number">1</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 鼠标移动上去后显示提示框 */</span></span><br><span class="line">.<span class="property">card_mask</span>:hover .<span class="property">tooltiptext</span> &#123;</span><br><span class="line">     <span class="attr">visibility</span>: visible;</span><br><span class="line">     max-<span class="attr">width</span>: <span class="number">40</span>%;</span><br><span class="line">     word-<span class="attr">wrap</span>: <span class="keyword">break</span>-word;</span><br><span class="line">     text-<span class="attr">align</span>: center;</span><br><span class="line">     max-<span class="attr">height</span>: <span class="number">10</span>%;</span><br><span class="line">     <span class="attr">top</span>: <span class="number">10</span>%;</span><br><span class="line">     <span class="attr">padding</span>: 5px;</span><br><span class="line">     margin-<span class="attr">right</span>:<span class="number">20</span>%;    </span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/* ##################这部分为新加样式代码################## */</span></span><br><span class="line"></span><br><span class="line">[data-theme=<span class="string">&#x27;dark&#x27;</span>]</span><br><span class="line">  .<span class="property">card_box</span></span><br><span class="line">    <span class="attr">color</span>: #ddd !important</span><br><span class="line">    &amp;::after</span><br><span class="line">      <span class="attr">background</span>: <span class="title function_">rgba</span>(<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0.1</span>)</span><br></pre></td></tr></table></figure>
+<h2 id="应用"><a href="#应用" class="headerlink" title="应用"></a>应用</h2><p>应用参数格式：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;% card 标题,链接,背景,评分,评价,图标,标签,宽度,高度 %&#125;</span><br></pre></td></tr></table></figure>
+<p>具体应用的参数应用访问<code>Leonus | 作品推荐卡片—标签外挂</code>的原链接查看。链接如下：</p>
+<div class="tag link"><a class="link-card" title="Leonus | 作品推荐卡片—标签外挂" href="https://blog.leonus.cn/2022/butterflyTag.html"><div class="left"><img src="https://q1.qlogo.cn/g?b=qq&nk=990320751&s=5"/></div><div class="right"><p class="text">Leonus | 作品推荐卡片—标签外挂</p><p class="url">https://blog.leonus.cn/2022/butterflyTag.html</p></div></a></div>
+]]></content>
+      <categories>
+        <category>博客教程</category>
+        <category>美化教程</category>
+      </categories>
+      <tags>
+        <tag>Hexo</tag>
+        <tag>Butterfly</tag>
+        <tag>博客教程</tag>
+        <tag>美化教程</tag>
       </tags>
   </entry>
   <entry>
@@ -300,39 +333,6 @@
         <tag>k8s</tag>
         <tag>Kubeadm</tag>
         <tag>k8s集群</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Hexo-Butterfly美化教程 | 繁沙</title>
-    <url>/yyg/ca46b09/</url>
-    <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>平时在工作和生活中，有一些很好用的软件、网站，就想着找一个地方都给记下来。在创建hexo博客时，看到了有在博客里添加网站导航的，感觉这样挺不错的，也就有了<code>繁沙</code>：一个搜录（个人）好用软件和网站的地方。样式借用了<a href="https://blog.leonus.cn/">Leonus </a>博主的<a href="https://blog.leonus.cn/2022/butterflyTag.html">作品推荐卡片—标签外挂 | Leonus</a>，做了一点修改适配：</p>
-<ul>
-<li><p><code>卡片盒子可一行放多个</code></p>
-</li>
-<li><p><code>盒内的提示文本内容转成了一个外部独立显示的提示框文本</code><br>（尚待优化，若有好的优化方式，请Q我一下），具体效果可以点击下面的按钮预览。</p>
-</li>
-</ul>
-<div class="hide-block"><button type="button" class="hide-button" style="background-color: #386768;color: color">点击预览效果
-    </button><div class="hide-content"><p><img src="/yyg/ca46b09/1.png" class="" title="image-20240810223933689"></p>
-</div></div>
-<h2 id="教程"><a href="#教程" class="headerlink" title="教程"></a>教程</h2><p>（1）在<code>博客根目录\themes\butterfly\scripts\tag</code>中创建<code>card.js</code> 并粘入以下代码：</p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * card</span></span><br><span class="line"><span class="comment"> * &#123;% card name,url,bg,star,text,icon,tag,w,h %&#125;</span></span><br><span class="line"><span class="comment"> * &#123;% card 标题,链接,背景,评分,评价,图标,标签,宽度,高度 %&#125;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">&#x27;use strict&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 分数转成星星</span></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">tostar</span>(<span class="params">num</span>) &#123;</span><br><span class="line">    <span class="keyword">let</span> tmp = <span class="string">&#x27;&#x27;</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; <span class="title class_">Math</span>.<span class="title function_">floor</span>(num); i++) &#123; tmp += <span class="string">&#x27;&lt;i class=&quot;fa-solid fa-star&quot;&gt;&lt;/i&gt;&#x27;</span> &#125; <span class="comment">// 整数部分加实心星星</span></span><br><span class="line">    <span class="keyword">if</span> (num - <span class="title class_">Math</span>.<span class="title function_">floor</span>(num) != <span class="number">0</span>) tmp += <span class="string">&#x27;&lt;i class=&quot;fa-solid fa-star-half-alt&quot;&gt;&lt;/i&gt;&#x27;</span> <span class="comment">// 小数部分转成半星</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; <span class="number">5</span> - <span class="title class_">Math</span>.<span class="title function_">ceil</span>(num); i++) &#123; tmp += <span class="string">&#x27;&lt;i class=&quot;fa-regular fa-star&quot;&gt;&lt;/i&gt;&#x27;</span> &#125; <span class="comment">// 不够5个补空心星星</span></span><br><span class="line">    <span class="keyword">return</span> tmp</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">card</span>(<span class="params">args</span>) &#123;</span><br><span class="line">    args = args.<span class="title function_">join</span>(<span class="string">&#x27; &#x27;</span>).<span class="title function_">split</span>(<span class="string">&#x27;,&#x27;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 获取参数</span></span><br><span class="line">    <span class="keyword">let</span> name = (args[<span class="number">0</span>] || <span class="string">&#x27;未知&#x27;</span>).<span class="title function_">trim</span>()</span><br><span class="line">    <span class="keyword">let</span> url = (args[<span class="number">1</span>] || <span class="string">&#x27;&#x27;</span>).<span class="title function_">trim</span>()</span><br><span class="line">    <span class="keyword">let</span> bg = (args[<span class="number">2</span>] ? <span class="string">`background-image: url(<span class="subst">$&#123;args[<span class="number">2</span>]&#125;</span>);`</span> : <span class="string">&#x27;background-color: #333;&#x27;</span>).<span class="title function_">trim</span>()</span><br><span class="line">    <span class="keyword">let</span> star = <span class="title function_">tostar</span>(<span class="title class_">Number</span>(args[<span class="number">3</span>]) || <span class="number">0</span>)</span><br><span class="line">    <span class="keyword">let</span> text = (args[<span class="number">4</span>] || <span class="string">&#x27;暂无说明&#x27;</span>).<span class="title function_">trim</span>()   </span><br><span class="line">    <span class="keyword">let</span> icon = (args[<span class="number">5</span>] || <span class="string">&#x27;&#x27;</span>).<span class="title function_">trim</span>()</span><br><span class="line">    <span class="keyword">let</span> tag = (args[<span class="number">6</span>] || <span class="string">&#x27;&#x27;</span>).<span class="title function_">trim</span>()</span><br><span class="line">    <span class="keyword">let</span> w = args[<span class="number">7</span>] || <span class="string">&#x27;200px&#x27;</span></span><br><span class="line">    <span class="keyword">let</span> h = args[<span class="number">8</span>] || <span class="string">&#x27;275px&#x27;</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="string">`&lt;div title=&quot;<span class="subst">$&#123;name&#125;</span>&quot; referrerPolicy=&quot;no-referrer&quot; class=&quot;card_box&quot; style=&quot;<span class="subst">$&#123;bg&#125;</span> width:<span class="subst">$&#123;w&#125;</span>; height:<span class="subst">$&#123;h&#125;</span>;&quot;&gt;</span></span><br><span class="line"><span class="string">    &lt;div class=&quot;card_mask&quot;&gt;</span></span><br><span class="line"><span class="string">      &lt;span class=&quot;tooltiptext&quot;&gt;<span class="subst">$&#123;text&#125;</span>&lt;/span&gt;  //此处新添加了tooltiptext类名，添加了新css样式</span></span><br><span class="line"><span class="string">      <span class="subst">$&#123;url?<span class="string">&#x27;&lt;a href=&quot;&#x27;</span>+url+<span class="string">&#x27;&quot;&gt;查看详情&lt;/a&gt;&#x27;</span>:<span class="string">&#x27;&#x27;</span>&#125;</span></span></span><br><span class="line"><span class="string">    &lt;/div&gt;</span></span><br><span class="line"><span class="string">    &lt;div class=&quot;card_top&quot;&gt;</span></span><br><span class="line"><span class="string">      &lt;i class=&quot;<span class="subst">$&#123;icon&#125;</span>&quot;&gt;&lt;/i&gt;</span></span><br><span class="line"><span class="string">      &lt;span&gt;<span class="subst">$&#123;tag&#125;</span>&lt;/span&gt;</span></span><br><span class="line"><span class="string">    &lt;/div&gt;</span></span><br><span class="line"><span class="string">    &lt;div class=&quot;card_content&quot;&gt;</span></span><br><span class="line"><span class="string">      &lt;span&gt;<span class="subst">$&#123;name&#125;</span>&lt;/span&gt;</span></span><br><span class="line"><span class="string">      &lt;div&gt;<span class="subst">$&#123;star&#125;</span>&lt;/div&gt;</span></span><br><span class="line"><span class="string">    &lt;/div&gt;</span></span><br><span class="line"><span class="string">  &lt;/div&gt;`</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">hexo.<span class="property">extend</span>.<span class="property">tag</span>.<span class="title function_">register</span>(<span class="string">&#x27;card&#x27;</span>, card, &#123; <span class="attr">ends</span>: <span class="literal">false</span> &#125;)</span><br></pre></td></tr></table></figure>
-<p>（2）在 <code>博客根目录\themes\butterfly\source\css\_tags</code> 中创建 <code>card.styl</code> 并粘入以下代码：</p>
-<figure class="highlight js"><table><tr><td class="code"><pre><span class="line">.<span class="property">card_box</span></span><br><span class="line">  <span class="attr">display</span>: inline-flex       <span class="comment">//此处将flex改为inline-flex，使得card盒子可以一行放多个</span></span><br><span class="line">  justify-<span class="attr">content</span>: space-between</span><br><span class="line">  flex-<span class="attr">direction</span>: column</span><br><span class="line">  background-<span class="attr">position</span>: center</span><br><span class="line">  background-<span class="attr">size</span>: cover</span><br><span class="line">  border-<span class="attr">radius</span>: 12px</span><br><span class="line">  <span class="attr">position</span>: relative</span><br><span class="line">  <span class="attr">overflow</span>: hidden</span><br><span class="line">  <span class="attr">padding</span>: 10px</span><br><span class="line">  <span class="attr">color</span>: #fff !important</span><br><span class="line">  <span class="attr">margin</span>: 10px auto</span><br><span class="line">  &amp;::after</span><br><span class="line">    <span class="attr">content</span>: <span class="string">&#x27;&#x27;</span></span><br><span class="line">    <span class="attr">position</span>: absolute</span><br><span class="line">    <span class="attr">height</span>: <span class="number">100</span>%</span><br><span class="line">    <span class="attr">width</span>: <span class="number">100</span>%</span><br><span class="line">    <span class="attr">left</span>: <span class="number">0</span></span><br><span class="line">    <span class="attr">top</span>: <span class="number">0</span></span><br><span class="line">    <span class="attr">background</span>: <span class="title function_">rgba</span>(<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0.1</span>)</span><br><span class="line">    <span class="attr">transition</span>: .5s</span><br><span class="line">    z-<span class="attr">index</span>: <span class="number">0</span></span><br><span class="line">  &amp;:hover</span><br><span class="line">    .<span class="property">card_mask</span></span><br><span class="line">      <span class="attr">opacity</span>: <span class="number">1</span></span><br><span class="line">      pointer-<span class="attr">events</span>: auto</span><br><span class="line">  .<span class="property">card_top</span></span><br><span class="line">    <span class="attr">display</span>: flex</span><br><span class="line">    z-<span class="attr">index</span>: <span class="number">1</span></span><br><span class="line">    align-<span class="attr">items</span>: center</span><br><span class="line">    justify-<span class="attr">content</span>: space-between</span><br><span class="line">  .<span class="property">card_mask</span></span><br><span class="line">    <span class="attr">position</span>: absolute</span><br><span class="line">    pointer-<span class="attr">events</span>: none</span><br><span class="line">    z-<span class="attr">index</span>: <span class="number">2</span></span><br><span class="line">    <span class="attr">transition</span>: .5s</span><br><span class="line">    <span class="attr">opacity</span>: <span class="number">0</span></span><br><span class="line">    <span class="attr">width</span>: <span class="number">100</span>%</span><br><span class="line">    <span class="attr">height</span>: <span class="number">100</span>%</span><br><span class="line">    <span class="attr">left</span>: <span class="number">0</span></span><br><span class="line">    <span class="attr">top</span>: <span class="number">0</span></span><br><span class="line">    <span class="attr">padding</span>: 20px</span><br><span class="line">    <span class="attr">background</span>: #<span class="number">333</span></span><br><span class="line">    span</span><br><span class="line">      <span class="attr">display</span>: block</span><br><span class="line">      <span class="attr">height</span>: <span class="title function_">calc</span>(<span class="number">100</span>% - 40px)</span><br><span class="line">      <span class="attr">overflow</span>: auto</span><br><span class="line">    a</span><br><span class="line">      text-<span class="attr">align</span>: center</span><br><span class="line">      <span class="attr">background</span>: #fff</span><br><span class="line">      <span class="attr">color</span>: #<span class="number">333</span> !important</span><br><span class="line">      border-<span class="attr">radius</span>: 5px</span><br><span class="line">      <span class="attr">position</span>: absolute</span><br><span class="line">      <span class="attr">width</span>: <span class="title function_">calc</span>(<span class="number">100</span>% - 40px)</span><br><span class="line">      <span class="attr">bottom</span>: 20px</span><br><span class="line">      <span class="attr">left</span>: 20px</span><br><span class="line">      &amp;:hover</span><br><span class="line">        text-<span class="attr">decoration</span>: none !important</span><br><span class="line">        <span class="attr">color</span>: white !important</span><br><span class="line">        <span class="attr">background</span>: #49b1f5</span><br><span class="line"></span><br><span class="line">  .<span class="property">card_content</span></span><br><span class="line">    z-<span class="attr">index</span>: <span class="number">1</span></span><br><span class="line">    span</span><br><span class="line">      font-<span class="attr">size</span>: 18px</span><br><span class="line">      font-<span class="attr">weight</span>: bold</span><br><span class="line"></span><br><span class="line"><span class="comment">/* ##################这部分为新加样式代码################## */</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* card_mask 文本 */</span></span><br><span class="line">.<span class="property">card_mask</span> .<span class="property">tooltiptext</span> &#123;</span><br><span class="line">    <span class="attr">visibility</span>: hidden;</span><br><span class="line">    background-<span class="attr">color</span>: #f5f9fc;</span><br><span class="line">    <span class="attr">color</span>: #<span class="number">000</span>;</span><br><span class="line">    text-<span class="attr">align</span>: center;</span><br><span class="line">    <span class="attr">padding</span>: 5px <span class="number">0</span>;</span><br><span class="line">    border-<span class="attr">radius</span>: 6px;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 定位 */</span></span><br><span class="line">    <span class="attr">position</span>: fixed;</span><br><span class="line">    z-<span class="attr">index</span>: <span class="number">1</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 鼠标移动上去后显示提示框 */</span></span><br><span class="line">.<span class="property">card_mask</span>:hover .<span class="property">tooltiptext</span> &#123;</span><br><span class="line">     <span class="attr">visibility</span>: visible;</span><br><span class="line">     max-<span class="attr">width</span>: <span class="number">40</span>%;</span><br><span class="line">     word-<span class="attr">wrap</span>: <span class="keyword">break</span>-word;</span><br><span class="line">     text-<span class="attr">align</span>: center;</span><br><span class="line">     max-<span class="attr">height</span>: <span class="number">10</span>%;</span><br><span class="line">     <span class="attr">top</span>: <span class="number">10</span>%;</span><br><span class="line">     <span class="attr">padding</span>: 5px;</span><br><span class="line">     margin-<span class="attr">right</span>:<span class="number">20</span>%;    </span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/* ##################这部分为新加样式代码################## */</span></span><br><span class="line"></span><br><span class="line">[data-theme=<span class="string">&#x27;dark&#x27;</span>]</span><br><span class="line">  .<span class="property">card_box</span></span><br><span class="line">    <span class="attr">color</span>: #ddd !important</span><br><span class="line">    &amp;::after</span><br><span class="line">      <span class="attr">background</span>: <span class="title function_">rgba</span>(<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0.1</span>)</span><br></pre></td></tr></table></figure>
-<h2 id="应用"><a href="#应用" class="headerlink" title="应用"></a>应用</h2><p>应用参数格式：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">&#123;% card 标题,链接,背景,评分,评价,图标,标签,宽度,高度 %&#125;</span><br></pre></td></tr></table></figure>
-<p>具体应用的参数应用访问<code>Leonus | 作品推荐卡片—标签外挂</code>的原链接查看。链接如下：</p>
-<div class="tag link"><a class="link-card" title="Leonus | 作品推荐卡片—标签外挂" href="https://blog.leonus.cn/2022/butterflyTag.html"><div class="left"><img src="https://q1.qlogo.cn/g?b=qq&nk=990320751&s=5"/></div><div class="right"><p class="text">Leonus | 作品推荐卡片—标签外挂</p><p class="url">https://blog.leonus.cn/2022/butterflyTag.html</p></div></a></div>
-]]></content>
-      <categories>
-        <category>博客教程</category>
-        <category>美化教程</category>
-      </categories>
-      <tags>
-        <tag>Hexo</tag>
-        <tag>Butterfly</tag>
-        <tag>博客教程</tag>
-        <tag>美化教程</tag>
       </tags>
   </entry>
   <entry>
@@ -819,33 +819,6 @@
       </tags>
   </entry>
   <entry>
-    <title>docker 安装 redis</title>
-    <url>/yyg/6fffbcc4/</url>
-    <content><![CDATA[<p>首先输入命令<code>docker pull redis</code> ，将最新版redis安装到本地</p>
-<p>输入以下命令,后台启动redis(注：<strong>该命令是一条命令</strong>)</p>
-<p>其中<code>--name</code>后面的是redis容器的名称，可自行更改</p>
-<blockquote>
-<p>docker run -p 6379:6379 —name mars1 —privileged=true</p>
-<p> -v /app/redis/redis.conf:/etc/redis/redis.conf </p>
-<p>-v /app/redis/data:/data </p>
-<p>-d redis:latest redis-server /etc/redis/redis.conf</p>
-</blockquote>
-<p>此命令也可解决在删除redis容器后，而出现的数据丢失的问题。若要找回数据，则只需重新运行命令即可。</p>
-
-<p>运行<code>docker ps</code>命令，可查看到redis正在运行</p>
-
-<p>然后执行<code>docker exec -it mars1 /bin/bash</code>命令，redis成功运行</p>
-]]></content>
-      <categories>
-        <category>容器化</category>
-        <category>docker</category>
-      </categories>
-      <tags>
-        <tag>docker</tag>
-        <tag>redis</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>ceph集群部署指南</title>
     <url>/yyg/3fc2a251/</url>
     <content><![CDATA[<h2 id="任务目标"><a href="#任务目标" class="headerlink" title="任务目标"></a>任务目标</h2><ol>
@@ -1044,6 +1017,33 @@
       </tags>
   </entry>
   <entry>
+    <title>docker 安装 redis</title>
+    <url>/yyg/6fffbcc4/</url>
+    <content><![CDATA[<p>首先输入命令<code>docker pull redis</code> ，将最新版redis安装到本地</p>
+<p>输入以下命令,后台启动redis(注：<strong>该命令是一条命令</strong>)</p>
+<p>其中<code>--name</code>后面的是redis容器的名称，可自行更改</p>
+<blockquote>
+<p>docker run -p 6379:6379 —name mars1 —privileged=true</p>
+<p> -v /app/redis/redis.conf:/etc/redis/redis.conf </p>
+<p>-v /app/redis/data:/data </p>
+<p>-d redis:latest redis-server /etc/redis/redis.conf</p>
+</blockquote>
+<p>此命令也可解决在删除redis容器后，而出现的数据丢失的问题。若要找回数据，则只需重新运行命令即可。</p>
+<img src="/yyg/6fffbcc4/image-20230411164804210.png" class="" title="image-20230411164804210">
+<p>运行<code>docker ps</code>命令，可查看到redis正在运行</p>
+<img src="/yyg/6fffbcc4/image-20230411163752381.png" class="" title="image-20230411163752381">
+<p>然后执行<code>docker exec -it mars1 /bin/bash</code>命令，redis成功运行</p>
+<img src="/yyg/6fffbcc4/image-20230411180817939-1711202816360-2.png" class="" title="image-20230411180817939">]]></content>
+      <categories>
+        <category>容器化</category>
+        <category>docker</category>
+      </categories>
+      <tags>
+        <tag>docker</tag>
+        <tag>redis</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>docker基础知识</title>
     <url>/yyg/7b36b89c/</url>
     <content><![CDATA[<p><code>docker search 镜像</code> #搜索要下载的镜像</p>
@@ -1112,45 +1112,6 @@
       </tags>
   </entry>
   <entry>
-    <title>docker安装mysql</title>
-    <url>/yyg/25ae9841/</url>
-    <content><![CDATA[<blockquote>
-<p><code>docker pull mysql</code> #拉取mysql镜像(最新版)</p>
-</blockquote>
-<p>若安装特定版本如6.0，则命令如下：</p>
-<p><code>docker pull mysql:6.0</code></p>
-<p>运行mysql，并分配3306端口，该命令如下：(<strong>注：下面的是一条命令</strong>)</p>
-<p>此命令中的<code>jiamian</code>为小编的liunx系统的用户名，用时需替换为自己的用户名</p>
-<p><code>MYSQL_ROOT_PASSWORD</code>后填的是mysql的密码，可自行替换</p>
-<p><code>--name</code>后填的mysql-1是运行的mysql容器的名称，也可自行替换</p>
-<blockquote>
-<p>docker run -d -p 3306:3306 —privileged=true -v /jiamian/mysql/log:/var/log/mysql</p>
-<p>-v /jiamian/mysql/data:/var/lib/mysql -v /jiamian/mysql/conf:/etc/mysql/conf.d </p>
-<p>-e MYSQL_ROOT_PASSWORD=123456 —name mysql-1 mysql</p>
-</blockquote>
-<p>此命令也可解决在删除mysql容器后，而出现的数据库数据丢失的问题。若要找回数据，则只需重新运行命令即可。</p>
-<img src="/yyg/25ae9841/image-20230410201124021.png" class="" title="image-20230410201124021">
-<p>运行<code>docker ps</code>命令，可查看到mysql正在运行</p>
-<img src="/yyg/25ae9841/image-20230410201052873.png" class="" title="image-20230410201052873">
-<h2 id="解决mysql插入中文乱码的情况"><a href="#解决mysql插入中文乱码的情况" class="headerlink" title="解决mysql插入中文乱码的情况"></a>解决mysql插入中文乱码的情况</h2><p>然后输入命令<code>cd /jiamian/mysql/conf</code>。进入该目录后，输入命令<code>vim my.cnf</code>，新建my.cnf文件，</p>
-<p>并输入以下代码</p>
-<blockquote>
-<p>[client]<br>default_character_set=utf8<br>[mysqld]<br>collation_server = utf8_general_ci<br>character_set_server = utf8</p>
-</blockquote>
-<p>保存退出后，输入 <code>docker restart mysql-1</code>，重启mysql。</p>
-<p>再输入<code>docker exec -it mysql-1 /bin/bash</code>进入mysql环境，此时汉字可正常显示</p>
-<img src="/yyg/25ae9841/image-20230410202120798.png" class="" title="image-20230410202120798">
-]]></content>
-      <categories>
-        <category>容器化</category>
-        <category>docker</category>
-      </categories>
-      <tags>
-        <tag>docker</tag>
-        <tag>mysql</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>docker容器日志配置管理</title>
     <url>/yyg/3b57c0c6/</url>
     <content><![CDATA[<p>运行的项目容器突然就停了，查看容器日志发现磁盘空间不足，导致容器没法运行了。</p>
@@ -1192,6 +1153,45 @@
         <tag>运维</tag>
         <tag>Linux</tag>
         <tag>知识梳理</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>docker安装mysql</title>
+    <url>/yyg/25ae9841/</url>
+    <content><![CDATA[<blockquote>
+<p><code>docker pull mysql</code> #拉取mysql镜像(最新版)</p>
+</blockquote>
+<p>若安装特定版本如6.0，则命令如下：</p>
+<p><code>docker pull mysql:6.0</code></p>
+<p>运行mysql，并分配3306端口，该命令如下：(<strong>注：下面的是一条命令</strong>)</p>
+<p>此命令中的<code>jiamian</code>为小编的liunx系统的用户名，用时需替换为自己的用户名</p>
+<p><code>MYSQL_ROOT_PASSWORD</code>后填的是mysql的密码，可自行替换</p>
+<p><code>--name</code>后填的mysql-1是运行的mysql容器的名称，也可自行替换</p>
+<blockquote>
+<p>docker run -d -p 3306:3306 —privileged=true -v /jiamian/mysql/log:/var/log/mysql</p>
+<p>-v /jiamian/mysql/data:/var/lib/mysql -v /jiamian/mysql/conf:/etc/mysql/conf.d </p>
+<p>-e MYSQL_ROOT_PASSWORD=123456 —name mysql-1 mysql</p>
+</blockquote>
+<p>此命令也可解决在删除mysql容器后，而出现的数据库数据丢失的问题。若要找回数据，则只需重新运行命令即可。</p>
+<img src="/yyg/25ae9841/image-20230410201124021.png" class="" title="image-20230410201124021">
+<p>运行<code>docker ps</code>命令，可查看到mysql正在运行</p>
+<img src="/yyg/25ae9841/image-20230410201052873.png" class="" title="image-20230410201052873">
+<h2 id="解决mysql插入中文乱码的情况"><a href="#解决mysql插入中文乱码的情况" class="headerlink" title="解决mysql插入中文乱码的情况"></a>解决mysql插入中文乱码的情况</h2><p>然后输入命令<code>cd /jiamian/mysql/conf</code>。进入该目录后，输入命令<code>vim my.cnf</code>，新建my.cnf文件，</p>
+<p>并输入以下代码</p>
+<blockquote>
+<p>[client]<br>default_character_set=utf8<br>[mysqld]<br>collation_server = utf8_general_ci<br>character_set_server = utf8</p>
+</blockquote>
+<p>保存退出后，输入 <code>docker restart mysql-1</code>，重启mysql。</p>
+<p>再输入<code>docker exec -it mysql-1 /bin/bash</code>进入mysql环境，此时汉字可正常显示</p>
+<img src="/yyg/25ae9841/image-20230410202120798.png" class="" title="image-20230410202120798">
+]]></content>
+      <categories>
+        <category>容器化</category>
+        <category>docker</category>
+      </categories>
+      <tags>
+        <tag>docker</tag>
+        <tag>mysql</tag>
       </tags>
   </entry>
   <entry>
@@ -1361,76 +1361,6 @@
       </tags>
   </entry>
   <entry>
-    <title>docker部署zabbix6.4指南</title>
-    <url>/yyg/6d91d852/</url>
-    <content><![CDATA[<h2 id="任务目标"><a href="#任务目标" class="headerlink" title="任务目标"></a>任务目标</h2><ol>
-<li>在主机一上完成docker部署zabbix6.4</li>
-<li>在主机二上安装zabbix-agent2</li>
-<li>使用主机一上的zabbix容器监控主机二的容器等业务</li>
-</ol>
-<h2 id="任务平台"><a href="#任务平台" class="headerlink" title="任务平台"></a>任务平台</h2><ol>
-<li>物理设备—</li>
-<li>操作系统：CentOS 7</li>
-</ol>
-<h2 id="部署指南"><a href="#部署指南" class="headerlink" title="部署指南"></a>部署指南</h2><h3 id="任务-一"><a href="#任务-一" class="headerlink" title="任务 一"></a>任务 一</h3><ol>
-<li>安装docker（最新版）</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">下载并安装docker文件及依赖</span></span><br><span class="line">yum install -y yum-utils</span><br><span class="line">yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo</span><br><span class="line">yum install -y docker-ce docker-ce-cli containerd.io</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动docker并设置开机自启</span></span><br><span class="line">systemctl start docker  </span><br><span class="line">systemctl enable docker</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看版本</span></span><br><span class="line">docker -v</span><br></pre></td></tr></table></figure>
-<ol>
-<li>配置防火墙所需的开放端口</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">放行nginx端口</span></span><br><span class="line">firewall-cmd --zone=public --add-port=80/tcp --permanent</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">放行zabbix agent端口</span></span><br><span class="line">firewall-cmd --zone=public --add-port=10050/tcp --permanent</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">放行zabbix server端口</span></span><br><span class="line">firewall-cmd --zone=public --add-port=10051/tcp --permanent</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">放行zabbix java gateway端口</span></span><br><span class="line">firewall-cmd --zone=public --add-port=10052/tcp --permanent</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">放行mysql端口</span></span><br><span class="line">firewall-cmd --zone=public --add-port=3306/tcp --permanent</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">放行snmptraps端口</span></span><br><span class="line">firewall-cmd --zone=public --add-port=162/udp --permanent</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">重载防火墙</span></span><br><span class="line">firewall-cmd --reload</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看80端口是否开放</span></span><br><span class="line">firewall-cmd --query-port=80/tcp</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看所有放行的端口</span></span><br><span class="line">firewall-cmd --zone=public --list-ports</span><br></pre></td></tr></table></figure>
-<ol>
-<li>拉取zabbix所需镜像文件</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">拉取安装zabbix需要的docker镜像</span></span><br><span class="line">docker pull mysql:8.0</span><br><span class="line">docker pull zabbix/zabbix-java-gateway:alpine-6.4-latest</span><br><span class="line">docker pull zabbix/zabbix-server-mysql:alpine-6.4-latest</span><br><span class="line">docker pull zabbix/zabbix-web-nginx-mysql:alpine-6.4-latest</span><br></pre></td></tr></table></figure>
-<ol>
-<li>创建专用于Zabbix组件容器网络与所需容器</li>
-</ol>
-<h4 id="方案一："><a href="#方案一：" class="headerlink" title="方案一："></a>方案一：</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">创建专用于Zabbix组件容器的网络</span></span><br><span class="line">docker network create --subnet 172.20.0.0/16 --ip-range 172.20.240.0/20 zabbix-net</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动空的MySQ服务器实例</span></span><br><span class="line">docker run --name mysql-server -t \</span><br><span class="line">      -e MYSQL_DATABASE=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_USER=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      -e MYSQL_ROOT_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      --network=zabbix-net \</span><br><span class="line">      --restart=always \</span><br><span class="line">      -d mysql:8.0 \</span><br><span class="line">      --character-set-server=UTF8MB4 --collation-server=UTF8MB4_bin \</span><br><span class="line">      --authentication_policy=mysql_native_password</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动Zabbix Java网关实例</span>      </span><br><span class="line">docker run --name zabbix-java-gateway -t \</span><br><span class="line">      --network=zabbix-net \</span><br><span class="line">      --restart unless-stopped \</span><br><span class="line">      -d zabbix/zabbix-java-gateway:alpine-6.4-latest</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动Zabbix服务器实例并将实例与创建的MySQL服务器实例链接</span>      </span><br><span class="line">docker run --name zabbix-server-mysql -t \</span><br><span class="line">      -e DB_SERVER_HOST=&quot;mysql-server&quot; \</span><br><span class="line">      -e MYSQL_DATABASE=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_USER=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      -e MYSQL_ROOT_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      -e ZBX_JAVAGATEWAY=&quot;zabbix-java-gateway&quot; \</span><br><span class="line">      --network=zabbix-net \</span><br><span class="line">      -p 10051:10051 \</span><br><span class="line">      --restart unless-stopped \</span><br><span class="line">      -d zabbix/zabbix-server-mysql:alpine-6.4-latest</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动Zabbix Web界面，并将实例与创建的MySQL服务器和Zabbix服务器实例链接</span></span><br><span class="line">docker run --name zabbix-web-nginx-mysql -t \</span><br><span class="line">      -e ZBX_SERVER_HOST=&quot;zabbix-server-mysql&quot; \</span><br><span class="line">      -e DB_SERVER_HOST=&quot;mysql-server&quot; \</span><br><span class="line">      -e MYSQL_DATABASE=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_USER=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      -e MYSQL_ROOT_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      --network=zabbix-net \</span><br><span class="line">      -p 80:8080 \</span><br><span class="line">      --restart unless-stopped \</span><br><span class="line">      -d zabbix/zabbix-web-nginx-mysql:alpine-6.4-latest</span><br></pre></td></tr></table></figure>
-<h4 id="方案二：（推荐使用）"><a href="#方案二：（推荐使用）" class="headerlink" title="方案二：（推荐使用）"></a>方案二：（推荐使用）</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动空的MySQ服务器实例</span></span><br><span class="line">docker run --name mysql-server -t \</span><br><span class="line">      -e MYSQL_DATABASE=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_USER=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      -e MYSQL_ROOT_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      --restart=always \</span><br><span class="line">      -d mysql:8.0 \</span><br><span class="line">      --character-set-server=UTF8MB4 --collation-server=UTF8MB4_bin \</span><br><span class="line">      --authentication_policy=mysql_native_password</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动Zabbix Java网关实例</span>      </span><br><span class="line">docker run --name zabbix-java-gateway -t \</span><br><span class="line">      --restart unless-stopped \</span><br><span class="line">      -d zabbix/zabbix-java-gateway:alpine-6.4-latest</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动Zabbix服务器实例并将实例与创建的MySQL服务器实例链接</span>      </span><br><span class="line">docker run --name zabbix-server-mysql -t \</span><br><span class="line">      -e DB_SERVER_HOST=&quot;mysql-server&quot; \</span><br><span class="line">      -e MYSQL_DATABASE=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_USER=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      -e MYSQL_ROOT_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      -e ZBX_JAVAGATEWAY=&quot;zabbix-java-gateway&quot; \</span><br><span class="line">      --link mysql-server:mysql \</span><br><span class="line">      --link zabbix-java-gateway:zabbix-java-gateway \</span><br><span class="line">      -p 10051:10051 \</span><br><span class="line">      --restart unless-stopped \</span><br><span class="line">      -d zabbix/zabbix-server-mysql:alpine-6.4-latest</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动Zabbix Web界面，并将实例与创建的MySQL服务器和Zabbix服务器实例链接</span></span><br><span class="line">docker run --name zabbix-web-nginx-mysql -t \</span><br><span class="line">      -e ZBX_SERVER_HOST=&quot;zabbix-server-mysql&quot; \</span><br><span class="line">      -e DB_SERVER_HOST=&quot;mysql-server&quot; \</span><br><span class="line">      -e MYSQL_DATABASE=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_USER=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      -e MYSQL_ROOT_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      --link mysql-server:mysql \</span><br><span class="line">      --link zabbix-server-mysql:zabbix-server \</span><br><span class="line">      -p 80:8080 \</span><br><span class="line">      --restart unless-stopped \</span><br><span class="line">      -d zabbix/zabbix-web-nginx-mysql:alpine-6.4-latest</span><br></pre></td></tr></table></figure>
-<ol>
-<li>在其中一台的主机的/etc/docker/daemon.json文件中，加入如下内容：</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">打开daemon.json文件</span></span><br><span class="line">vi /etc/docker/daemon.json</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">添加的内容</span></span><br><span class="line">&#123;</span><br><span class="line"> &quot;bip&quot;: &quot;172.16.200.1/24&quot;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重启docker服务</span></span><br><span class="line">systemctl restart docker </span><br></pre></td></tr></table></figure>
-<h3 id="任务二"><a href="#任务二" class="headerlink" title="任务二"></a>任务二</h3><p>在主机二上安装zabbix-agent2</p>
-<p>在要监控的主机上安装zabbix agent2</p>
-<p>步骤1：Zabbix agent2下载</p>
-<div class="tag link"><a class="link-card" title="Zabbix agent2下载" href="https://www.zabbix.com/documentation/6.4/manual/installation/install_from_packages"><div class="left"><img src="https://cdn.pixabay.com/photo/2022/07/08/10/37/books-7309019_960_720.png"/></div><div class="right"><p class="text">Zabbix agent2下载</p><p class="url">https://www.zabbix.com/documentation/6.4/manual/installation/install_from_packages</p></div></a></div>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">rpm -Uvh https://repo.zabbix.com/zabbix/6.4/rhel/7/x86_64/zabbix-release-6.4-1.el7.noarch.rpm</span><br><span class="line">yum clean all</span><br></pre></td></tr></table></figure>
-<p>步骤2：b. 下载Zabbix agent2</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum install zabbix-agent2 zabbix-agent2-plugin-* -y</span><br></pre></td></tr></table></figure>
-<p>步骤3：启动Zabbix agent2</p>
-<p>Start Zabbix agent2 process and make it start at system boot.</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">systemctl restart zabbix-agent2</span><br><span class="line">systemctl enable zabbix-agent2</span><br></pre></td></tr></table></figure>
-<p>运行成功界面如下</p>
-<img src="/yyg/6d91d852/1711208128881-1.png" class="" title="img">
-<img src="/yyg/6d91d852/1711208138487-4-1711208142767-7.png" class="" title="img">
-<h3 id="安装报错总结"><a href="#安装报错总结" class="headerlink" title="安装报错总结"></a>安装报错总结</h3><ol>
-<li><img src="/yyg/6d91d852/1711208157423-9.png" class="" title="img">
-</li>
-</ol>
-<p>进入mysql容器，输入以下命令.</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">进入sql界面</span></span><br><span class="line">mysql -u root -p</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">输入该命令，解决问题</span></span><br><span class="line">create database zabbix character set utf8 collate utf8_bin;</span><br><span class="line">SET GLOBAL log_bin_trust_function_creators = 1;</span><br></pre></td></tr></table></figure>
-<ol>
-<li>安装zabbix出现下图情况解决方法</li>
-</ol>
-<img src="/yyg/6d91d852/1711208164924-12.png" class="" title="img">
-<div class="tag link"><a class="link-card" title="故障处理" href="https://blog.csdn.net/ly4983/article/details/111029506"><div class="left"><img src="https://cdn.pixabay.com/photo/2022/07/08/10/37/books-7309019_960_720.png"/></div><div class="right"><p class="text">故障处理</p><p class="url">https://blog.csdn.net/ly4983/article/details/111029506</p></div></a></div>
-<h3 id="扩展-docker-compose部署zabbix"><a href="#扩展-docker-compose部署zabbix" class="headerlink" title="扩展-docker-compose部署zabbix"></a>扩展-docker-compose部署zabbix</h3><figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="attr">zabbix-db-mysql:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">mysql:9.0.1</span></span><br><span class="line">    <span class="attr">container_name:</span> <span class="string">zabbix-db-mysql</span></span><br><span class="line">    <span class="attr">restart:</span> <span class="string">always</span></span><br><span class="line">    <span class="attr">environment:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">MYSQL_DATABASE=zabbix</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">MYSQL_USER=zabbix</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">MYSQL_PASSWORD=zabbix@123</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">MYSQL_ROOT_PASSWORD=zabbix@123</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">TZ=Asia/Shanghai</span></span><br><span class="line">    <span class="attr">command:</span> [<span class="string">&quot;--character_set_server=utf8mb4&quot;</span>, <span class="string">&quot;--collation_server=utf8mb4_bin&quot;</span>]</span><br><span class="line">    <span class="attr">volumes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">/data/database/zabbix-mysql:/var/lib/mysql</span></span><br><span class="line">    <span class="attr">user:</span> <span class="string">&quot;0&quot;</span></span><br><span class="line">    <span class="attr">ports:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="number">3306</span><span class="string">:3306</span></span><br><span class="line">    <span class="attr">networks:</span></span><br><span class="line">      <span class="attr">zabbix:</span></span><br><span class="line">        <span class="attr">ipv4_address:</span> <span class="number">172.20</span><span class="number">.20</span><span class="number">.10</span></span><br><span class="line"></span><br><span class="line">  <span class="attr">zabbix-java-gateway:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">zabbix/zabbix-java-gateway:latest</span></span><br><span class="line">    <span class="attr">container_name:</span> <span class="string">zabbix-java-gateway</span></span><br><span class="line">    <span class="attr">restart:</span> <span class="string">always</span></span><br><span class="line">    <span class="attr">environment:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">TZ=Asia/Shanghai</span></span><br><span class="line">    <span class="attr">user:</span> <span class="string">&quot;0&quot;</span></span><br><span class="line">    <span class="attr">networks:</span></span><br><span class="line">      <span class="attr">zabbix:</span></span><br><span class="line">        <span class="attr">ipv4_address:</span> <span class="number">172.20</span><span class="number">.20</span><span class="number">.11</span></span><br><span class="line"></span><br><span class="line">  <span class="attr">zabbix-server-mysql:</span></span><br><span class="line">    <span class="attr">image:</span>  <span class="string">zabbix/zabbix-server-mysql:latest</span></span><br><span class="line">    <span class="attr">container_name:</span> <span class="string">zabbix-server-mysql</span></span><br><span class="line">    <span class="attr">restart:</span> <span class="string">always</span></span><br><span class="line">    <span class="attr">environment:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">DB_SERVER_HOST=zabbix-db-mysql</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">MYSQL_DATABASE=zabbix</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">MYSQL_USER=zabbix</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">MYSQL_PASSWORD=zabbix@123</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">MYSQL_ROOT_PASSWORD=zabbix@123</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">ZBX_JAVAGATEWAY=zabbix-java-gateway</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">TZ=Asia/Shanghai</span></span><br><span class="line">    <span class="attr">user:</span> <span class="string">&quot;0&quot;</span></span><br><span class="line">    <span class="attr">ports:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="number">10051</span><span class="string">:10051</span></span><br><span class="line">    <span class="attr">networks:</span></span><br><span class="line">      <span class="attr">zabbix:</span></span><br><span class="line">        <span class="attr">ipv4_address:</span> <span class="number">172.20</span><span class="number">.20</span><span class="number">.12</span></span><br><span class="line"></span><br><span class="line">  <span class="attr">zabbix-web-nginx-mysql:</span></span><br><span class="line">    <span class="attr">image:</span>  <span class="string">zabbix/zabbix-web-nginx-mysql:latest</span></span><br><span class="line">    <span class="attr">container_name:</span> <span class="string">zabbix-web-nginx-mysql</span></span><br><span class="line">    <span class="attr">restart:</span> <span class="string">always</span></span><br><span class="line">    <span class="attr">environment:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">ZBX_SERVER_HOST=zabbix-server-mysql</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">DB_SERVER_HOST=zabbix-db-mysql</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">MYSQL_DATABASE=zabbix</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">MYSQL_USER=zabbix</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">MYSQL_PASSWORD=zabbix@123</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">MYSQL_ROOT_PASSWORD=zabbix@123</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">ZBX_JAVAGATEWAY_ENABLE=true</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">ZBX_JAVAGATEWAYPORT=10052</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">PHP_TZ=Asia/Shanghai</span></span><br><span class="line">    <span class="attr">user:</span> <span class="string">&quot;0&quot;</span></span><br><span class="line">    <span class="attr">ports:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="number">80</span><span class="string">:8080</span></span><br><span class="line">    <span class="attr">networks:</span></span><br><span class="line">      <span class="attr">zabbix:</span></span><br><span class="line">        <span class="attr">ipv4_address:</span> <span class="number">172.20</span><span class="number">.20</span><span class="number">.13</span></span><br><span class="line"></span><br><span class="line">  <span class="attr">zabbix-agent:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">zabbix/zabbix-agent:latest</span></span><br><span class="line">    <span class="attr">container_name:</span> <span class="string">zabbix-agent</span></span><br><span class="line">    <span class="attr">restart:</span> <span class="string">always</span></span><br><span class="line">    <span class="attr">environment:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">TZ=Asia/Shanghai</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">ZBX_SERVER_HOST=172.20.20.12</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">ZBX_HOSTNAME=Zabbix</span> <span class="string">server</span></span><br><span class="line">    <span class="attr">user:</span> <span class="string">&quot;0&quot;</span></span><br><span class="line">    <span class="attr">ports:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="number">10050</span><span class="string">:10050</span></span><br><span class="line">    <span class="attr">networks:</span></span><br><span class="line">      <span class="attr">zabbix:</span></span><br><span class="line">        <span class="attr">ipv4_address:</span> <span class="number">172.20</span><span class="number">.20</span><span class="number">.14</span></span><br><span class="line"></span><br><span class="line"><span class="attr">networks:</span></span><br><span class="line"> <span class="attr">zabbix:</span></span><br><span class="line">  <span class="attr">driver:</span> <span class="string">bridge</span></span><br><span class="line">  <span class="attr">ipam:</span></span><br><span class="line">   <span class="attr">config:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">subnet:</span> <span class="number">172.20</span><span class="number">.20</span><span class="number">.0</span><span class="string">/24</span></span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>Linux运维</category>
-        <category>容器化</category>
-        <category>docker</category>
-        <category>监控</category>
-      </categories>
-      <tags>
-        <tag>docker</tag>
-        <tag>zabbix</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>docker部署SonarQube</title>
     <url>/yyg/12643dd2/</url>
     <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><details class="folding-tag" cyan><summary> 🔜什么是SonarQube？🔚 </summary>
@@ -1514,32 +1444,73 @@
       </tags>
   </entry>
   <entry>
-    <title>eNSP模拟网络设备访问真实网络</title>
-    <url>/yyg/f5b762ea/</url>
-    <content><![CDATA[<h2 id="添加Loopback环回网卡"><a href="#添加Loopback环回网卡" class="headerlink" title="添加Loopback环回网卡"></a>添加Loopback环回网卡</h2><p>（1）使用Win+ R调出”运行“，输入<code>hdwwiz</code>，确定后开始添加新硬件向导。</p>
-<p>（2）按向导操作，选择<code>安装我手动从列表选择的硬件(高级)(M)</code>。</p>
-<img src="/yyg/f5b762ea/1.png" class="" title="image.png">
-<p>（3）选择安装的硬件类型为<code>网络适配器</code>，选定设备驱动程序的厂商为<code>Microsoft</code>，型号为<code>Microsoft KM-TEST环回适配器</code>。</p>
-<img src="/yyg/f5b762ea/2.png" class="" title="image.png">
-<p>（4）按向导安装，点击完成即可。</p>
-<h2 id="共享主机网络"><a href="#共享主机网络" class="headerlink" title="共享主机网络"></a>共享主机网络</h2><p>（1）打开控制面板—网络和Internet—网络连接，找到新创建的环回网卡，本主机中为<code>以太网 8</code>。选择本机连接网络，此外为WLAN，在属性中选择共享，勾选<code>允许其他网络用户通过此计算机的Internet连接来连接(N)</code>，选择新创建的环回网卡<code>以太网 8</code>，保存即可。</p>
-<img src="/yyg/f5b762ea/3.png" class="" title="image.png">
-<p>（2）保存后，会默认给环回网卡分配ip地址<code>192.168.137.1</code>。重启网卡使得配置生效。</p>
-<img src="/yyg/f5b762ea/4.png" class="" title="image.png">
-<p>（3）打开eNSP软件，打开Cloud的设置，分别创建一个绑定信息为<code>UDP</code>和环回网卡<code>以太网 8 -- IP：192.168.137.1</code>的端口，并设置端口映射的入端口和出端口编号，勾选双向通道，点击增加。</p>
-<img src="/yyg/f5b762ea/5.png" class="" title="image.png">
-<p>（4）开启网络拓扑，设置主机为DHCP，等待主机分配出ip后，使用ping命令验证是否连接外部真实网络。</p>
-<img src="/yyg/f5b762ea/6.png" class="" title="image.png">
-<img src="/yyg/f5b762ea/7.png" class="" title="image.png">]]></content>
+    <title>docker部署zabbix6.4指南</title>
+    <url>/yyg/6d91d852/</url>
+    <content><![CDATA[<h2 id="任务目标"><a href="#任务目标" class="headerlink" title="任务目标"></a>任务目标</h2><ol>
+<li>在主机一上完成docker部署zabbix6.4</li>
+<li>在主机二上安装zabbix-agent2</li>
+<li>使用主机一上的zabbix容器监控主机二的容器等业务</li>
+</ol>
+<h2 id="任务平台"><a href="#任务平台" class="headerlink" title="任务平台"></a>任务平台</h2><ol>
+<li>物理设备—</li>
+<li>操作系统：CentOS 7</li>
+</ol>
+<h2 id="部署指南"><a href="#部署指南" class="headerlink" title="部署指南"></a>部署指南</h2><h3 id="任务-一"><a href="#任务-一" class="headerlink" title="任务 一"></a>任务 一</h3><ol>
+<li>安装docker（最新版）</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">下载并安装docker文件及依赖</span></span><br><span class="line">yum install -y yum-utils</span><br><span class="line">yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo</span><br><span class="line">yum install -y docker-ce docker-ce-cli containerd.io</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动docker并设置开机自启</span></span><br><span class="line">systemctl start docker  </span><br><span class="line">systemctl enable docker</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看版本</span></span><br><span class="line">docker -v</span><br></pre></td></tr></table></figure>
+<ol>
+<li>配置防火墙所需的开放端口</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">放行nginx端口</span></span><br><span class="line">firewall-cmd --zone=public --add-port=80/tcp --permanent</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">放行zabbix agent端口</span></span><br><span class="line">firewall-cmd --zone=public --add-port=10050/tcp --permanent</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">放行zabbix server端口</span></span><br><span class="line">firewall-cmd --zone=public --add-port=10051/tcp --permanent</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">放行zabbix java gateway端口</span></span><br><span class="line">firewall-cmd --zone=public --add-port=10052/tcp --permanent</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">放行mysql端口</span></span><br><span class="line">firewall-cmd --zone=public --add-port=3306/tcp --permanent</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">放行snmptraps端口</span></span><br><span class="line">firewall-cmd --zone=public --add-port=162/udp --permanent</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">重载防火墙</span></span><br><span class="line">firewall-cmd --reload</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看80端口是否开放</span></span><br><span class="line">firewall-cmd --query-port=80/tcp</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看所有放行的端口</span></span><br><span class="line">firewall-cmd --zone=public --list-ports</span><br></pre></td></tr></table></figure>
+<ol>
+<li>拉取zabbix所需镜像文件</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">拉取安装zabbix需要的docker镜像</span></span><br><span class="line">docker pull mysql:8.0</span><br><span class="line">docker pull zabbix/zabbix-java-gateway:alpine-6.4-latest</span><br><span class="line">docker pull zabbix/zabbix-server-mysql:alpine-6.4-latest</span><br><span class="line">docker pull zabbix/zabbix-web-nginx-mysql:alpine-6.4-latest</span><br></pre></td></tr></table></figure>
+<ol>
+<li>创建专用于Zabbix组件容器网络与所需容器</li>
+</ol>
+<h4 id="方案一："><a href="#方案一：" class="headerlink" title="方案一："></a>方案一：</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">创建专用于Zabbix组件容器的网络</span></span><br><span class="line">docker network create --subnet 172.20.0.0/16 --ip-range 172.20.240.0/20 zabbix-net</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动空的MySQ服务器实例</span></span><br><span class="line">docker run --name mysql-server -t \</span><br><span class="line">      -e MYSQL_DATABASE=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_USER=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      -e MYSQL_ROOT_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      --network=zabbix-net \</span><br><span class="line">      --restart=always \</span><br><span class="line">      -d mysql:8.0 \</span><br><span class="line">      --character-set-server=UTF8MB4 --collation-server=UTF8MB4_bin \</span><br><span class="line">      --authentication_policy=mysql_native_password</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动Zabbix Java网关实例</span>      </span><br><span class="line">docker run --name zabbix-java-gateway -t \</span><br><span class="line">      --network=zabbix-net \</span><br><span class="line">      --restart unless-stopped \</span><br><span class="line">      -d zabbix/zabbix-java-gateway:alpine-6.4-latest</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动Zabbix服务器实例并将实例与创建的MySQL服务器实例链接</span>      </span><br><span class="line">docker run --name zabbix-server-mysql -t \</span><br><span class="line">      -e DB_SERVER_HOST=&quot;mysql-server&quot; \</span><br><span class="line">      -e MYSQL_DATABASE=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_USER=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      -e MYSQL_ROOT_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      -e ZBX_JAVAGATEWAY=&quot;zabbix-java-gateway&quot; \</span><br><span class="line">      --network=zabbix-net \</span><br><span class="line">      -p 10051:10051 \</span><br><span class="line">      --restart unless-stopped \</span><br><span class="line">      -d zabbix/zabbix-server-mysql:alpine-6.4-latest</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动Zabbix Web界面，并将实例与创建的MySQL服务器和Zabbix服务器实例链接</span></span><br><span class="line">docker run --name zabbix-web-nginx-mysql -t \</span><br><span class="line">      -e ZBX_SERVER_HOST=&quot;zabbix-server-mysql&quot; \</span><br><span class="line">      -e DB_SERVER_HOST=&quot;mysql-server&quot; \</span><br><span class="line">      -e MYSQL_DATABASE=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_USER=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      -e MYSQL_ROOT_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      --network=zabbix-net \</span><br><span class="line">      -p 80:8080 \</span><br><span class="line">      --restart unless-stopped \</span><br><span class="line">      -d zabbix/zabbix-web-nginx-mysql:alpine-6.4-latest</span><br></pre></td></tr></table></figure>
+<h4 id="方案二：（推荐使用）"><a href="#方案二：（推荐使用）" class="headerlink" title="方案二：（推荐使用）"></a>方案二：（推荐使用）</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动空的MySQ服务器实例</span></span><br><span class="line">docker run --name mysql-server -t \</span><br><span class="line">      -e MYSQL_DATABASE=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_USER=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      -e MYSQL_ROOT_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      --restart=always \</span><br><span class="line">      -d mysql:8.0 \</span><br><span class="line">      --character-set-server=UTF8MB4 --collation-server=UTF8MB4_bin \</span><br><span class="line">      --authentication_policy=mysql_native_password</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动Zabbix Java网关实例</span>      </span><br><span class="line">docker run --name zabbix-java-gateway -t \</span><br><span class="line">      --restart unless-stopped \</span><br><span class="line">      -d zabbix/zabbix-java-gateway:alpine-6.4-latest</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动Zabbix服务器实例并将实例与创建的MySQL服务器实例链接</span>      </span><br><span class="line">docker run --name zabbix-server-mysql -t \</span><br><span class="line">      -e DB_SERVER_HOST=&quot;mysql-server&quot; \</span><br><span class="line">      -e MYSQL_DATABASE=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_USER=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      -e MYSQL_ROOT_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      -e ZBX_JAVAGATEWAY=&quot;zabbix-java-gateway&quot; \</span><br><span class="line">      --link mysql-server:mysql \</span><br><span class="line">      --link zabbix-java-gateway:zabbix-java-gateway \</span><br><span class="line">      -p 10051:10051 \</span><br><span class="line">      --restart unless-stopped \</span><br><span class="line">      -d zabbix/zabbix-server-mysql:alpine-6.4-latest</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动Zabbix Web界面，并将实例与创建的MySQL服务器和Zabbix服务器实例链接</span></span><br><span class="line">docker run --name zabbix-web-nginx-mysql -t \</span><br><span class="line">      -e ZBX_SERVER_HOST=&quot;zabbix-server-mysql&quot; \</span><br><span class="line">      -e DB_SERVER_HOST=&quot;mysql-server&quot; \</span><br><span class="line">      -e MYSQL_DATABASE=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_USER=&quot;zabbix&quot; \</span><br><span class="line">      -e MYSQL_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      -e MYSQL_ROOT_PASSWORD=&quot;123456&quot; \</span><br><span class="line">      --link mysql-server:mysql \</span><br><span class="line">      --link zabbix-server-mysql:zabbix-server \</span><br><span class="line">      -p 80:8080 \</span><br><span class="line">      --restart unless-stopped \</span><br><span class="line">      -d zabbix/zabbix-web-nginx-mysql:alpine-6.4-latest</span><br></pre></td></tr></table></figure>
+<ol>
+<li>在其中一台的主机的/etc/docker/daemon.json文件中，加入如下内容：</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">打开daemon.json文件</span></span><br><span class="line">vi /etc/docker/daemon.json</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">添加的内容</span></span><br><span class="line">&#123;</span><br><span class="line"> &quot;bip&quot;: &quot;172.16.200.1/24&quot;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">重启docker服务</span></span><br><span class="line">systemctl restart docker </span><br></pre></td></tr></table></figure>
+<h3 id="任务二"><a href="#任务二" class="headerlink" title="任务二"></a>任务二</h3><p>在主机二上安装zabbix-agent2</p>
+<p>在要监控的主机上安装zabbix agent2</p>
+<p>步骤1：Zabbix agent2下载</p>
+<div class="tag link"><a class="link-card" title="Zabbix agent2下载" href="https://www.zabbix.com/documentation/6.4/manual/installation/install_from_packages"><div class="left"><img src="https://cdn.pixabay.com/photo/2022/07/08/10/37/books-7309019_960_720.png"/></div><div class="right"><p class="text">Zabbix agent2下载</p><p class="url">https://www.zabbix.com/documentation/6.4/manual/installation/install_from_packages</p></div></a></div>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">rpm -Uvh https://repo.zabbix.com/zabbix/6.4/rhel/7/x86_64/zabbix-release-6.4-1.el7.noarch.rpm</span><br><span class="line">yum clean all</span><br></pre></td></tr></table></figure>
+<p>步骤2：b. 下载Zabbix agent2</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum install zabbix-agent2 zabbix-agent2-plugin-* -y</span><br></pre></td></tr></table></figure>
+<p>步骤3：启动Zabbix agent2</p>
+<p>Start Zabbix agent2 process and make it start at system boot.</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">systemctl restart zabbix-agent2</span><br><span class="line">systemctl enable zabbix-agent2</span><br></pre></td></tr></table></figure>
+<p>运行成功界面如下</p>
+<img src="/yyg/6d91d852/1711208128881-1.png" class="" title="img">
+<img src="/yyg/6d91d852/1711208138487-4-1711208142767-7.png" class="" title="img">
+<h3 id="安装报错总结"><a href="#安装报错总结" class="headerlink" title="安装报错总结"></a>安装报错总结</h3><ol>
+<li><img src="/yyg/6d91d852/1711208157423-9.png" class="" title="img">
+</li>
+</ol>
+<p>进入mysql容器，输入以下命令.</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">进入sql界面</span></span><br><span class="line">mysql -u root -p</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">输入该命令，解决问题</span></span><br><span class="line">create database zabbix character set utf8 collate utf8_bin;</span><br><span class="line">SET GLOBAL log_bin_trust_function_creators = 1;</span><br></pre></td></tr></table></figure>
+<ol>
+<li>安装zabbix出现下图情况解决方法</li>
+</ol>
+<img src="/yyg/6d91d852/1711208164924-12.png" class="" title="img">
+<div class="tag link"><a class="link-card" title="故障处理" href="https://blog.csdn.net/ly4983/article/details/111029506"><div class="left"><img src="https://cdn.pixabay.com/photo/2022/07/08/10/37/books-7309019_960_720.png"/></div><div class="right"><p class="text">故障处理</p><p class="url">https://blog.csdn.net/ly4983/article/details/111029506</p></div></a></div>
+<h3 id="扩展-docker-compose部署zabbix"><a href="#扩展-docker-compose部署zabbix" class="headerlink" title="扩展-docker-compose部署zabbix"></a>扩展-docker-compose部署zabbix</h3><figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="attr">zabbix-db-mysql:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">mysql:9.0.1</span></span><br><span class="line">    <span class="attr">container_name:</span> <span class="string">zabbix-db-mysql</span></span><br><span class="line">    <span class="attr">restart:</span> <span class="string">always</span></span><br><span class="line">    <span class="attr">environment:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">MYSQL_DATABASE=zabbix</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">MYSQL_USER=zabbix</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">MYSQL_PASSWORD=zabbix@123</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">MYSQL_ROOT_PASSWORD=zabbix@123</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">TZ=Asia/Shanghai</span></span><br><span class="line">    <span class="attr">command:</span> [<span class="string">&quot;--character_set_server=utf8mb4&quot;</span>, <span class="string">&quot;--collation_server=utf8mb4_bin&quot;</span>]</span><br><span class="line">    <span class="attr">volumes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">/data/database/zabbix-mysql:/var/lib/mysql</span></span><br><span class="line">    <span class="attr">user:</span> <span class="string">&quot;0&quot;</span></span><br><span class="line">    <span class="attr">ports:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="number">3306</span><span class="string">:3306</span></span><br><span class="line">    <span class="attr">networks:</span></span><br><span class="line">      <span class="attr">zabbix:</span></span><br><span class="line">        <span class="attr">ipv4_address:</span> <span class="number">172.20</span><span class="number">.20</span><span class="number">.10</span></span><br><span class="line"></span><br><span class="line">  <span class="attr">zabbix-java-gateway:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">zabbix/zabbix-java-gateway:latest</span></span><br><span class="line">    <span class="attr">container_name:</span> <span class="string">zabbix-java-gateway</span></span><br><span class="line">    <span class="attr">restart:</span> <span class="string">always</span></span><br><span class="line">    <span class="attr">environment:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">TZ=Asia/Shanghai</span></span><br><span class="line">    <span class="attr">user:</span> <span class="string">&quot;0&quot;</span></span><br><span class="line">    <span class="attr">networks:</span></span><br><span class="line">      <span class="attr">zabbix:</span></span><br><span class="line">        <span class="attr">ipv4_address:</span> <span class="number">172.20</span><span class="number">.20</span><span class="number">.11</span></span><br><span class="line"></span><br><span class="line">  <span class="attr">zabbix-server-mysql:</span></span><br><span class="line">    <span class="attr">image:</span>  <span class="string">zabbix/zabbix-server-mysql:latest</span></span><br><span class="line">    <span class="attr">container_name:</span> <span class="string">zabbix-server-mysql</span></span><br><span class="line">    <span class="attr">restart:</span> <span class="string">always</span></span><br><span class="line">    <span class="attr">environment:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">DB_SERVER_HOST=zabbix-db-mysql</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">MYSQL_DATABASE=zabbix</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">MYSQL_USER=zabbix</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">MYSQL_PASSWORD=zabbix@123</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">MYSQL_ROOT_PASSWORD=zabbix@123</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">ZBX_JAVAGATEWAY=zabbix-java-gateway</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">TZ=Asia/Shanghai</span></span><br><span class="line">    <span class="attr">user:</span> <span class="string">&quot;0&quot;</span></span><br><span class="line">    <span class="attr">ports:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="number">10051</span><span class="string">:10051</span></span><br><span class="line">    <span class="attr">networks:</span></span><br><span class="line">      <span class="attr">zabbix:</span></span><br><span class="line">        <span class="attr">ipv4_address:</span> <span class="number">172.20</span><span class="number">.20</span><span class="number">.12</span></span><br><span class="line"></span><br><span class="line">  <span class="attr">zabbix-web-nginx-mysql:</span></span><br><span class="line">    <span class="attr">image:</span>  <span class="string">zabbix/zabbix-web-nginx-mysql:latest</span></span><br><span class="line">    <span class="attr">container_name:</span> <span class="string">zabbix-web-nginx-mysql</span></span><br><span class="line">    <span class="attr">restart:</span> <span class="string">always</span></span><br><span class="line">    <span class="attr">environment:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">ZBX_SERVER_HOST=zabbix-server-mysql</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">DB_SERVER_HOST=zabbix-db-mysql</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">MYSQL_DATABASE=zabbix</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">MYSQL_USER=zabbix</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">MYSQL_PASSWORD=zabbix@123</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">MYSQL_ROOT_PASSWORD=zabbix@123</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">ZBX_JAVAGATEWAY_ENABLE=true</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">ZBX_JAVAGATEWAYPORT=10052</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">PHP_TZ=Asia/Shanghai</span></span><br><span class="line">    <span class="attr">user:</span> <span class="string">&quot;0&quot;</span></span><br><span class="line">    <span class="attr">ports:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="number">80</span><span class="string">:8080</span></span><br><span class="line">    <span class="attr">networks:</span></span><br><span class="line">      <span class="attr">zabbix:</span></span><br><span class="line">        <span class="attr">ipv4_address:</span> <span class="number">172.20</span><span class="number">.20</span><span class="number">.13</span></span><br><span class="line"></span><br><span class="line">  <span class="attr">zabbix-agent:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">zabbix/zabbix-agent:latest</span></span><br><span class="line">    <span class="attr">container_name:</span> <span class="string">zabbix-agent</span></span><br><span class="line">    <span class="attr">restart:</span> <span class="string">always</span></span><br><span class="line">    <span class="attr">environment:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">TZ=Asia/Shanghai</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">ZBX_SERVER_HOST=172.20.20.12</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">ZBX_HOSTNAME=Zabbix</span> <span class="string">server</span></span><br><span class="line">    <span class="attr">user:</span> <span class="string">&quot;0&quot;</span></span><br><span class="line">    <span class="attr">ports:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="number">10050</span><span class="string">:10050</span></span><br><span class="line">    <span class="attr">networks:</span></span><br><span class="line">      <span class="attr">zabbix:</span></span><br><span class="line">        <span class="attr">ipv4_address:</span> <span class="number">172.20</span><span class="number">.20</span><span class="number">.14</span></span><br><span class="line"></span><br><span class="line"><span class="attr">networks:</span></span><br><span class="line"> <span class="attr">zabbix:</span></span><br><span class="line">  <span class="attr">driver:</span> <span class="string">bridge</span></span><br><span class="line">  <span class="attr">ipam:</span></span><br><span class="line">   <span class="attr">config:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">subnet:</span> <span class="number">172.20</span><span class="number">.20</span><span class="number">.0</span><span class="string">/24</span></span><br></pre></td></tr></table></figure>
+]]></content>
       <categories>
         <category>Linux运维</category>
-        <category>梳理总结</category>
-        <category>网络分析</category>
-        <category>知识梳理</category>
+        <category>容器化</category>
+        <category>docker</category>
+        <category>监控</category>
       </categories>
       <tags>
-        <tag>ensp模拟仿真</tag>
-        <tag>网络设备</tag>
+        <tag>docker</tag>
+        <tag>zabbix</tag>
       </tags>
   </entry>
   <entry>
@@ -1618,6 +1589,35 @@
         <tag>ceph集群</tag>
         <tag>容器云</tag>
         <tag>k8s对接ceph</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>eNSP模拟网络设备访问真实网络</title>
+    <url>/yyg/f5b762ea/</url>
+    <content><![CDATA[<h2 id="添加Loopback环回网卡"><a href="#添加Loopback环回网卡" class="headerlink" title="添加Loopback环回网卡"></a>添加Loopback环回网卡</h2><p>（1）使用Win+ R调出”运行“，输入<code>hdwwiz</code>，确定后开始添加新硬件向导。</p>
+<p>（2）按向导操作，选择<code>安装我手动从列表选择的硬件(高级)(M)</code>。</p>
+<img src="/yyg/f5b762ea/1.png" class="" title="image.png">
+<p>（3）选择安装的硬件类型为<code>网络适配器</code>，选定设备驱动程序的厂商为<code>Microsoft</code>，型号为<code>Microsoft KM-TEST环回适配器</code>。</p>
+<img src="/yyg/f5b762ea/2.png" class="" title="image.png">
+<p>（4）按向导安装，点击完成即可。</p>
+<h2 id="共享主机网络"><a href="#共享主机网络" class="headerlink" title="共享主机网络"></a>共享主机网络</h2><p>（1）打开控制面板—网络和Internet—网络连接，找到新创建的环回网卡，本主机中为<code>以太网 8</code>。选择本机连接网络，此外为WLAN，在属性中选择共享，勾选<code>允许其他网络用户通过此计算机的Internet连接来连接(N)</code>，选择新创建的环回网卡<code>以太网 8</code>，保存即可。</p>
+<img src="/yyg/f5b762ea/3.png" class="" title="image.png">
+<p>（2）保存后，会默认给环回网卡分配ip地址<code>192.168.137.1</code>。重启网卡使得配置生效。</p>
+<img src="/yyg/f5b762ea/4.png" class="" title="image.png">
+<p>（3）打开eNSP软件，打开Cloud的设置，分别创建一个绑定信息为<code>UDP</code>和环回网卡<code>以太网 8 -- IP：192.168.137.1</code>的端口，并设置端口映射的入端口和出端口编号，勾选双向通道，点击增加。</p>
+<img src="/yyg/f5b762ea/5.png" class="" title="image.png">
+<p>（4）开启网络拓扑，设置主机为DHCP，等待主机分配出ip后，使用ping命令验证是否连接外部真实网络。</p>
+<img src="/yyg/f5b762ea/6.png" class="" title="image.png">
+<img src="/yyg/f5b762ea/7.png" class="" title="image.png">]]></content>
+      <categories>
+        <category>Linux运维</category>
+        <category>梳理总结</category>
+        <category>网络分析</category>
+        <category>知识梳理</category>
+      </categories>
+      <tags>
+        <tag>ensp模拟仿真</tag>
+        <tag>网络设备</tag>
       </tags>
   </entry>
   <entry>
@@ -2030,62 +2030,98 @@ Mastodon:  @Podman_io@fosstodon.org
       </tags>
   </entry>
   <entry>
-    <title>使用portainer管理容器</title>
-    <url>/yyg/c60df0d6/</url>
-    <content><![CDATA[<h2 id="基础环境"><a href="#基础环境" class="headerlink" title="基础环境"></a>基础环境</h2><p>系统环境：</p>
-<p>操作系统：CentOS 7.9</p>
-<p>软件环境：</p>
-<p>Docker-26.1.4、Docker Compose-2.27.1 、portainer-2.20.3</p>
-<p>配置阿里yum源 :</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">cd /etc/yum.repos.d</span><br><span class="line">mv CentOS-Base.repo CentOS-Base.repo.bak</span><br><span class="line">curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo</span><br></pre></td></tr></table></figure>
-<p>配置防火墙策略：</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">firewall-cmd --add-port=9443/tcp --permanent</span><br><span class="line">sudo firewall-cmd --reload</span><br><span class="line">sudo firewall-cmd --list-all</span><br></pre></td></tr></table></figure>
-<h2 id="安装Docker"><a href="#安装Docker" class="headerlink" title="安装Docker"></a>安装Docker</h2><p>（1）安装 yum-utils 软件包（提供 yum-config-manager 实用程序）并设置存储库。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">安装 yum-utils 软件包</span></span><br><span class="line">yum install -y yum-utils</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">设置docker-ce存储库</span></span><br><span class="line">yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo</span><br></pre></td></tr></table></figure>
-<p>（2）安装最新版docker和docker compose。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin</span><br></pre></td></tr></table></figure>
-<p>（3）修改Docker的数据目录为“/data/dockerData”,并修改docker镜像源。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">创建Docker守护进程配置文件,编辑配置文件/etc/docker/daemon.json，配置docker数据目录，并修改docker镜像源</span></span><br><span class="line">echo &#x27;&#123;</span><br><span class="line">  &quot;data-root&quot;: &quot;/data/dockerData&quot;,</span><br><span class="line">    &quot;registry-mirrors&quot;: [</span><br><span class="line">    &quot;https://registry.docker-cn.com&quot;,</span><br><span class="line">    &quot;http://hub-mirror.c.163.com&quot;,</span><br><span class="line">    &quot;https://dockerhub.azk8s.cn&quot;,</span><br><span class="line">    &quot;https://mirror.ccs.tencentyun.com&quot;,</span><br><span class="line">    &quot;https://registry.cn-hangzhou.aliyuncs.com&quot;,</span><br><span class="line">    &quot;https://docker.mirrors.ustc.edu.cn&quot;,</span><br><span class="line">    &quot;https://docker.m.daocloud.io&quot;,</span><br><span class="line">    &quot;https://noohub.ru&quot;,</span><br><span class="line">    &quot;https://huecker.io&quot;,</span><br><span class="line">    &quot;https://dockerhub.timeweb.cloud&quot;</span><br><span class="line">  ]</span><br><span class="line">&#125;&#x27; &gt; /etc/docker/daemon.json</span><br></pre></td></tr></table></figure>
-<p>（4）启动Docker服务，并设置为开机自启动。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">启动Docker服务</span></span><br><span class="line">systemctl start docker</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">设置Docker为开机自启动</span></span><br><span class="line">systemctl enable docker</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看Docker服务状态</span></span><br><span class="line">systemctl status docker</span><br></pre></td></tr></table></figure>
-<h2 id="安装portainer"><a href="#安装portainer" class="headerlink" title="安装portainer"></a>安装portainer</h2><p>（1）拉取portainer镜像并创建容器</p>
-<p>方式一：使用docker命令</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">docker run -d -p 9443:9443 --name portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v /data/portainer:/data portainer/portainer-ce:2.20.3</span><br></pre></td></tr></table></figure>
-<p>方式二：使用compose文件安装</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">vi portainer.yml</span><br><span class="line">--------------------------------------------------</span><br><span class="line">services:</span><br><span class="line">  portainer:</span><br><span class="line">    image: portainer/portainer-ce:2.20.3</span><br><span class="line">    container_name: portainer</span><br><span class="line">    restart: always</span><br><span class="line">    ports:</span><br><span class="line">      - &quot;9443:9443&quot;</span><br><span class="line">    volumes:</span><br><span class="line">      - /var/run/docker.sock:/var/run/docker.sock</span><br><span class="line">      - /data/portainer:/data</span><br><span class="line">    user: &quot;0&quot;</span><br><span class="line">    networks:</span><br><span class="line">      net:</span><br><span class="line">        ipv4_address: 172.20.110.10</span><br><span class="line"></span><br><span class="line">networks:</span><br><span class="line"> net:</span><br><span class="line">  driver: bridge</span><br><span class="line">  ipam:</span><br><span class="line">   config:</span><br><span class="line">    - subnet: 172.20.110.0/24</span><br><span class="line">--------------------------------------------------</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">运行安装</span></span><br><span class="line">docker compose -f portainer.yml up -d</span><br></pre></td></tr></table></figure>
-<p>（2）初始化portainer，设置admin用户的密码</p>
-<img src="/yyg/c60df0d6/1.png" class="" title="image-20240718163227768">
-<p>（3）进入系统后，点击“Get Started”，查看本机的容器，如下图。</p>
-<img src="/yyg/c60df0d6/2.png" class="" title="image-20240718164748722">
-<h2 id="多实例环境管理"><a href="#多实例环境管理" class="headerlink" title="多实例环境管理"></a>多实例环境管理</h2><p>Portainer可以管理多个环境，包括Docker Standalone、Docker Swarm、Kubernetes、ACI等。</p>
-<p>使用Portainer管理多Docker Standalone实例，有两种方式，分别是api和客户端容器。</p>
-<h3 id="方式一：使用docker-api-管理Docker-Standalone实例"><a href="#方式一：使用docker-api-管理Docker-Standalone实例" class="headerlink" title="方式一：使用docker api 管理Docker Standalone实例"></a>方式一：使用docker api 管理Docker Standalone实例</h3><p>（1）在其他实例环境上，修改docker服务的配置文件，让Docker守护进程通过TCP在的2375端口监听连接，并通过UNIX套接字在本地监听连接。</p>
-<p>即在ExecStart后添加-H tcp://0.0.0.0:2375 -H unix:///var/run/docker.sock参数。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">vi /usr/lib/systemd/system/docker.service</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">修改内容如下</span></span><br><span class="line">[Service]</span><br><span class="line">ExecStart=/usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock -H tcp://0.0.0.0:2375 -H unix:///var/run/docker.sock</span><br></pre></td></tr></table></figure>
-<p>（2）重新加载配置，使配置生效。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#重新加载配置</span><br><span class="line">systemctl daemon-reload</span><br><span class="line">#重启docker</span><br><span class="line">systemctl restart docker</span><br></pre></td></tr></table></figure>
-<p>（3）设置防火墙策略</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#只允许Portainer主机访问该主机的2375端口</span><br><span class="line">sudo firewall-cmd --permanent --add-rich-rule=&quot;rule family=&quot;ipv4&quot; source address=&quot;192.168.22.23/32&quot; port protocol=&quot;tcp&quot; port=&quot;2357&quot; accept&quot;</span><br></pre></td></tr></table></figure>
-<p>（4）点击Environment-related菜单中的Environments，点击Add environment按钮，添加Docker Standalone，如下图。</p>
-<img src="/yyg/c60df0d6/3.png" class="" title="image-20240723122531889">
-<p>（5）选择API，填写名称和Docker Standalone实例的ip和端口（2375），点击Connect，连接成功后，点击Close，如下图。</p>
-<img src="/yyg/c60df0d6/4.png" class="" title="image-20240723122857044">
-<h3 id="方式二：使用agent容器管理Docker-Standalone实例"><a href="#方式二：使用agent容器管理Docker-Standalone实例" class="headerlink" title="方式二：使用agent容器管理Docker Standalone实例"></a>方式二：使用agent容器管理Docker Standalone实例</h3><p>（1）在其他实例环境上，部署agent容器进行连接，具体命令如下：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">docker run -d \</span><br><span class="line">  -p 9001:9001 \</span><br><span class="line">  --name portainer_agent \</span><br><span class="line">  --restart=always \</span><br><span class="line">  -v /var/run/docker.sock:/var/run/docker.sock \</span><br><span class="line">  -v /var/lib/docker/volumes:/var/lib/docker/volumes \</span><br><span class="line">  portainer/agent:2.20.3</span><br></pre></td></tr></table></figure>
-<p>（2）设置防火墙策略</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#只允许Portainer主机访问该主机的9001端口</span><br><span class="line">sudo firewall-cmd --permanent --add-rich-rule=&quot;rule family=&quot;ipv4&quot; source address=&quot;192.168.22.23/9001&quot; port protocol=&quot;tcp&quot; port=&quot;9001&quot; accept&quot;</span><br></pre></td></tr></table></figure>
-<p>连接成功后，在Home界面查看两种方式连接的Docker Standalone实例</p>
-<img src="/yyg/c60df0d6/5.png" class="" title="image-20240723124359442">
-]]></content>
+    <title>使用cephadm方式部署ceph集群</title>
+    <url>/yyg/89bdf9b5/</url>
+    <content><![CDATA[<h2 id="任务目标"><a href="#任务目标" class="headerlink" title="任务目标"></a>任务目标</h2><ol>
+<li>完成使用cephadm方式部署ceph集群</li>
+</ol>
+<h2 id="任务平台"><a href="#任务平台" class="headerlink" title="任务平台"></a>任务平台</h2><ol>
+<li>物理设备—</li>
+<li>操作系统：openEuler 22.03 LTS SP2</li>
+</ol>
+<h2 id="部署指南"><a href="#部署指南" class="headerlink" title="部署指南"></a>部署指南</h2><h3 id="任务一：配置准备"><a href="#任务一：配置准备" class="headerlink" title="任务一：配置准备"></a>任务一：配置准备</h3><ol>
+<li>重命名hostname</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">将10.10.3.117的主机名改为future-ceph-node0</span></span><br><span class="line">hostnamectl set-hostname future-ceph-node0 &amp;&amp; bash</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">将10.10.3.118的主机名改为future-ceph-node1</span></span><br><span class="line">hostnamectl set-hostname future-ceph-node1 &amp;&amp; bash</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">将10.10.3.119的主机名改为future-ceph-node2</span></span><br><span class="line">hostnamectl set-hostname future-ceph-node2 &amp;&amp; bash</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">将10.10.3.120的主机名改为future-ceph-node3</span></span><br><span class="line">hostnamectl set-hostname future-ceph-node3 &amp;&amp; bash</span><br></pre></td></tr></table></figure>
+<ol>
+<li>安装前的配置修改</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">关闭防火墙</span></span><br><span class="line">systemctl stop firewalld</span><br><span class="line">systemctl disable firewalld</span><br><span class="line">firewall-cmd --state</span><br><span class="line"><span class="meta prompt_"> </span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">selinux永久关闭</span></span><br><span class="line">setenforce 0</span><br><span class="line"> sed -i &#x27;s/^SELINUX=enforcing$/SELINUX=permissive/&#x27; /etc/selinux/config</span><br><span class="line">cat /etc/selinux/config</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">添加hosts</span></span><br><span class="line">cat &gt;&gt; /etc/hosts &lt;&lt; EOF</span><br><span class="line">10.10.3.117 future-ceph-node0</span><br><span class="line">10.10.3.118 future-ceph-node1</span><br><span class="line">10.10.3.119 future-ceph-node2</span><br><span class="line">10.10.3.120 future-ceph-node3</span><br><span class="line">EOF</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看</span></span><br><span class="line">cat /etc/hosts</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">同步时间</span></span><br><span class="line">yum install ntp -y</span><br><span class="line">systemctl start ntpd</span><br><span class="line">systemctl enable ntpd</span><br><span class="line">yum install chrony  -y</span><br><span class="line">systemctl start chronyd</span><br><span class="line">systemctl enable chronyd</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">修改配置，添加内容</span></span><br><span class="line">echo &quot;</span><br><span class="line">server 10.10.3.70 iburst</span><br><span class="line">allow 10.10.3.0/24</span><br><span class="line">&quot; &gt;&gt; /etc/chrony.conf</span><br><span class="line">timedatectl set-ntp true</span><br><span class="line">systemctl restart chronyd</span><br><span class="line">timedatectl status</span><br><span class="line">date</span><br></pre></td></tr></table></figure>
+<ol>
+<li>添加SSH免密通信</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">ssh-keygen -t rsa</span><br><span class="line">ssh-copy-id 10.10.3.118</span><br><span class="line">ssh-copy-id 10.10.3.119</span><br><span class="line">ssh-copy-id 10.10.3.120</span><br></pre></td></tr></table></figure>
+<h3 id="任务二：安装docker"><a href="#任务二：安装docker" class="headerlink" title="任务二：安装docker"></a>任务二：安装docker</h3><ol>
+<li>配置Docker CE的yum存储库。打开<code>docker-ce.repo</code>的文件，并将以下内容复制到文件中：</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">[docker-ce-stable]</span><br><span class="line">name=Docker CE Stable - $basearch</span><br><span class="line">baseurl=https://download.docker.com/linux/centos/7/$basearch/stable</span><br><span class="line">enabled=1</span><br><span class="line">gpgcheck=1</span><br><span class="line">gpgkey=https://download.docker.com/linux/centos/gpg &#x27; &gt; /etc/yum.repos.d/docker-ce.repo</span><br></pre></td></tr></table></figure>
+<p>保存并退出文件。</p>
+<ol>
+<li>安装Docker CE。运行以下命令来安装Docker CE：</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"> yum -y install docker-ce docker-ce-cli  containerd.io</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动docker并设置开机自启</span></span><br><span class="line">systemctl start docker  </span><br><span class="line">systemctl enable docker</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看版本</span></span><br><span class="line">docker -v</span><br><span class="line">docker compose version</span><br></pre></td></tr></table></figure>
+<ol>
+<li>Docker配置修改存储路径，配置修改为如下。</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">将配置写入daemon.json文件</span></span><br><span class="line">echo &#x27;&#123;</span><br><span class="line">  &quot;data-root&quot;: &quot;/data/docker&quot;</span><br><span class="line">&#125; &#x27; &gt; /etc/docker/daemon.json</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看</span></span><br><span class="line">cat /etc/docker/daemon.json</span><br><span class="line">systemctl daemon-reload</span><br><span class="line">systemctl restart docker</span><br><span class="line">docker info</span><br></pre></td></tr></table></figure>
+<h3 id="任务三：使用cephadm建设集群"><a href="#任务三：使用cephadm建设集群" class="headerlink" title="任务三：使用cephadm建设集群"></a>任务三：使用cephadm建设集群</h3><ol>
+<li><h4 id="安装ceph软件"><a href="#安装ceph软件" class="headerlink" title="安装ceph软件"></a>安装ceph软件</h4></li>
+</ol>
+<p>在所有主机上安装ceph软件</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum install -y cephadm ceph-common</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看版本</span></span><br><span class="line">ceph -v</span><br></pre></td></tr></table></figure>
+<ol>
+<li><h4 id="启用admin节点"><a href="#启用admin节点" class="headerlink" title="启用admin节点"></a>启用admin节点</h4></li>
+</ol>
+<p>在10.10.3.117上启用集群</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">cephadm bootstrap --mon-ip 10.10.3.117</span><br></pre></td></tr></table></figure>
+<p>访问dashboard修改默认密码</p>
+<blockquote>
+<p>Fetching dashboard port number…</p>
+<p>Ceph Dashboard is now available at:</p>
+<p>​             URL: <a href="https://future-ceph-node0:8443/">https://future-ceph-node0:8443/</a></p>
+<p>​            User: admin</p>
+<p>​        Password: p4csdavtmr</p>
+<p>Enabling client.admin keyring and conf on hosts with “admin” label</p>
+<p>You can access the Ceph CLI with:</p>
+<p>​        sudo /usr/sbin/cephadm shell —fsid 5f344e64-85e4-11ee-9181-0050569a1378 -c /etc/ceph/ceph.conf -k /etc/ceph/ceph.client.admin.keyring</p>
+</blockquote>
+<ol>
+<li><h4 id="添加节点"><a href="#添加节点" class="headerlink" title="添加节点"></a>添加节点</h4></li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启用ceph命令</span></span><br><span class="line">cephadm shell</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">添加ceph的免密访问</span></span><br><span class="line">ceph cephadm get-pub-key &gt; ~/ceph.pub</span><br><span class="line">ssh-copy-id -f -i ~/ceph.pub root@future-ceph-node1</span><br><span class="line">ssh-copy-id -f -i ~/ceph.pub root@future-ceph-node2</span><br><span class="line">ssh-copy-id -f -i ~/ceph.pub root@future-ceph-node3</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">添加ceph节点</span></span><br><span class="line">ceph orch host add future-ceph-node1 10.10.3.118</span><br><span class="line">ceph orch host add future-ceph-node2 10.10.3.119</span><br><span class="line">ceph orch host add future-ceph-node3 10.10.3.120</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看节点</span></span><br><span class="line">ceph orch host ls</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">添加_admin标签允许该节点运行ceph相关命令</span></span><br><span class="line">ceph orch host label add future-ceph-node1  _admin</span><br><span class="line">ceph orch host label add future-ceph-node2  _admin</span><br><span class="line">ceph orch host label add future-ceph-node3  _admin</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">将配置文件拷贝到其他节点</span></span><br><span class="line">scp /etc/ceph/ceph.conf future-ceph-node1:/etc/ceph/</span><br><span class="line">scp /etc/ceph/ceph.conf future-ceph-node2:/etc/ceph/</span><br><span class="line">scp /etc/ceph/ceph.conf future-ceph-node3:/etc/ceph/</span><br><span class="line">scp /etc/ceph/ceph.client.admin.keyring future-ceph-node1:/etc/ceph/</span><br><span class="line">scp /etc/ceph/ceph.client.admin.keyring future-ceph-node2:/etc/ceph/</span><br><span class="line">scp /etc/ceph/ceph.client.admin.keyring future-ceph-node3:/etc/ceph/</span><br></pre></td></tr></table></figure>
+<ol>
+<li><h4 id="设置mon节点（监控）"><a href="#设置mon节点（监控）" class="headerlink" title="设置mon节点（监控）"></a>设置mon节点（监控）</h4></li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">ceph orch apply mon --placement=&quot;4 future-ceph-node0 future-ceph-node1 future-ceph-node2 future-ceph-node3&quot;</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看mon的详细信息</span></span><br><span class="line">ceph mon dump</span><br></pre></td></tr></table></figure>
+<ol>
+<li><h4 id="设置mgr节点（管理）"><a href="#设置mgr节点（管理）" class="headerlink" title="设置mgr节点（管理）"></a>设置mgr节点（管理）</h4></li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">ceph orch apply mgr --placement=&quot;2 future-ceph-node0 future-ceph-node1 &quot;</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看详情</span></span><br><span class="line"> ceph orch ls</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">打上标签</span></span><br><span class="line"> ceph orch host label add future-ceph-node0 master</span><br><span class="line"> ceph orch host label add future-ceph-node1 master</span><br></pre></td></tr></table></figure>
+<ol>
+<li><h4 id="添加osd（存储数据）"><a href="#添加osd（存储数据）" class="headerlink" title="添加osd（存储数据）"></a>添加osd（存储数据）</h4></li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看要挂载的磁盘</span></span><br><span class="line">lsblk</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">所有节点</span></span><br><span class="line">ceph orch daemon add osd future-ceph-node0:/dev/sdb</span><br><span class="line">ceph orch daemon add osd future-ceph-node1:/dev/sdb</span><br><span class="line">ceph orch daemon add osd future-ceph-node2:/dev/sdb</span><br><span class="line">ceph orch daemon add osd future-ceph-node3:/dev/sdb</span><br></pre></td></tr></table></figure>
+<ol>
+<li><h4 id="创建mds（元数据）"><a href="#创建mds（元数据）" class="headerlink" title="创建mds（元数据）"></a>创建mds（元数据）</h4></li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">创建cephfs文件系统</span></span><br><span class="line">ceph osd pool create cephfs_data</span><br><span class="line">ceph osd pool create cephfs_metadata</span><br><span class="line">ceph fs new cephfs cephfs_metadata cephfs_data</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">设置mds组件</span></span><br><span class="line"> ceph orch apply mds cephfs --placement=&quot;4 future-ceph-node0 future-ceph-node1 future-ceph-node2 future-ceph-node3&quot;</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">查看mds状态</span></span><br><span class="line"> ceph orch ps --daemon-type mds</span><br></pre></td></tr></table></figure>
+<ol>
+<li><h4 id="配置rgw（对象网关）"><a href="#配置rgw（对象网关）" class="headerlink" title="配置rgw（对象网关）"></a>配置rgw（对象网关）</h4></li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">创建名为myorg的realm</span></span><br><span class="line">radosgw-admin realm create --rgw-realm=myorg </span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">创建名为default的区域组(设置为主区域组)</span></span><br><span class="line">radosgw-admin zonegroup create --rgw-zonegroup=default --master</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">创建名为cn-east-1的区域（设置为主区域）</span></span><br><span class="line"> radosgw-admin zone create --rgw-zonegroup=default --rgw-zone=cn-east-1 --master</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">为realm与区域配置radosgw</span></span><br><span class="line"> ceph orch apply rgw myorg cn-east-1 --placement=&quot;4 future-ceph-node0 future-ceph-node1 future-ceph-node2 future-ceph-node3&quot;</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">验证</span></span><br><span class="line"> ceph orch ps --daemon-type rgw</span><br><span class="line"> ceph -s</span><br></pre></td></tr></table></figure>
+<ol>
+<li><h4 id="访问测试"><a href="#访问测试" class="headerlink" title="访问测试"></a>访问测试</h4></li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">ceph-Dashboard</span></span><br><span class="line">https://10.10.3.117:8443</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">Prometheus</span></span><br><span class="line">http://10.10.3.117:9095/</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">Grafana</span></span><br><span class="line">https://10.10.3.117:3000/</span><br></pre></td></tr></table></figure>]]></content>
       <categories>
-        <category>Linux运维</category>
-        <category>容器化</category>
-        <category>docker</category>
-        <category>容器管理</category>
+        <category>存储系统</category>
+        <category>ceph</category>
       </categories>
       <tags>
-        <tag>docker</tag>
-        <tag>portainer</tag>
+        <tag>ceph</tag>
+        <tag>共享存储</tag>
+        <tag>ceph集群</tag>
+        <tag>cephadm</tag>
       </tags>
   </entry>
   <entry>
@@ -2214,128 +2250,62 @@ Mastodon:  @Podman_io@fosstodon.org
       </tags>
   </entry>
   <entry>
-    <title>使用cephadm方式部署ceph集群</title>
-    <url>/yyg/89bdf9b5/</url>
-    <content><![CDATA[<h2 id="任务目标"><a href="#任务目标" class="headerlink" title="任务目标"></a>任务目标</h2><ol>
-<li>完成使用cephadm方式部署ceph集群</li>
-</ol>
-<h2 id="任务平台"><a href="#任务平台" class="headerlink" title="任务平台"></a>任务平台</h2><ol>
-<li>物理设备—</li>
-<li>操作系统：openEuler 22.03 LTS SP2</li>
-</ol>
-<h2 id="部署指南"><a href="#部署指南" class="headerlink" title="部署指南"></a>部署指南</h2><h3 id="任务一：配置准备"><a href="#任务一：配置准备" class="headerlink" title="任务一：配置准备"></a>任务一：配置准备</h3><ol>
-<li>重命名hostname</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">将10.10.3.117的主机名改为future-ceph-node0</span></span><br><span class="line">hostnamectl set-hostname future-ceph-node0 &amp;&amp; bash</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">将10.10.3.118的主机名改为future-ceph-node1</span></span><br><span class="line">hostnamectl set-hostname future-ceph-node1 &amp;&amp; bash</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">将10.10.3.119的主机名改为future-ceph-node2</span></span><br><span class="line">hostnamectl set-hostname future-ceph-node2 &amp;&amp; bash</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">将10.10.3.120的主机名改为future-ceph-node3</span></span><br><span class="line">hostnamectl set-hostname future-ceph-node3 &amp;&amp; bash</span><br></pre></td></tr></table></figure>
-<ol>
-<li>安装前的配置修改</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">关闭防火墙</span></span><br><span class="line">systemctl stop firewalld</span><br><span class="line">systemctl disable firewalld</span><br><span class="line">firewall-cmd --state</span><br><span class="line"><span class="meta prompt_"> </span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">selinux永久关闭</span></span><br><span class="line">setenforce 0</span><br><span class="line"> sed -i &#x27;s/^SELINUX=enforcing$/SELINUX=permissive/&#x27; /etc/selinux/config</span><br><span class="line">cat /etc/selinux/config</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">添加hosts</span></span><br><span class="line">cat &gt;&gt; /etc/hosts &lt;&lt; EOF</span><br><span class="line">10.10.3.117 future-ceph-node0</span><br><span class="line">10.10.3.118 future-ceph-node1</span><br><span class="line">10.10.3.119 future-ceph-node2</span><br><span class="line">10.10.3.120 future-ceph-node3</span><br><span class="line">EOF</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看</span></span><br><span class="line">cat /etc/hosts</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">同步时间</span></span><br><span class="line">yum install ntp -y</span><br><span class="line">systemctl start ntpd</span><br><span class="line">systemctl enable ntpd</span><br><span class="line">yum install chrony  -y</span><br><span class="line">systemctl start chronyd</span><br><span class="line">systemctl enable chronyd</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">修改配置，添加内容</span></span><br><span class="line">echo &quot;</span><br><span class="line">server 10.10.3.70 iburst</span><br><span class="line">allow 10.10.3.0/24</span><br><span class="line">&quot; &gt;&gt; /etc/chrony.conf</span><br><span class="line">timedatectl set-ntp true</span><br><span class="line">systemctl restart chronyd</span><br><span class="line">timedatectl status</span><br><span class="line">date</span><br></pre></td></tr></table></figure>
-<ol>
-<li>添加SSH免密通信</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">ssh-keygen -t rsa</span><br><span class="line">ssh-copy-id 10.10.3.118</span><br><span class="line">ssh-copy-id 10.10.3.119</span><br><span class="line">ssh-copy-id 10.10.3.120</span><br></pre></td></tr></table></figure>
-<h3 id="任务二：安装docker"><a href="#任务二：安装docker" class="headerlink" title="任务二：安装docker"></a>任务二：安装docker</h3><ol>
-<li>配置Docker CE的yum存储库。打开<code>docker-ce.repo</code>的文件，并将以下内容复制到文件中：</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">echo &#x27;</span><br><span class="line">[docker-ce-stable]</span><br><span class="line">name=Docker CE Stable - $basearch</span><br><span class="line">baseurl=https://download.docker.com/linux/centos/7/$basearch/stable</span><br><span class="line">enabled=1</span><br><span class="line">gpgcheck=1</span><br><span class="line">gpgkey=https://download.docker.com/linux/centos/gpg &#x27; &gt; /etc/yum.repos.d/docker-ce.repo</span><br></pre></td></tr></table></figure>
-<p>保存并退出文件。</p>
-<ol>
-<li>安装Docker CE。运行以下命令来安装Docker CE：</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"> yum -y install docker-ce docker-ce-cli  containerd.io</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启动docker并设置开机自启</span></span><br><span class="line">systemctl start docker  </span><br><span class="line">systemctl enable docker</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看版本</span></span><br><span class="line">docker -v</span><br><span class="line">docker compose version</span><br></pre></td></tr></table></figure>
-<ol>
-<li>Docker配置修改存储路径，配置修改为如下。</li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">将配置写入daemon.json文件</span></span><br><span class="line">echo &#x27;&#123;</span><br><span class="line">  &quot;data-root&quot;: &quot;/data/docker&quot;</span><br><span class="line">&#125; &#x27; &gt; /etc/docker/daemon.json</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看</span></span><br><span class="line">cat /etc/docker/daemon.json</span><br><span class="line">systemctl daemon-reload</span><br><span class="line">systemctl restart docker</span><br><span class="line">docker info</span><br></pre></td></tr></table></figure>
-<h3 id="任务三：使用cephadm建设集群"><a href="#任务三：使用cephadm建设集群" class="headerlink" title="任务三：使用cephadm建设集群"></a>任务三：使用cephadm建设集群</h3><ol>
-<li><h4 id="安装ceph软件"><a href="#安装ceph软件" class="headerlink" title="安装ceph软件"></a>安装ceph软件</h4></li>
-</ol>
-<p>在所有主机上安装ceph软件</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum install -y cephadm ceph-common</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看版本</span></span><br><span class="line">ceph -v</span><br></pre></td></tr></table></figure>
-<ol>
-<li><h4 id="启用admin节点"><a href="#启用admin节点" class="headerlink" title="启用admin节点"></a>启用admin节点</h4></li>
-</ol>
-<p>在10.10.3.117上启用集群</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">cephadm bootstrap --mon-ip 10.10.3.117</span><br></pre></td></tr></table></figure>
-<p>访问dashboard修改默认密码</p>
-<blockquote>
-<p>Fetching dashboard port number…</p>
-<p>Ceph Dashboard is now available at:</p>
-<p>​             URL: <a href="https://future-ceph-node0:8443/">https://future-ceph-node0:8443/</a></p>
-<p>​            User: admin</p>
-<p>​        Password: p4csdavtmr</p>
-<p>Enabling client.admin keyring and conf on hosts with “admin” label</p>
-<p>You can access the Ceph CLI with:</p>
-<p>​        sudo /usr/sbin/cephadm shell —fsid 5f344e64-85e4-11ee-9181-0050569a1378 -c /etc/ceph/ceph.conf -k /etc/ceph/ceph.client.admin.keyring</p>
-</blockquote>
-<ol>
-<li><h4 id="添加节点"><a href="#添加节点" class="headerlink" title="添加节点"></a>添加节点</h4></li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">启用ceph命令</span></span><br><span class="line">cephadm shell</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">添加ceph的免密访问</span></span><br><span class="line">ceph cephadm get-pub-key &gt; ~/ceph.pub</span><br><span class="line">ssh-copy-id -f -i ~/ceph.pub root@future-ceph-node1</span><br><span class="line">ssh-copy-id -f -i ~/ceph.pub root@future-ceph-node2</span><br><span class="line">ssh-copy-id -f -i ~/ceph.pub root@future-ceph-node3</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">添加ceph节点</span></span><br><span class="line">ceph orch host add future-ceph-node1 10.10.3.118</span><br><span class="line">ceph orch host add future-ceph-node2 10.10.3.119</span><br><span class="line">ceph orch host add future-ceph-node3 10.10.3.120</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看节点</span></span><br><span class="line">ceph orch host ls</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">添加_admin标签允许该节点运行ceph相关命令</span></span><br><span class="line">ceph orch host label add future-ceph-node1  _admin</span><br><span class="line">ceph orch host label add future-ceph-node2  _admin</span><br><span class="line">ceph orch host label add future-ceph-node3  _admin</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">将配置文件拷贝到其他节点</span></span><br><span class="line">scp /etc/ceph/ceph.conf future-ceph-node1:/etc/ceph/</span><br><span class="line">scp /etc/ceph/ceph.conf future-ceph-node2:/etc/ceph/</span><br><span class="line">scp /etc/ceph/ceph.conf future-ceph-node3:/etc/ceph/</span><br><span class="line">scp /etc/ceph/ceph.client.admin.keyring future-ceph-node1:/etc/ceph/</span><br><span class="line">scp /etc/ceph/ceph.client.admin.keyring future-ceph-node2:/etc/ceph/</span><br><span class="line">scp /etc/ceph/ceph.client.admin.keyring future-ceph-node3:/etc/ceph/</span><br></pre></td></tr></table></figure>
-<ol>
-<li><h4 id="设置mon节点（监控）"><a href="#设置mon节点（监控）" class="headerlink" title="设置mon节点（监控）"></a>设置mon节点（监控）</h4></li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">ceph orch apply mon --placement=&quot;4 future-ceph-node0 future-ceph-node1 future-ceph-node2 future-ceph-node3&quot;</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看mon的详细信息</span></span><br><span class="line">ceph mon dump</span><br></pre></td></tr></table></figure>
-<ol>
-<li><h4 id="设置mgr节点（管理）"><a href="#设置mgr节点（管理）" class="headerlink" title="设置mgr节点（管理）"></a>设置mgr节点（管理）</h4></li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">ceph orch apply mgr --placement=&quot;2 future-ceph-node0 future-ceph-node1 &quot;</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看详情</span></span><br><span class="line"> ceph orch ls</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">打上标签</span></span><br><span class="line"> ceph orch host label add future-ceph-node0 master</span><br><span class="line"> ceph orch host label add future-ceph-node1 master</span><br></pre></td></tr></table></figure>
-<ol>
-<li><h4 id="添加osd（存储数据）"><a href="#添加osd（存储数据）" class="headerlink" title="添加osd（存储数据）"></a>添加osd（存储数据）</h4></li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">查看要挂载的磁盘</span></span><br><span class="line">lsblk</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">所有节点</span></span><br><span class="line">ceph orch daemon add osd future-ceph-node0:/dev/sdb</span><br><span class="line">ceph orch daemon add osd future-ceph-node1:/dev/sdb</span><br><span class="line">ceph orch daemon add osd future-ceph-node2:/dev/sdb</span><br><span class="line">ceph orch daemon add osd future-ceph-node3:/dev/sdb</span><br></pre></td></tr></table></figure>
-<ol>
-<li><h4 id="创建mds（元数据）"><a href="#创建mds（元数据）" class="headerlink" title="创建mds（元数据）"></a>创建mds（元数据）</h4></li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">创建cephfs文件系统</span></span><br><span class="line">ceph osd pool create cephfs_data</span><br><span class="line">ceph osd pool create cephfs_metadata</span><br><span class="line">ceph fs new cephfs cephfs_metadata cephfs_data</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">设置mds组件</span></span><br><span class="line"> ceph orch apply mds cephfs --placement=&quot;4 future-ceph-node0 future-ceph-node1 future-ceph-node2 future-ceph-node3&quot;</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">查看mds状态</span></span><br><span class="line"> ceph orch ps --daemon-type mds</span><br></pre></td></tr></table></figure>
-<ol>
-<li><h4 id="配置rgw（对象网关）"><a href="#配置rgw（对象网关）" class="headerlink" title="配置rgw（对象网关）"></a>配置rgw（对象网关）</h4></li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">创建名为myorg的realm</span></span><br><span class="line">radosgw-admin realm create --rgw-realm=myorg </span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">创建名为default的区域组(设置为主区域组)</span></span><br><span class="line">radosgw-admin zonegroup create --rgw-zonegroup=default --master</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">创建名为cn-east-1的区域（设置为主区域）</span></span><br><span class="line"> radosgw-admin zone create --rgw-zonegroup=default --rgw-zone=cn-east-1 --master</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">为realm与区域配置radosgw</span></span><br><span class="line"> ceph orch apply rgw myorg cn-east-1 --placement=&quot;4 future-ceph-node0 future-ceph-node1 future-ceph-node2 future-ceph-node3&quot;</span><br><span class="line"><span class="meta prompt_"> #</span><span class="language-bash">验证</span></span><br><span class="line"> ceph orch ps --daemon-type rgw</span><br><span class="line"> ceph -s</span><br></pre></td></tr></table></figure>
-<ol>
-<li><h4 id="访问测试"><a href="#访问测试" class="headerlink" title="访问测试"></a>访问测试</h4></li>
-</ol>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">ceph-Dashboard</span></span><br><span class="line">https://10.10.3.117:8443</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">Prometheus</span></span><br><span class="line">http://10.10.3.117:9095/</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">Grafana</span></span><br><span class="line">https://10.10.3.117:3000/</span><br></pre></td></tr></table></figure>]]></content>
+    <title>使用portainer管理容器</title>
+    <url>/yyg/c60df0d6/</url>
+    <content><![CDATA[<h2 id="基础环境"><a href="#基础环境" class="headerlink" title="基础环境"></a>基础环境</h2><p>系统环境：</p>
+<p>操作系统：CentOS 7.9</p>
+<p>软件环境：</p>
+<p>Docker-26.1.4、Docker Compose-2.27.1 、portainer-2.20.3</p>
+<p>配置阿里yum源 :</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">cd /etc/yum.repos.d</span><br><span class="line">mv CentOS-Base.repo CentOS-Base.repo.bak</span><br><span class="line">curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo</span><br></pre></td></tr></table></figure>
+<p>配置防火墙策略：</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">firewall-cmd --add-port=9443/tcp --permanent</span><br><span class="line">sudo firewall-cmd --reload</span><br><span class="line">sudo firewall-cmd --list-all</span><br></pre></td></tr></table></figure>
+<h2 id="安装Docker"><a href="#安装Docker" class="headerlink" title="安装Docker"></a>安装Docker</h2><p>（1）安装 yum-utils 软件包（提供 yum-config-manager 实用程序）并设置存储库。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">安装 yum-utils 软件包</span></span><br><span class="line">yum install -y yum-utils</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">设置docker-ce存储库</span></span><br><span class="line">yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo</span><br></pre></td></tr></table></figure>
+<p>（2）安装最新版docker和docker compose。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin</span><br></pre></td></tr></table></figure>
+<p>（3）修改Docker的数据目录为“/data/dockerData”,并修改docker镜像源。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">创建Docker守护进程配置文件,编辑配置文件/etc/docker/daemon.json，配置docker数据目录，并修改docker镜像源</span></span><br><span class="line">echo &#x27;&#123;</span><br><span class="line">  &quot;data-root&quot;: &quot;/data/dockerData&quot;,</span><br><span class="line">    &quot;registry-mirrors&quot;: [</span><br><span class="line">    &quot;https://registry.docker-cn.com&quot;,</span><br><span class="line">    &quot;http://hub-mirror.c.163.com&quot;,</span><br><span class="line">    &quot;https://dockerhub.azk8s.cn&quot;,</span><br><span class="line">    &quot;https://mirror.ccs.tencentyun.com&quot;,</span><br><span class="line">    &quot;https://registry.cn-hangzhou.aliyuncs.com&quot;,</span><br><span class="line">    &quot;https://docker.mirrors.ustc.edu.cn&quot;,</span><br><span class="line">    &quot;https://docker.m.daocloud.io&quot;,</span><br><span class="line">    &quot;https://noohub.ru&quot;,</span><br><span class="line">    &quot;https://huecker.io&quot;,</span><br><span class="line">    &quot;https://dockerhub.timeweb.cloud&quot;</span><br><span class="line">  ]</span><br><span class="line">&#125;&#x27; &gt; /etc/docker/daemon.json</span><br></pre></td></tr></table></figure>
+<p>（4）启动Docker服务，并设置为开机自启动。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">启动Docker服务</span></span><br><span class="line">systemctl start docker</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">设置Docker为开机自启动</span></span><br><span class="line">systemctl enable docker</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">查看Docker服务状态</span></span><br><span class="line">systemctl status docker</span><br></pre></td></tr></table></figure>
+<h2 id="安装portainer"><a href="#安装portainer" class="headerlink" title="安装portainer"></a>安装portainer</h2><p>（1）拉取portainer镜像并创建容器</p>
+<p>方式一：使用docker命令</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">docker run -d -p 9443:9443 --name portainer --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v /data/portainer:/data portainer/portainer-ce:2.20.3</span><br></pre></td></tr></table></figure>
+<p>方式二：使用compose文件安装</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">vi portainer.yml</span><br><span class="line">--------------------------------------------------</span><br><span class="line">services:</span><br><span class="line">  portainer:</span><br><span class="line">    image: portainer/portainer-ce:2.20.3</span><br><span class="line">    container_name: portainer</span><br><span class="line">    restart: always</span><br><span class="line">    ports:</span><br><span class="line">      - &quot;9443:9443&quot;</span><br><span class="line">    volumes:</span><br><span class="line">      - /var/run/docker.sock:/var/run/docker.sock</span><br><span class="line">      - /data/portainer:/data</span><br><span class="line">    user: &quot;0&quot;</span><br><span class="line">    networks:</span><br><span class="line">      net:</span><br><span class="line">        ipv4_address: 172.20.110.10</span><br><span class="line"></span><br><span class="line">networks:</span><br><span class="line"> net:</span><br><span class="line">  driver: bridge</span><br><span class="line">  ipam:</span><br><span class="line">   config:</span><br><span class="line">    - subnet: 172.20.110.0/24</span><br><span class="line">--------------------------------------------------</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">运行安装</span></span><br><span class="line">docker compose -f portainer.yml up -d</span><br></pre></td></tr></table></figure>
+<p>（2）初始化portainer，设置admin用户的密码</p>
+<img src="/yyg/c60df0d6/1.png" class="" title="image-20240718163227768">
+<p>（3）进入系统后，点击“Get Started”，查看本机的容器，如下图。</p>
+<img src="/yyg/c60df0d6/2.png" class="" title="image-20240718164748722">
+<h2 id="多实例环境管理"><a href="#多实例环境管理" class="headerlink" title="多实例环境管理"></a>多实例环境管理</h2><p>Portainer可以管理多个环境，包括Docker Standalone、Docker Swarm、Kubernetes、ACI等。</p>
+<p>使用Portainer管理多Docker Standalone实例，有两种方式，分别是api和客户端容器。</p>
+<h3 id="方式一：使用docker-api-管理Docker-Standalone实例"><a href="#方式一：使用docker-api-管理Docker-Standalone实例" class="headerlink" title="方式一：使用docker api 管理Docker Standalone实例"></a>方式一：使用docker api 管理Docker Standalone实例</h3><p>（1）在其他实例环境上，修改docker服务的配置文件，让Docker守护进程通过TCP在的2375端口监听连接，并通过UNIX套接字在本地监听连接。</p>
+<p>即在ExecStart后添加-H tcp://0.0.0.0:2375 -H unix:///var/run/docker.sock参数。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">vi /usr/lib/systemd/system/docker.service</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">修改内容如下</span></span><br><span class="line">[Service]</span><br><span class="line">ExecStart=/usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock -H tcp://0.0.0.0:2375 -H unix:///var/run/docker.sock</span><br></pre></td></tr></table></figure>
+<p>（2）重新加载配置，使配置生效。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#重新加载配置</span><br><span class="line">systemctl daemon-reload</span><br><span class="line">#重启docker</span><br><span class="line">systemctl restart docker</span><br></pre></td></tr></table></figure>
+<p>（3）设置防火墙策略</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#只允许Portainer主机访问该主机的2375端口</span><br><span class="line">sudo firewall-cmd --permanent --add-rich-rule=&quot;rule family=&quot;ipv4&quot; source address=&quot;192.168.22.23/32&quot; port protocol=&quot;tcp&quot; port=&quot;2357&quot; accept&quot;</span><br></pre></td></tr></table></figure>
+<p>（4）点击Environment-related菜单中的Environments，点击Add environment按钮，添加Docker Standalone，如下图。</p>
+<img src="/yyg/c60df0d6/3.png" class="" title="image-20240723122531889">
+<p>（5）选择API，填写名称和Docker Standalone实例的ip和端口（2375），点击Connect，连接成功后，点击Close，如下图。</p>
+<img src="/yyg/c60df0d6/4.png" class="" title="image-20240723122857044">
+<h3 id="方式二：使用agent容器管理Docker-Standalone实例"><a href="#方式二：使用agent容器管理Docker-Standalone实例" class="headerlink" title="方式二：使用agent容器管理Docker Standalone实例"></a>方式二：使用agent容器管理Docker Standalone实例</h3><p>（1）在其他实例环境上，部署agent容器进行连接，具体命令如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">docker run -d \</span><br><span class="line">  -p 9001:9001 \</span><br><span class="line">  --name portainer_agent \</span><br><span class="line">  --restart=always \</span><br><span class="line">  -v /var/run/docker.sock:/var/run/docker.sock \</span><br><span class="line">  -v /var/lib/docker/volumes:/var/lib/docker/volumes \</span><br><span class="line">  portainer/agent:2.20.3</span><br></pre></td></tr></table></figure>
+<p>（2）设置防火墙策略</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">#只允许Portainer主机访问该主机的9001端口</span><br><span class="line">sudo firewall-cmd --permanent --add-rich-rule=&quot;rule family=&quot;ipv4&quot; source address=&quot;192.168.22.23/9001&quot; port protocol=&quot;tcp&quot; port=&quot;9001&quot; accept&quot;</span><br></pre></td></tr></table></figure>
+<p>连接成功后，在Home界面查看两种方式连接的Docker Standalone实例</p>
+<img src="/yyg/c60df0d6/5.png" class="" title="image-20240723124359442">
+]]></content>
       <categories>
-        <category>存储系统</category>
-        <category>ceph</category>
+        <category>Linux运维</category>
+        <category>容器化</category>
+        <category>docker</category>
+        <category>容器管理</category>
       </categories>
       <tags>
-        <tag>ceph</tag>
-        <tag>共享存储</tag>
-        <tag>ceph集群</tag>
-        <tag>cephadm</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>安装Winlogbeat日志采集器</title>
-    <url>/yyg/f547e2a9/</url>
-    <content><![CDATA[<ol>
-<li>Winlogbeat安装程序可通过其官网（<a href="https://www.elastic.co/cn/beats/winlogbeat）下载。">https://www.elastic.co/cn/beats/winlogbeat）下载。</a></li>
-<li>双击启动安装程序，进入安装向导后勾选“I accept the terms in the License Agreement”，单击【Install】，如图所示。</li>
-</ol>
-<img src="/yyg/f547e2a9/4.png" class="" title="img">
-<ol>
-<li>按安装向导安装完成后，单击【Finish】，完成安装并打开安装目录。如图所示。</li>
-</ol>
-<img src="/yyg/f547e2a9/3.png" class="" title="img">
-<img src="/yyg/f547e2a9/2.png" class="" title="img">
-<ol>
-<li><p>以管理员身份打开 PowerShell 提示符（右键单击 PowerShell 图标，然后选择以管理员身份运行），允许在本地主机上创建winlogbeat服务，创建成功后允许winlogbeat服务并验证。如图所示。</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PS C:\Windows\system32&gt; cd &quot;C:\Program Files\Elastic\Beats\8.13.2\winlogbeat&quot;</span><br><span class="line"># 允许在本地计算机上编写的未签名脚本自由运行</span><br><span class="line">PS C:\Program Files\Elastic\Beats\8.13.2\winlogbeat&gt; set-executionpolicy remotesigned</span><br><span class="line"></span><br><span class="line">执行策略更改</span><br><span class="line">执行策略可帮助你防止执行不信任的脚本。更改执行策略可能会产生安全风险，如 https:/go.microsoft.com/fwlink/?LinkID=135170</span><br><span class="line">中的 about_Execution_Policies 帮助主题所述。是否要更改执行策略?</span><br><span class="line">[Y] 是(Y)  [A] 全是(A)  [N] 否(N)  [L] 全否(L)  [S] 暂停(S)  [?] 帮助 (默认值为“N”): y</span><br><span class="line"># 允许脚本在系统上运行</span><br><span class="line">PS C:\Program Files\Elastic\Beats\8.13.2\winlogbeat&gt; set-executionpolicy Bypass</span><br><span class="line"></span><br><span class="line">执行策略更改</span><br><span class="line">执行策略可帮助你防止执行不信任的脚本。更改执行策略可能会产生安全风险，如 https:/go.microsoft.com/fwlink/?LinkID=135170</span><br><span class="line">中的 about_Execution_Policies 帮助主题所述。是否要更改执行策略?</span><br><span class="line">[Y] 是(Y)  [A] 全是(A)  [N] 否(N)  [L] 全否(L)  [S] 暂停(S)  [?] 帮助 (默认值为“N”): y</span><br><span class="line"># 创建winlogbeat服务</span><br><span class="line">PS C:\Program Files\Elastic\Beats\8.13.2\winlogbeat&gt; .\install-service-winlogbeat.ps1</span><br><span class="line">[SC] DeleteService 成功</span><br><span class="line"></span><br><span class="line">Status   Name               DisplayName</span><br><span class="line">------   ----               -----------</span><br><span class="line">Stopped  winlogbeat         winlogbeat</span><br><span class="line"></span><br><span class="line"># 启动winlogbeat服务</span><br><span class="line">PS C:\Program Files\Elastic\Beats\8.13.2\winlogbeat&gt; Start-Service winlogbeat</span><br></pre></td></tr></table></figure>
-</li>
-</ol>
-<img src="/yyg/f547e2a9/1.png" class="" title="img">]]></content>
-      <categories>
-        <category>日志分析</category>
-        <category>ELK</category>
-      </categories>
-      <tags>
-        <tag>日志分析</tag>
-        <tag>ELK</tag>
-        <tag>日志采集器</tag>
-        <tag>Winlogbeat</tag>
+        <tag>docker</tag>
+        <tag>portainer</tag>
       </tags>
   </entry>
   <entry>
@@ -2403,6 +2373,67 @@ Mastodon:  @Podman_io@fosstodon.org
       </tags>
   </entry>
   <entry>
+    <title>安装Winlogbeat日志采集器</title>
+    <url>/yyg/f547e2a9/</url>
+    <content><![CDATA[<ol>
+<li>Winlogbeat安装程序可通过其官网（<a href="https://www.elastic.co/cn/beats/winlogbeat）下载。">https://www.elastic.co/cn/beats/winlogbeat）下载。</a></li>
+<li>双击启动安装程序，进入安装向导后勾选“I accept the terms in the License Agreement”，单击【Install】，如图所示。</li>
+</ol>
+<img src="/yyg/f547e2a9/4.png" class="" title="img">
+<ol>
+<li>按安装向导安装完成后，单击【Finish】，完成安装并打开安装目录。如图所示。</li>
+</ol>
+<img src="/yyg/f547e2a9/3.png" class="" title="img">
+<img src="/yyg/f547e2a9/2.png" class="" title="img">
+<ol>
+<li><p>以管理员身份打开 PowerShell 提示符（右键单击 PowerShell 图标，然后选择以管理员身份运行），允许在本地主机上创建winlogbeat服务，创建成功后允许winlogbeat服务并验证。如图所示。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PS C:\Windows\system32&gt; cd &quot;C:\Program Files\Elastic\Beats\8.13.2\winlogbeat&quot;</span><br><span class="line"># 允许在本地计算机上编写的未签名脚本自由运行</span><br><span class="line">PS C:\Program Files\Elastic\Beats\8.13.2\winlogbeat&gt; set-executionpolicy remotesigned</span><br><span class="line"></span><br><span class="line">执行策略更改</span><br><span class="line">执行策略可帮助你防止执行不信任的脚本。更改执行策略可能会产生安全风险，如 https:/go.microsoft.com/fwlink/?LinkID=135170</span><br><span class="line">中的 about_Execution_Policies 帮助主题所述。是否要更改执行策略?</span><br><span class="line">[Y] 是(Y)  [A] 全是(A)  [N] 否(N)  [L] 全否(L)  [S] 暂停(S)  [?] 帮助 (默认值为“N”): y</span><br><span class="line"># 允许脚本在系统上运行</span><br><span class="line">PS C:\Program Files\Elastic\Beats\8.13.2\winlogbeat&gt; set-executionpolicy Bypass</span><br><span class="line"></span><br><span class="line">执行策略更改</span><br><span class="line">执行策略可帮助你防止执行不信任的脚本。更改执行策略可能会产生安全风险，如 https:/go.microsoft.com/fwlink/?LinkID=135170</span><br><span class="line">中的 about_Execution_Policies 帮助主题所述。是否要更改执行策略?</span><br><span class="line">[Y] 是(Y)  [A] 全是(A)  [N] 否(N)  [L] 全否(L)  [S] 暂停(S)  [?] 帮助 (默认值为“N”): y</span><br><span class="line"># 创建winlogbeat服务</span><br><span class="line">PS C:\Program Files\Elastic\Beats\8.13.2\winlogbeat&gt; .\install-service-winlogbeat.ps1</span><br><span class="line">[SC] DeleteService 成功</span><br><span class="line"></span><br><span class="line">Status   Name               DisplayName</span><br><span class="line">------   ----               -----------</span><br><span class="line">Stopped  winlogbeat         winlogbeat</span><br><span class="line"></span><br><span class="line"># 启动winlogbeat服务</span><br><span class="line">PS C:\Program Files\Elastic\Beats\8.13.2\winlogbeat&gt; Start-Service winlogbeat</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<img src="/yyg/f547e2a9/1.png" class="" title="img">]]></content>
+      <categories>
+        <category>日志分析</category>
+        <category>ELK</category>
+      </categories>
+      <tags>
+        <tag>日志分析</tag>
+        <tag>ELK</tag>
+        <tag>日志采集器</tag>
+        <tag>Winlogbeat</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>实现Nextcloud私有云盘</title>
+    <url>/yyg/f7b8055d/</url>
+    <content><![CDATA[<h2 id="任务目标"><a href="#任务目标" class="headerlink" title="任务目标"></a>任务目标</h2><ol>
+<li>完成Nextcloud私有云盘的搭建</li>
+</ol>
+<h2 id="部署指南"><a href="#部署指南" class="headerlink" title="部署指南"></a>部署指南</h2><h3 id="基础环境准备"><a href="#基础环境准备" class="headerlink" title="基础环境准备"></a>基础环境准备</h3><p>配置防火墙策略</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">firewall-cmd --zone=public --add-service=http --permanent</span><br><span class="line">firewall-cmd --reload</span><br></pre></td></tr></table></figure>
+<p>配置SELinux策略</p>
+<p>设置SELinux为permissive或disabled。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">修改</span></span><br><span class="line">setenforce 0</span><br><span class="line">sudo sed -i &#x27;s/^SELINUX=enforcing/SELINUX=disabled/&#x27; /etc/selinux/config</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">或</span></span><br><span class="line">setenforce 0</span><br><span class="line">sudo sed -i &#x27;s/^SELINUX=enforcing/SELINUX=permissive/&#x27; /etc/selinux/config</span><br></pre></td></tr></table></figure>
+<h3 id="安装Apache"><a href="#安装Apache" class="headerlink" title="安装Apache"></a>安装Apache</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum -y install httpd</span><br></pre></td></tr></table></figure>
+<h3 id="安装PHP"><a href="#安装PHP" class="headerlink" title="安装PHP"></a>安装PHP</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum -y install php</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装php模块依赖</span></span><br><span class="line">yum -y install php-zip php-dom php-xml php-mbstring php-pdo php-gd</span><br></pre></td></tr></table></figure>
+<h3 id="添加Nextcloud站点配置文件"><a href="#添加Nextcloud站点配置文件" class="headerlink" title="添加Nextcloud站点配置文件"></a>添加Nextcloud站点配置文件</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">mkdir /var/www/html/nextcloud/</span><br><span class="line">chmod 777 /var/www/html/nextcloud/</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">新建文件</span></span><br><span class="line">vi /etc/httpd/conf.d/nextcloud.conf</span><br><span class="line">&lt;VirtualHost *:80&gt;</span><br><span class="line">  DocumentRoot /var/www/html/nextcloud/</span><br><span class="line">  ServerName  your.server.com</span><br><span class="line"></span><br><span class="line">  &lt;Directory /var/www/html/nextcloud/&gt;</span><br><span class="line">    Require all granted</span><br><span class="line">    AllowOverride All</span><br><span class="line">    Options FollowSymLinks MultiViews</span><br><span class="line"></span><br><span class="line">    &lt;IfModule mod_dav.c&gt;</span><br><span class="line">      Dav off</span><br><span class="line">    &lt;/IfModule&gt;</span><br><span class="line"></span><br><span class="line">  &lt;/Directory&gt;</span><br><span class="line">&lt;/VirtualHost&gt;</span><br></pre></td></tr></table></figure>
+<h3 id="下载Nextcloud安装文件"><a href="#下载Nextcloud安装文件" class="headerlink" title="下载Nextcloud安装文件"></a>下载Nextcloud安装文件</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">wget -P /var/www/html/nextcloud/ https://download.nextcloud.com/server/installer/setup-nextcloud.php</span><br></pre></td></tr></table></figure>
+<h3 id="启动服务"><a href="#启动服务" class="headerlink" title="启动服务"></a>启动服务</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">systemctl start httpd</span><br><span class="line">systemctl enable httpd</span><br></pre></td></tr></table></figure>
+<h3 id="通过浏览器访问"><a href="#通过浏览器访问" class="headerlink" title="通过浏览器访问"></a>通过浏览器访问</h3><p>在浏览器中输入<code>http://172.20.1.51/setup-nextcloud.php</code>，按引导进行设置。如下图所示。</p>
+<img src="/yyg/f7b8055d/2.jpg" class="" title="img">
+<p>设置用户名和密码，安装数据库如下图所示。</p>
+<img src="/yyg/f7b8055d/4.png" class="" title="img">
+<p>成功进入内容界面，部署完成，如下图所示。</p>
+<img src="/yyg/f7b8055d/3.png" class="" title="img">]]></content>
+      <categories>
+        <category>Linux运维</category>
+      </categories>
+      <tags>
+        <tag>Linux</tag>
+        <tag>Nextcloud</tag>
+        <tag>私有云盘</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>项目漏洞问题记录</title>
     <url>/yyg/8a0457d3/</url>
     <content><![CDATA[<h2 id="SSL-2-0-和-3-0-的漏洞修复："><a href="#SSL-2-0-和-3-0-的漏洞修复：" class="headerlink" title="SSL 2.0 和 3.0 的漏洞修复："></a><strong>SSL 2.0 和 3.0 的漏洞修复：</strong></h2><p>SSL (Secure Sockets Layer) 是一种加密协议，曾被广泛用于网络通信中以确保数据的安全传输。SSL 2.0 和 3.0 是早期的版本，但它们已经被认为不再安全，因此被现代协议（如 TLS 1.2 和 TLS 1.3）所取代。</p>
@@ -2466,37 +2497,6 @@ Mastodon:  @Podman_io@fosstodon.org
         <tag>运维</tag>
         <tag>项目问题总结</tag>
         <tag>漏洞扫描</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>实现Nextcloud私有云盘</title>
-    <url>/yyg/f7b8055d/</url>
-    <content><![CDATA[<h2 id="任务目标"><a href="#任务目标" class="headerlink" title="任务目标"></a>任务目标</h2><ol>
-<li>完成Nextcloud私有云盘的搭建</li>
-</ol>
-<h2 id="部署指南"><a href="#部署指南" class="headerlink" title="部署指南"></a>部署指南</h2><h3 id="基础环境准备"><a href="#基础环境准备" class="headerlink" title="基础环境准备"></a>基础环境准备</h3><p>配置防火墙策略</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">firewall-cmd --zone=public --add-service=http --permanent</span><br><span class="line">firewall-cmd --reload</span><br></pre></td></tr></table></figure>
-<p>配置SELinux策略</p>
-<p>设置SELinux为permissive或disabled。</p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">修改</span></span><br><span class="line">setenforce 0</span><br><span class="line">sudo sed -i &#x27;s/^SELINUX=enforcing/SELINUX=disabled/&#x27; /etc/selinux/config</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">或</span></span><br><span class="line">setenforce 0</span><br><span class="line">sudo sed -i &#x27;s/^SELINUX=enforcing/SELINUX=permissive/&#x27; /etc/selinux/config</span><br></pre></td></tr></table></figure>
-<h3 id="安装Apache"><a href="#安装Apache" class="headerlink" title="安装Apache"></a>安装Apache</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum -y install httpd</span><br></pre></td></tr></table></figure>
-<h3 id="安装PHP"><a href="#安装PHP" class="headerlink" title="安装PHP"></a>安装PHP</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">yum -y install php</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">安装php模块依赖</span></span><br><span class="line">yum -y install php-zip php-dom php-xml php-mbstring php-pdo php-gd</span><br></pre></td></tr></table></figure>
-<h3 id="添加Nextcloud站点配置文件"><a href="#添加Nextcloud站点配置文件" class="headerlink" title="添加Nextcloud站点配置文件"></a>添加Nextcloud站点配置文件</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">mkdir /var/www/html/nextcloud/</span><br><span class="line">chmod 777 /var/www/html/nextcloud/</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">新建文件</span></span><br><span class="line">vi /etc/httpd/conf.d/nextcloud.conf</span><br><span class="line">&lt;VirtualHost *:80&gt;</span><br><span class="line">  DocumentRoot /var/www/html/nextcloud/</span><br><span class="line">  ServerName  your.server.com</span><br><span class="line"></span><br><span class="line">  &lt;Directory /var/www/html/nextcloud/&gt;</span><br><span class="line">    Require all granted</span><br><span class="line">    AllowOverride All</span><br><span class="line">    Options FollowSymLinks MultiViews</span><br><span class="line"></span><br><span class="line">    &lt;IfModule mod_dav.c&gt;</span><br><span class="line">      Dav off</span><br><span class="line">    &lt;/IfModule&gt;</span><br><span class="line"></span><br><span class="line">  &lt;/Directory&gt;</span><br><span class="line">&lt;/VirtualHost&gt;</span><br></pre></td></tr></table></figure>
-<h3 id="下载Nextcloud安装文件"><a href="#下载Nextcloud安装文件" class="headerlink" title="下载Nextcloud安装文件"></a>下载Nextcloud安装文件</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">wget -P /var/www/html/nextcloud/ https://download.nextcloud.com/server/installer/setup-nextcloud.php</span><br></pre></td></tr></table></figure>
-<h3 id="启动服务"><a href="#启动服务" class="headerlink" title="启动服务"></a>启动服务</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">systemctl start httpd</span><br><span class="line">systemctl enable httpd</span><br></pre></td></tr></table></figure>
-<h3 id="通过浏览器访问"><a href="#通过浏览器访问" class="headerlink" title="通过浏览器访问"></a>通过浏览器访问</h3><p>在浏览器中输入<code>http://172.20.1.51/setup-nextcloud.php</code>，按引导进行设置。如下图所示。</p>
-<img src="/yyg/f7b8055d/2.jpg" class="" title="img">
-<p>设置用户名和密码，安装数据库如下图所示。</p>
-<img src="/yyg/f7b8055d/4.png" class="" title="img">
-<p>成功进入内容界面，部署完成，如下图所示。</p>
-<img src="/yyg/f7b8055d/3.png" class="" title="img">]]></content>
-      <categories>
-        <category>Linux运维</category>
-      </categories>
-      <tags>
-        <tag>Linux</tag>
-        <tag>Nextcloud</tag>
-        <tag>私有云盘</tag>
       </tags>
   </entry>
   <entry>
