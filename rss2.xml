@@ -389,48 +389,6 @@
     </item>
     
     <item>
-      <title>使用cephadm方式部署ceph集群</title>
-      <link>https://marsperl.github.io/yyg/89bdf9b5/</link>
-      <guid>https://marsperl.github.io/yyg/89bdf9b5/</guid>
-      <pubDate>Tue, 31 Dec 2024 13:26:18 GMT</pubDate>
-      
-        
-        
-          
-          
-      <description>&lt;h2 id=&quot;任务目标&quot;&gt;&lt;a href=&quot;#任务目标&quot; class=&quot;headerlink&quot; title=&quot;任务目标&quot;&gt;&lt;/a&gt;任务目标&lt;/h2&gt;&lt;ol&gt;
-&lt;li&gt;完成使用cephadm方式部署ceph集群&lt;/li&gt;
-&lt;/ol&gt;
-&lt;h2 id=&quot;任务平台&quot;&gt;&lt;a href=&quot;#任务平台&quot; class=&quot;headerlink&quot; title=&quot;任务平台&quot;&gt;&lt;/a&gt;任务平台&lt;/h2&gt;&lt;ol&gt;
-&lt;li&gt;物理设备—&lt;/li&gt;
-&lt;li&gt;操作系统：openEuler 22.03 LTS SP2&lt;/li&gt;
-&lt;/ol&gt;
-&lt;h2 id=&quot;部署指南&quot;&gt;&lt;a href=&quot;#部署指南&quot;</description>
-          
-        
-      
-      
-      
-      
-      <category domain="https://MarsperL.github.io/categories/%E5%AD%98%E5%82%A8%E7%B3%BB%E7%BB%9F/">存储系统</category>
-      
-      <category domain="https://MarsperL.github.io/categories/%E5%AD%98%E5%82%A8%E7%B3%BB%E7%BB%9F/ceph/">ceph</category>
-      
-      
-      <category domain="https://MarsperL.github.io/tags/ceph/">ceph</category>
-      
-      <category domain="https://MarsperL.github.io/tags/%E5%85%B1%E4%BA%AB%E5%AD%98%E5%82%A8/">共享存储</category>
-      
-      <category domain="https://MarsperL.github.io/tags/ceph%E9%9B%86%E7%BE%A4/">ceph集群</category>
-      
-      <category domain="https://MarsperL.github.io/tags/cephadm/">cephadm</category>
-      
-      
-      <comments>https://marsperl.github.io/yyg/89bdf9b5/#disqus_thread</comments>
-      
-    </item>
-    
-    <item>
       <title>ELK | 使用 docker部署三节点 Elasticsearch 集群</title>
       <link>https://marsperl.github.io/yyg/56088d5a/</link>
       <guid>https://marsperl.github.io/yyg/56088d5a/</guid>
@@ -478,6 +436,48 @@
       
       
       <comments>https://marsperl.github.io/yyg/56088d5a/#disqus_thread</comments>
+      
+    </item>
+    
+    <item>
+      <title>使用cephadm方式部署ceph集群</title>
+      <link>https://marsperl.github.io/yyg/89bdf9b5/</link>
+      <guid>https://marsperl.github.io/yyg/89bdf9b5/</guid>
+      <pubDate>Tue, 31 Dec 2024 13:26:18 GMT</pubDate>
+      
+        
+        
+          
+          
+      <description>&lt;h2 id=&quot;任务目标&quot;&gt;&lt;a href=&quot;#任务目标&quot; class=&quot;headerlink&quot; title=&quot;任务目标&quot;&gt;&lt;/a&gt;任务目标&lt;/h2&gt;&lt;ol&gt;
+&lt;li&gt;完成使用cephadm方式部署ceph集群&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&quot;任务平台&quot;&gt;&lt;a href=&quot;#任务平台&quot; class=&quot;headerlink&quot; title=&quot;任务平台&quot;&gt;&lt;/a&gt;任务平台&lt;/h2&gt;&lt;ol&gt;
+&lt;li&gt;物理设备—&lt;/li&gt;
+&lt;li&gt;操作系统：openEuler 22.03 LTS SP2&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&quot;部署指南&quot;&gt;&lt;a href=&quot;#部署指南&quot;</description>
+          
+        
+      
+      
+      
+      
+      <category domain="https://MarsperL.github.io/categories/%E5%AD%98%E5%82%A8%E7%B3%BB%E7%BB%9F/">存储系统</category>
+      
+      <category domain="https://MarsperL.github.io/categories/%E5%AD%98%E5%82%A8%E7%B3%BB%E7%BB%9F/ceph/">ceph</category>
+      
+      
+      <category domain="https://MarsperL.github.io/tags/ceph/">ceph</category>
+      
+      <category domain="https://MarsperL.github.io/tags/%E5%85%B1%E4%BA%AB%E5%AD%98%E5%82%A8/">共享存储</category>
+      
+      <category domain="https://MarsperL.github.io/tags/ceph%E9%9B%86%E7%BE%A4/">ceph集群</category>
+      
+      <category domain="https://MarsperL.github.io/tags/cephadm/">cephadm</category>
+      
+      
+      <comments>https://marsperl.github.io/yyg/89bdf9b5/#disqus_thread</comments>
       
     </item>
     
@@ -589,9 +589,9 @@
       <category domain="https://MarsperL.github.io/categories/Linux%E8%BF%90%E7%BB%B4/%E5%AE%B9%E5%99%A8%E7%AE%A1%E7%90%86/">容器管理</category>
       
       
-      <category domain="https://MarsperL.github.io/tags/Linux/">Linux</category>
-      
       <category domain="https://MarsperL.github.io/tags/%E8%BF%90%E7%BB%B4/">运维</category>
+      
+      <category domain="https://MarsperL.github.io/tags/Linux/">Linux</category>
       
       <category domain="https://MarsperL.github.io/tags/x86-ARM/">x86-ARM</category>
       
@@ -630,9 +630,9 @@
       
       <category domain="https://MarsperL.github.io/tags/docker/">docker</category>
       
-      <category domain="https://MarsperL.github.io/tags/Linux/">Linux</category>
-      
       <category domain="https://MarsperL.github.io/tags/%E8%BF%90%E7%BB%B4/">运维</category>
+      
+      <category domain="https://MarsperL.github.io/tags/Linux/">Linux</category>
       
       <category domain="https://MarsperL.github.io/tags/Watchtower/">Watchtower</category>
       
@@ -669,9 +669,9 @@
       
       <category domain="https://MarsperL.github.io/tags/docker/">docker</category>
       
-      <category domain="https://MarsperL.github.io/tags/Linux/">Linux</category>
-      
       <category domain="https://MarsperL.github.io/tags/%E8%BF%90%E7%BB%B4/">运维</category>
+      
+      <category domain="https://MarsperL.github.io/tags/Linux/">Linux</category>
       
       <category domain="https://MarsperL.github.io/tags/Slim/">Slim</category>
       
@@ -706,14 +706,51 @@
       <category domain="https://MarsperL.github.io/categories/%E5%AE%B9%E5%99%A8%E5%8C%96/podman/">podman</category>
       
       
-      <category domain="https://MarsperL.github.io/tags/Linux/">Linux</category>
-      
       <category domain="https://MarsperL.github.io/tags/%E8%BF%90%E7%BB%B4/">运维</category>
+      
+      <category domain="https://MarsperL.github.io/tags/Linux/">Linux</category>
       
       <category domain="https://MarsperL.github.io/tags/podman/">podman</category>
       
       
       <comments>https://marsperl.github.io/yyg/c10999ab/#disqus_thread</comments>
+      
+    </item>
+    
+    <item>
+      <title>LNMP部署</title>
+      <link>https://marsperl.github.io/yyg/776a1cd4/</link>
+      <guid>https://marsperl.github.io/yyg/776a1cd4/</guid>
+      <pubDate>Tue, 31 Dec 2024 13:26:18 GMT</pubDate>
+      
+        
+        
+          
+          
+      <description>&lt;h2 id=&quot;基础环境&quot;&gt;&lt;a href=&quot;#基础环境&quot; class=&quot;headerlink&quot; title=&quot;基础环境&quot;&gt;&lt;/a&gt;基础环境&lt;/h2&gt;&lt;p&gt;系统环境：CentOS Stream 9&lt;/p&gt;
+&lt;p&gt;软件环境：nginx-1.20.1、mysql-8.0.36（mariaDB）、php-8.0.30&lt;/p&gt;
+&lt;h2 id=&quot;部署过程&quot;&gt;&lt;a href=&quot;#部署过程&quot; class=&quot;headerlink&quot; title=&quot;部署过程&quot;&gt;&lt;/a&gt;部署过程&lt;/h2&gt;&lt;h3 id=&quot;方案一：yum安装&quot;&gt;&lt;a href=&quot;#方案一：yum安装&quot; class=&quot;headerlink&quot;</description>
+          
+        
+      
+      
+      
+      
+      <category domain="https://MarsperL.github.io/categories/Linux%E8%BF%90%E7%BB%B4/">Linux运维</category>
+      
+      <category domain="https://MarsperL.github.io/categories/Linux%E8%BF%90%E7%BB%B4/Web%E6%9C%8D%E5%8A%A1%E6%9E%B6%E6%9E%84%E9%83%A8%E7%BD%B2/">Web服务架构部署</category>
+      
+      
+      <category domain="https://MarsperL.github.io/tags/Linux/">Linux</category>
+      
+      <category domain="https://MarsperL.github.io/tags/Nginx/">Nginx</category>
+      
+      <category domain="https://MarsperL.github.io/tags/Mysql/">Mysql</category>
+      
+      <category domain="https://MarsperL.github.io/tags/PHP/">PHP</category>
+      
+      
+      <comments>https://marsperl.github.io/yyg/776a1cd4/#disqus_thread</comments>
       
     </item>
     
@@ -746,43 +783,6 @@
       
       
       <comments>https://marsperl.github.io/yyg/29b27760/#disqus_thread</comments>
-      
-    </item>
-    
-    <item>
-      <title>LNMP部署</title>
-      <link>https://marsperl.github.io/yyg/776a1cd4/</link>
-      <guid>https://marsperl.github.io/yyg/776a1cd4/</guid>
-      <pubDate>Tue, 31 Dec 2024 13:26:18 GMT</pubDate>
-      
-        
-        
-          
-          
-      <description>&lt;h2 id=&quot;基础环境&quot;&gt;&lt;a href=&quot;#基础环境&quot; class=&quot;headerlink&quot; title=&quot;基础环境&quot;&gt;&lt;/a&gt;基础环境&lt;/h2&gt;&lt;p&gt;系统环境：CentOS Stream 9&lt;/p&gt;
-&lt;p&gt;软件环境：nginx-1.20.1、mysql-8.0.36（mariaDB）、php-8.0.30&lt;/p&gt;
-&lt;h2 id=&quot;部署过程&quot;&gt;&lt;a href=&quot;#部署过程&quot; class=&quot;headerlink&quot; title=&quot;部署过程&quot;&gt;&lt;/a&gt;部署过程&lt;/h2&gt;&lt;h3 id=&quot;方案一：yum安装&quot;&gt;&lt;a href=&quot;#方案一：yum安装&quot; class=&quot;headerlink&quot;</description>
-          
-        
-      
-      
-      
-      
-      <category domain="https://MarsperL.github.io/categories/Linux%E8%BF%90%E7%BB%B4/">Linux运维</category>
-      
-      <category domain="https://MarsperL.github.io/categories/Linux%E8%BF%90%E7%BB%B4/Web%E6%9C%8D%E5%8A%A1%E6%9E%B6%E6%9E%84%E9%83%A8%E7%BD%B2/">Web服务架构部署</category>
-      
-      
-      <category domain="https://MarsperL.github.io/tags/Linux/">Linux</category>
-      
-      <category domain="https://MarsperL.github.io/tags/Mysql/">Mysql</category>
-      
-      <category domain="https://MarsperL.github.io/tags/PHP/">PHP</category>
-      
-      <category domain="https://MarsperL.github.io/tags/Nginx/">Nginx</category>
-      
-      
-      <comments>https://marsperl.github.io/yyg/776a1cd4/#disqus_thread</comments>
       
     </item>
     
